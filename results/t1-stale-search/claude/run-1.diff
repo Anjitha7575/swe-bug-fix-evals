@@ -1,0 +1,41 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..0f8e50a 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -56,6 +56,8 @@ function PropertiesContent() {
+   const canCompareProperties = canCompare(compareIds);
+ 
+   const scrollTopRef = useRef(0);
++  // Incremented per search so responses from superseded requests are ignored.
++  const latestRequestIdRef = useRef(0);
+   const [initialScrollTop, setInitialScrollTop] = useState(0);
+ 
+   useEffect(() => {
+@@ -129,6 +131,8 @@ function PropertiesContent() {
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestRequestIdRef.current;
++    const isStale = () => requestId !== latestRequestIdRef.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +158,17 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (isStale()) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (isStale()) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (!isStale()) setIsLoading(false);
+     }
+   }, [
+     searchQuery,

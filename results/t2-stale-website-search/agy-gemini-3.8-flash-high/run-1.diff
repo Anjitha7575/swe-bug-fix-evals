@@ -1,0 +1,150 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..31abecd11 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -356,6 +356,13 @@ export function WebsiteViewDialog({
+   const [activeQuery, setActiveQuery] = useState('');
+   const [searchResults, setSearchResults] = useState<CrawlerSearchResult[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
++  const nextSearchIdRef = useRef(1);
++  const activeSearchIdRef = useRef(0);
++  const activeQueryRef = useRef('');
++  const activeWebsiteIdRef = useRef(website._id);
++  activeWebsiteIdRef.current = website._id;
++  const isOpenRef = useRef(isOpen);
++  isOpenRef.current = isOpen;
+   // The list narrowed to the failed or the skipped pages: a reader reaches
+   // the five that failed without walking the five hundred that did not.
+   // The counts come with every pages answer, whichever state is open.
+@@ -400,15 +407,58 @@ export function WebsiteViewDialog({
+     },
+   );
+ 
++  const isStaleSearch = useCallback(
++    (
++      dataQuery?: string,
++      variables?: { websiteId?: string; query?: string },
++      context?: unknown,
++    ): boolean => {
++      if (!isOpenRef.current) return true;
++      if (activeSearchIdRef.current === 0) return true;
++      if (!activeQueryRef.current) return true;
++      if (
++        typeof context === 'object' &&
++        context !== null &&
++        'searchId' in context &&
++        typeof context.searchId === 'number'
++      ) {
++        if (context.searchId !== activeSearchIdRef.current) {
++          return true;
++        }
++      }
++      if (
++        variables?.websiteId &&
++        variables.websiteId !== activeWebsiteIdRef.current
++      ) {
++        return true;
++      }
++      if (variables?.query && variables.query !== activeQueryRef.current) {
++        return true;
++      }
++      if (dataQuery && dataQuery !== activeQueryRef.current) {
++        return true;
++      }
++      return false;
++    },
++    [],
++  );
++
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onMutate: () => ({ searchId: activeSearchIdRef.current }),
++      onSuccess: (data, variables, context) => {
++        if (isStaleSearch(data?.query, variables, context)) {
++          return;
++        }
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, variables, context) => {
++        if (isStaleSearch(undefined, variables, context)) {
++          return;
++        }
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -416,22 +466,36 @@ export function WebsiteViewDialog({
+   );
+ 
+   useEffect(() => {
+-    if (isOpen) {
+-      shownPages.current = 0;
+-      setPages([]);
+-      setOffset(0);
+-      setHasMore(false);
+-      setIsFirstLoad(true);
+-      setSearchQuery('');
+-      setActiveQuery('');
+-      setSearchResults([]);
+-      setPageState('all');
+-      pageStateRef.current = 'all';
+-      setPageCounts(null);
+-      fetchPages({ websiteId: website._id, offset: 0, limit: PAGE_SIZE });
++    if (!isOpen) {
++      activeSearchIdRef.current = 0;
++      activeQueryRef.current = '';
++      setIsSearching(false);
++      return;
+     }
++    shownPages.current = 0;
++    setPages([]);
++    setOffset(0);
++    setHasMore(false);
++    setIsFirstLoad(true);
++    setSearchQuery('');
++    setActiveQuery('');
++    setSearchResults([]);
++    setIsSearching(false);
++    activeSearchIdRef.current = 0;
++    activeQueryRef.current = '';
++    setPageState('all');
++    pageStateRef.current = 'all';
++    setPageCounts(null);
++    fetchPages({ websiteId: website._id, offset: 0, limit: PAGE_SIZE });
+   }, [isOpen, website._id, fetchPages]);
+ 
++  useEffect(() => {
++    return () => {
++      activeSearchIdRef.current = 0;
++      activeQueryRef.current = '';
++    };
++  }, []);
++
+   // The row follows the scan through realtime hints; the pages below are
+   // read on open, so they follow the row: whenever a scan moves what the row
+   // counts, the pages already shown are read again in place.
+@@ -460,7 +524,11 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const searchId = nextSearchIdRef.current++;
++    activeSearchIdRef.current = searchId;
++    activeQueryRef.current = query;
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+   }, [searchQuery, website._id, searchContent]);
+@@ -500,6 +568,8 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      activeSearchIdRef.current = 0;
++      activeQueryRef.current = '';
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

@@ -1,0 +1,10 @@
+The stale-results bug on `/properties` is fixed in `frontend/app/properties/PropertiesClient.tsx`. I didn't add or change any tests.
+
+**Cause:** Each search change fires a debounced `fetchProperties`, but nothing stopped an earlier request from finishing after a later one. A slow response for an old term could then overwrite the list while the search box showed the newer term.
+
+**Fix:** I added a request counter (`latestRequestIdRef`). Each fetch takes a new id, and only the most recent one can update the list, total, page count, or loading state. Older responses are dropped, and the error path is guarded the same way. I kept the change inside the component rather than adding abort support to `searchProperties`, since that would touch the API layer and its callers.
+
+**Verification:**
+- `tsc --noEmit` reports no errors in this file, and `eslint` on it is clean.
+- The vitest run on the property suites shows 13 failures in component tests (`PropertyInfo` and others) from `window.matchMedia is not a function` under jsdom. The same 13 fail with my change stashed, so they predate this fix. No test covers `PropertiesClient` directly.
+- I did not manually reproduce the race in a browser. The fix is verified by reading the code and the type/lint checks only.

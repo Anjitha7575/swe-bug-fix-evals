@@ -1,0 +1,11 @@
+I fixed the search in the website view dialog so a search's results, error or loading state only show if it's still the latest search. I haven't run the tests or the type check: dependencies aren't installed here, so both failed to start (`Cannot find package '@tale/ui'` and missing type definitions).
+
+**Cause:** The dialog's search callbacks run for every search that finishes, not just the newest one. They updated the screen without checking whether that search was still current. So a slow earlier search could overwrite the results of a later one. A search sent before the box was cleared, or before switching sites, could also come back and replace the cleared or reset view. That included turning the error toast or the loading spinner back on.
+
+**Fix** (only `services/platform/app/features/websites/components/website-view-dialog.tsx`):
+- Each search now records the exact request it sent as the one the box is waiting on.
+- When a search succeeds or fails, its response is ignored unless it matches that record. Old responses can no longer replace results, show an error toast, or stop the spinner for the current search.
+- Clearing the box and opening the dialog or switching sites now cancel the pending search, so a late response is ignored. Opening or switching sites also turns off the loading spinner.
+- Starting a new search now clears the previous results, so the old query's results don't sit under the spinner while the new one loads.
+
+No tests were edited. To check it, run `bun install`, then `bunx vitest --run --config vitest.ui.config.ts app/features/websites` and `bunx tsc --noEmit` in `services/platform`.

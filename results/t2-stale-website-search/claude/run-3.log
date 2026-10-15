@@ -1,0 +1,11 @@
+The type check is still running in the background. I'll report once it finishes.
+
+I fixed it in `services/platform/app/features/websites/components/website-view-dialog.tsx`. The dialog now only shows results from the latest search, so an older search that finishes late can't change what's on screen. The dialog's existing tests pass (30/30) and the type check reports no errors in that file. I didn't add a test that makes searches finish out of order, so that exact case hasn't been run. No tests were edited.
+
+**Cause:** every search reply was put on screen when it arrived, even if it belonged to an older search. A slow first search finishing after a fast second one replaced the newer results. The same thing happened after you cleared the box or switched sites mid-search: the old reply's results, its error message or the end of its loading state still showed up.
+
+**Fix:**
+- Each new search now records itself as the current one.
+- Clearing the box, or opening the dialog or switching to a different site, means no search is current.
+- When a reply arrives, the dialog checks it against the current search. If it isn't the current one, the results, the error message and the loading-state change are all ignored.
+- Opening the dialog or switching sites now also turns off the loading spinner, so it can't be left over from the previous site.

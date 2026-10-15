@@ -1,0 +1,117 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..c1940f864 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -34,6 +34,7 @@ import {
+   type KeyboardEvent,
+   useCallback,
+   useEffect,
++  useLayoutEffect,
+   useMemo,
+   useRef,
+   useState,
+@@ -356,6 +357,16 @@ export function WebsiteViewDialog({
+   const [activeQuery, setActiveQuery] = useState('');
+   const [searchResults, setSearchResults] = useState<CrawlerSearchResult[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
++  const searchRequestId = useRef(0);
++  const currentSearchContext = useRef({
++    websiteId: website._id,
++    isOpen,
++    query: '',
++  });
++  useLayoutEffect(() => {
++    currentSearchContext.current.websiteId = website._id;
++    currentSearchContext.current.isOpen = isOpen;
++  }, [isOpen, website._id]);
+   // The list narrowed to the failed or the skipped pages: a reader reaches
+   // the five that failed without walking the five hundred that did not.
+   // The counts come with every pages answer, whichever state is open.
+@@ -402,20 +413,17 @@ export function WebsiteViewDialog({
+ 
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+-    {
+-      errorToast: false,
+-      onSuccess: (data) => {
+-        setSearchResults(data.results);
+-        setIsSearching(false);
+-      },
+-      onError: () => {
+-        setIsSearching(false);
+-        toast({ title: t('toast.searchError'), variant: 'destructive' });
+-      },
+-    },
++    { errorToast: false },
+   );
+ 
+   useEffect(() => {
++    // A response from a closed dialog or the previously selected site must
++    // not update the next view.
++    searchRequestId.current += 1;
++    currentSearchContext.current.query = '';
++    setIsSearching(false);
++    if (!isOpen) return;
++
+     if (isOpen) {
+       shownPages.current = 0;
+       setPages([]);
+@@ -460,10 +468,42 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const requestId = ++searchRequestId.current;
++    const websiteId = website._id;
++    currentSearchContext.current = { websiteId, isOpen: true, query };
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
+-  }, [searchQuery, website._id, searchContent]);
++    searchContent(
++      { websiteId, query, limit: 20 },
++      {
++        onSuccess: (data, variables) => {
++          if (
++            requestId !== searchRequestId.current ||
++            !currentSearchContext.current.isOpen ||
++            currentSearchContext.current.websiteId !== variables.websiteId ||
++            currentSearchContext.current.query !== variables.query
++          ) {
++            return;
++          }
++          setSearchResults(data.results);
++          setIsSearching(false);
++        },
++        onError: (_error, variables) => {
++          if (
++            requestId !== searchRequestId.current ||
++            !currentSearchContext.current.isOpen ||
++            currentSearchContext.current.websiteId !== variables.websiteId ||
++            currentSearchContext.current.query !== variables.query
++          ) {
++            return;
++          }
++          setIsSearching(false);
++          toast({ title: t('toast.searchError'), variant: 'destructive' });
++        },
++      },
++    );
++  }, [searchQuery, website._id, searchContent, t]);
+ 
+   const loadMore = useCallback(() => {
+     const nextOffset = offset + PAGE_SIZE;
+@@ -498,8 +538,11 @@ export function WebsiteViewDialog({
+   );
+ 
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+-    setSearchQuery(e.target.value);
+-    if (!e.target.value.trim()) {
++    const value = e.target.value;
++    setSearchQuery(value);
++    if (value.trim() !== currentSearchContext.current.query) {
++      searchRequestId.current += 1;
++      currentSearchContext.current.query = '';
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

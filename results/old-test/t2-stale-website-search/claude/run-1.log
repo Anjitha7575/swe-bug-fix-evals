@@ -1,0 +1,10 @@
+I fixed the stale search results in `services/platform/app/features/websites/components/website-view-dialog.tsx`, but I couldn't run the tests or a real typecheck. This checkout's dependencies aren't installed: vitest can't find `@tale/ui`, and `tsc` stops early on missing `bun` and `node` type definitions.
+
+**Cause:** the dialog showed whatever search response arrived, and showed every one. So a slow earlier search could overwrite a newer one. A search still running after you cleared the box or switched sites would also come back and put its results, error toast or spinner change on screen.
+
+**Fix:**
+- Each search now records the request it sent as the current one. When a response or error comes back, it only changes the dialog if it belongs to that current request; anything older is ignored, including its error toast.
+- Clearing the box, opening the dialog or switching sites resets the current request to none, so responses still in flight are ignored. Opening or switching also turns off the loading spinner, which it didn't before.
+- Starting a new search now clears the previous results, so old results no longer sit under the spinner for the new search.
+
+I didn't change any tests.

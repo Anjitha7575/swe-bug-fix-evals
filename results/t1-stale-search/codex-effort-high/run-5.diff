@@ -1,0 +1,53 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..1eb3e7b 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -48,6 +48,7 @@ function PropertiesContent() {
+   const [total, setTotal] = useState(0);
+   const [totalPages, setTotalPages] = useState(0);
+   const [isLoading, setIsLoading] = useState(true);
++  const latestSearchRequest = useRef(0);
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
+@@ -129,6 +130,7 @@ function PropertiesContent() {
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestSearchRequest.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +156,19 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== latestSearchRequest.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== latestSearchRequest.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === latestSearchRequest.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,
+@@ -185,7 +191,10 @@ function PropertiesContent() {
+       trackPropertyDiscoveryStep("anonymous", "search_properties");
+       void fetchProperties();
+     }, 300);
+-    return () => clearTimeout(debounce);
++    return () => {
++      clearTimeout(debounce);
++      latestSearchRequest.current += 1;
++    };
+   }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+ 
+   useEffect(() => {

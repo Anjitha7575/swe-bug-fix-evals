@@ -1,0 +1,15 @@
+I fixed the reaction toggle in `packages/app-shell/src/views/RecordDetailView.tsx`. The existing tests for that view and for i18n pass (106 files, 1427 tests), but none of them cover reactions. I haven't run the failure, rapid-click or pending-save cases, in a test or in the app. No tests were edited.
+
+**Why it broke:** the save call ran inside a React state update, which React can run twice, so one click could save twice. Errors from the save were also caught and silently ignored, so a failed save left the reaction showing.
+
+**What it does now:**
+- **Shows the stored state plus pending clicks.** For each comment, the page keeps the reactions as last saved, plus a queue of clicks that haven't been saved yet. The chip always shows the saved reactions with the queued clicks applied, so every click appears right away and still counts while an earlier save is pending.
+- **Saves once per click, in order.** Saves now happen outside the state update, one at a time. Each one starts from the last saved state, so a click can't be saved twice and fast clicks can't get out of order.
+- **Undoes failures and shows an error.** If a save fails, that click is dropped. The chip goes back to the saved state (plus any clicks still queued), and an error toast says "Your reaction was not saved. Please try again." This also happens if there's no data source, where before the click was only applied on screen.
+- **Translations:** I added the new message as `detail.reactionFailed` in all 10 locale files next to `commentFailed`. Please have someone check the non-English wording.
+
+The toggle logic and the conversion to the saved format are now two small pure functions. The saved format itself is unchanged: other users' reactions are still stored as `__other__` placeholders.
+
+Two-thirds of the way through, I caught and fixed a small edge case: a click landing between a failed save and the next screen update could have started from the failed state.
+
+That alert was the monitor on the first, broader test run, which I'd already stopped as too slow, so it had nothing left to watch. The narrower run of the record detail view and i18n tests passed (106 files), so the earlier summary stands.

@@ -1,0 +1,17 @@
+I fixed all three problems: a failed reaction save now rolls back and shows an error, a click saves only once, and clicks made during a pending save still count. The related tests pass (323 files, from the repo root). I haven't tried it in the running app, and I didn't add a new test.
+
+**What was wrong** (`packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`):
+- **Saving twice:** the save call ran inside a React state update function. In StrictMode, React runs those functions twice, so each click was saved twice.
+- **No error shown:** a failed save was caught and ignored, so the reaction stayed on screen even though it was never stored.
+
+**What changed:**
+- **One save queue per comment:** each click changes the screen right away and joins that comment's queue. Saves run one at a time, so a click made while an earlier save is still pending is not lost.
+- **The screen follows what was stored:** what you see is always the last saved reactions plus the clicks still waiting to save. Each save applies its click to the last saved state, not to the optimistic one. So if one save fails, its change disappears and the clicks after it still save correctly.
+- **Errors are shown:** a failed save shows a toast saying "Your reaction was not saved — please try again." I added this as a new `detail.reactionFailed` text in all 10 language files.
+- **The save runs outside the state update function now**, which removes the double save.
+
+**One behaviour change:** before, if there was no data source, a reaction was still added to the screen locally. Now that counts as a failed save, so the reaction rolls back and the error toast appears. This matches how comments already behave.
+
+**Known gap:** if the comment list reloads from the server while a reaction save is in progress, the reload can briefly overwrite what's on screen until that save finishes.
+
+**Checks:** running `tsc` from inside the package couldn't find the other `@object-ui` packages, so it didn't fully work. It showed no errors in the code I changed.

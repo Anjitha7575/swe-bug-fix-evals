@@ -1,0 +1,9 @@
+I fixed this in `services/platform/app/features/websites/components/website-view-dialog.tsx`. The existing dialog tests pass (30/30) and the type check reports no errors in the file. None of those tests cover a race between searches, though, and I didn't edit tests as you asked. So the fix hasn't been run against the out-of-order case.
+
+**Cause:** the dialog showed whichever search answer arrived last, not the one for the newest query. If an older search finished after a newer one, its results replaced the newer ones. A failure did the same with the error toast and the loading spinner. Clearing the box or switching sites didn't cancel searches still running, so their answers could still appear afterwards.
+
+**Fix:**
+- **Track the newest search:** each search now records the request it sent as the current one. When an answer comes back, it's only shown if it belongs to that request. Otherwise its results, error toast and loading state are all ignored.
+- **Clearing the box:** this marks no search as current, so any answer still on its way is dropped.
+- **Opening the dialog or switching sites:** this resets the search the same way and also turns off the loading spinner.
+- **Starting a new search:** this now clears the old results first, so the previous query's results don't sit under the spinner while the new one runs.

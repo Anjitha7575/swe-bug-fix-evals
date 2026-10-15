@@ -1,0 +1,68 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..9252caf01 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -356,6 +356,7 @@ export function WebsiteViewDialog({
+   const [activeQuery, setActiveQuery] = useState('');
+   const [searchResults, setSearchResults] = useState<CrawlerSearchResult[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
++  const currentSearch = useRef<{ websiteId: string; query: string } | null>(null);
+   // The list narrowed to the failed or the skipped pages: a reader reaches
+   // the five that failed without walking the five hundred that did not.
+   // The counts come with every pages answer, whichever state is open.
+@@ -404,11 +405,20 @@ export function WebsiteViewDialog({
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, variables) => {
++        if (
++          currentSearch.current?.websiteId !== variables.websiteId ||
++          currentSearch.current?.query !== variables.query
++        ) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, variables) => {
++        if (
++          currentSearch.current?.websiteId !== variables.websiteId ||
++          currentSearch.current?.query !== variables.query
++        ) return;
++        currentSearch.current = null;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -424,6 +434,7 @@ export function WebsiteViewDialog({
+       setIsFirstLoad(true);
+       setSearchQuery('');
+       setActiveQuery('');
++      currentSearch.current = null;
+       setSearchResults([]);
+       setPageState('all');
+       pageStateRef.current = 'all';
+@@ -460,6 +471,8 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    currentSearch.current = { websiteId: website._id, query };
++    setSearchResults([]);
+     setActiveQuery(query);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+@@ -499,11 +512,10 @@ export function WebsiteViewDialog({
+ 
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+-    if (!e.target.value.trim()) {
+-      setActiveQuery('');
+-      setSearchResults([]);
+-      setIsSearching(false);
+-    }
++    currentSearch.current = null;
++    setActiveQuery('');
++    setSearchResults([]);
++    setIsSearching(false);
+   }, []);
+ 
+   const handleSearchKeyDown = useCallback(

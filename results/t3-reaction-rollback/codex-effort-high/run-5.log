@@ -1,0 +1,1685 @@
+OpenAI Codex v0.162.1
+--------
+workdir: /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+model: gpt-6-luna
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: high
+reasoning summaries: none
+session id: 01a13e8d-7b36-7652-9855-ea137e910522
+--------
+user
+On a record's detail page, adding or removing an emoji reaction on a comment updates the UI immediately. If saving fails, the reaction still looks applied and the user is never told. Quick repeated clicks also seem to save twice. Fix it so the UI reflects what was actually stored and the user sees an error. Every click must still register, even while an earlier save is pending. Don't edit tests.
+codex
+I’ll trace the comment reaction flow on the record detail page, then adjust the optimistic update and persistence handling so failed saves roll back visibly while rapid clicks remain accounted for. I’ll leave tests untouched.
+exec
+/bin/zsh -lc "pwd && rg -n \"reaction|emoji|comment\" . --glob '"'!node_modules'"' --glob '"'!vendor'"' | head -200" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 187ms:
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+./tsconfig.json:42:// closes a block comment early, and a tsconfig that silently fails to parse
+./skills/objectui/rules/protocol.md:290:    { "name": "comment", "type": "textarea", "required": true },
+./eslint.config.js:310:  // in a comment, in an assertion message, or in data a test asserts ON is a
+./vitest.config.mts:259: * vitest reds a test rather than rotting a comment.
+./vitest.config.mts:344:          // comment is the only thing a future author consults before adding a
+./vitest.config.mts:394:          // their own (e.g. the PR-comment renderer behind
+./tsconfig.vitest-setup.json:34:// closes a block comment early, and a tsconfig that silently fails to parse
+./tsconfig.vitest-setup.json:152:    // already satisfied by the ci.yml ordering their comment describes.
+./content/docs/utilities/runner.mdx:167:Read the file — its own comments carry the reasoning, and a shell command that
+./apps/console/src/services/approvalsApi.ts:166:  comment?: string | null;
+./apps/console/src/services/approvalsApi.ts:264:  async approve(id: string, body: { actorId?: string; actor_id?: string; comment?: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:273:  async reject(id: string, body: { actorId?: string; actor_id?: string; comment?: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:281:  async recall(id: string, body: { actorId?: string; actor_id?: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:291:  async reassign(id: string, body: { actor_id?: string; to: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:300:  async remind(id: string, body: { actor_id?: string; comment?: string } = {}) {
+./apps/console/src/services/approvalsApi.ts:309:  async requestInfo(id: string, body: { actor_id?: string; comment: string }) {
+./apps/console/src/services/approvalsApi.ts:323:  async sendBack(id: string, body: { actor_id?: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:335:  async resubmit(id: string, body: { actor_id?: string; comment?: string } = {}) {
+./apps/console/src/services/approvalsApi.ts:344:  async comment(id: string, body: { actor_id?: string; comment: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:346:      `/approvals/requests/${encodeURIComponent(id)}/comment`,
+./apps/console/src/services/approvalsApi.ts:357:    comment?: string;
+./packages/runner/src/__tests__/published-stylesheet-sources.test.ts:24: *     English words picked out of prose comments.
+./packages/runner/src/__tests__/published-stylesheet-sources.test.ts:167:    // prose comment in `packages/components/src/__tests__/`. It is a real
+./content/docs/core/enhanced-actions.mdx:142:    { "name": "comment", "type": "textarea", "label": "Comment", "required": true },
+./eslint-rules/no-unprefixed-query-params.js:49: * object while its own comment described it as capped at 200. That is the
+./eslint-rules/no-unprefixed-query-params.js:51: * comment asserting the opposite.
+./eslint-rules/no-line-address-in-test-name.js:27: *   - a name-agnostic scan of quoted addresses on non-comment lines finds 45
+./eslint-rules/no-line-address-in-test-name.js:65: *      comment: ESLint hands rules an AST, and nothing here inspects
+./packages/runner/src/index.css:51: * ordinary English words picked out of prose comments). The directory line
+./packages/plugin-kanban/src/ObjectKanban.emptyBadgeLabel.test.tsx:56: * way (the file's own comment says so) and both had the defect, so both are
+./eslint-rules/no-unprefixed-query-params.test.js:24: *     literal, under a comment describing the query as capped at 200 records.
+./pnpm-lock.yaml:7157:  emoji-regex@10.6.0:
+./pnpm-lock.yaml:7160:  emoji-regex@8.0.0:
+./pnpm-lock.yaml:7315:  estree-util-attach-comments@3.0.0:
+./pnpm-lock.yaml:10177:  strip-json-comments@2.0.1:
+./pnpm-lock.yaml:10181:  strip-json-comments@3.1.1:
+./pnpm-lock.yaml:13182:      strip-json-comments: 3.1.1
+./pnpm-lock.yaml:15276:  emoji-regex@10.6.0: {}
+./pnpm-lock.yaml:15278:  emoji-regex@8.0.0: {}
+./pnpm-lock.yaml:15497:  estree-util-attach-comments@3.0.0:
+./pnpm-lock.yaml:16131:      estree-util-attach-comments: 3.0.0
+./pnpm-lock.yaml:17998:      strip-json-comments: 2.0.1
+./pnpm-lock.yaml:18877:      emoji-regex: 8.0.0
+./pnpm-lock.yaml:18883:      emoji-regex: 10.6.0
+./pnpm-lock.yaml:18929:  strip-json-comments@2.0.1:
+./pnpm-lock.yaml:18932:  strip-json-comments@3.1.1:
+./eslint-rules/no-query-params-under-options.js:52: *    the repo is a comment or a test header describing the history, and an AST
+./content/docs/guide/objectos-integration.mdx:557:{/* doc-snippet: fragment — a SHAPE excerpt showing the ObjectUI half of a side-by-side migration comparison, with every slot body elided as a prose comment, so the object literal cannot parse as TypeScript (measured: TS1005 x2, TS1128 x2) */}
+./content/docs/fields/textarea.mdx:6:The TextArea Field component provides a multi-line text input for collecting longer text content from users, such as descriptions, comments, or notes.
+./content/docs/fields/textarea.mdx:47:- **Comments**: User feedback, review comments
+./content/docs/guide/agent-skills.md:85:- **English-only**: all generated component text, labels, comments, and docs are English.
+./packages/plugin-kanban/src/ObjectKanban.tsx:224: * the instrument, ⛔ never this comment (objectui#9726).
+./packages/plugin-kanban/src/ObjectKanban.tsx:337:   * source comment is the surface a changeset sentence gets copied FROM, so an
+./packages/plugin-kanban/src/ObjectKanban.tsx:441:  // unrepresentable; `useSettledSchema`'s own doc comment carries the full
+./packages/plugin-kanban/src/ObjectKanban.tsx:1096:            // above (objectui#5141/#5183); see the comment there for why the
+./packages/plugin-kanban/src/ObjectKanban.tsx:1255:  // `ObjectKanbanSchema` about any other key, ⛔ never a neighbouring comment
+./eslint-rules/no-line-address-in-test-name.test.js:15: * field a test asserts ON, a comment, and an address whose line number is
+./eslint-rules/no-line-address-in-test-name.test.js:52:    // A comment. ESLint hands rules an AST and this rule never reads comments.
+./apps/console/src/pages/shared-record-shape.ts:17:  permission: 'view' | 'comment' | 'edit';
+./packages/runner/vite.config.ts:75:      //   - the `(?<![@\w])` lookbehind skips CSS `@import`, so doc comments
+./packages/runner/vite.config.ts:79:      //   - `grep -vP '^\s*(\*|//)'` drops JSDoc/line-comment examples such as
+./content/docs/guide/ci-cd-pipeline.md:237:| `type-check` | Type Check | `scripts/check-type-check-coverage.mjs`, then `pnpm check:phantom-deps`, then `pnpm check:self-import`, then `pnpm check:unreferenced-sources`, then `pnpm check:doc-example-readers`, then `pnpm check:handler-key-reads`, then `pnpm check:metadata-write-doors`, then `pnpm check:published-tsconfig-exclude`, then `pnpm check:side-effects-array`, then `pnpm check:element-data-source-declaration`, then `pnpm check:esm-specifiers`, then `pnpm check:spec-symbols`, then `pnpm check:action-forward-parity`, then `pnpm check:designer-field-key-parity`, then `pnpm check:icon-record-names`, then `pnpm check:i18n-keys`, then `pnpm check:i18n-drift`, then `pnpm check:i18n-designer-parity`, then `pnpm type-check:scripts`, then `pnpm type-check:vitest-config`, then `pnpm type-check`, then `pnpm type-check:vitest-setup`. The coverage guard runs first because turbo silently skips packages that have no `type-check` script, so a package without one would otherwise read as passing (#2911). `pnpm check:phantom-deps` fails when a released package imports a bare specifier its own `package.json` does not declare — a *phantom dependency*, invisible locally because the workspace root's `devDependencies` sit on the upward resolution path from every package directory and on no consumer's, so `require.resolve('react', { paths: ['packages/core/src'] })` succeeds while `@object-ui/core` declares react in no field at all ([#4394](https://github.com/objectstack-ai/objectui/issues/4394)). `pnpm check:self-import` runs next because it reuses that gate's parser: it fails when a file inside a package names its OWN package, a specifier that resolves through the package's `exports` map to `dist/` while `type-check` waits on `^build` — the *dependencies'* builds, never the package's own — so on a cold cache the declarations do not exist yet and the file fails with `TS2307`. Locally it is always green, because every local workflow builds before it type-checks and leaves a `dist/` behind; PR #4789's first run was red on exactly one such line ([#4801](https://github.com/objectstack-ai/objectui/issues/4801)). `pnpm check:unreferenced-sources` runs next, reusing the same parser again: it fails when a covered package ships a source file that nothing reaches — not the package's declared entry, and not its build config. Until [#7515](https://github.com/objectstack-ai/objectui/issues/7515) no gate here could see one: `check-dist-completeness` asks whether `dist/` holds what `tsc` emits, `check-readme-exports` compares documented exports against shipped ones, and a file that is in the tarball while being reachable from nothing is outside both — so the detection mechanism was a human reading unrelated code, which is how both instances found in one week were found ([#7319](https://github.com/objectstack-ai/objectui/issues/7319), [#7397](https://github.com/objectstack-ai/objectui/issues/7397)). The hazard is not the bytes: the file #7319 removed carried the same export name as a live engine one package over and evaluated no predicate, so name-completion alone could have wired a silently wrong renderer into a published package. Reachability has TWO roots, and the second is the whole difficulty — `packages/components` reaches its two `use-sync-external-store` shims only through `vite.config.ts` `resolve.alias` entries whose importer is a bundled dependency no source file names, so a walk that skips that leg reports exactly those two live files as dead on its first run, and a gate that cries wolf gets switched off rather than fixed. Scope is DECLARED per package in `COVERED_PACKAGES` and the uncovered remainder is printed as a count derived from the workspace on every run, because the alias mechanisms differ per package and a gate that covers one package correctly beats one that covers forty with false positives. An alias expression it cannot evaluate is a FINDING rather than a skip, since skipping one would make it accuse whatever file that alias points at. `pnpm check:doc-example-readers` runs next, on the same parser again: it fails when an exported symbol's own JSDoc `@example` hand-spells a resolution that its REAL call sites obtain by calling a shared reader. A doc comment is what the next call site is copied from, so prose that outlives the ruling it encoded re-seeds every later copy — measured at two cards and three copied call sites, both cards closed by pointing the prose at `resolveRecordSourceObjectName` (`b041b9c0c`, `2ce2612df`). Nothing here could see either one, and `check-spec-symbol-derivation` was credited with the class twice — in the second card's body and then in the dispatch that repeated it — while its rule 4 judges `@objectstack/spec` citations at member granularity and says nothing about prose prescribing a LOCAL spelling ([#7652](https://github.com/objectstack-ai/objectui/issues/7652)). It fires on four conditions at once — the example calls the symbol it documents, a real call site fills the same argument slot by calling an exported single-`return` reader, the example does not, and what the example writes there is that reader's own return expression or one of the rungs it resolves between — which is what keeps it off the literals and placeholders an example legitimately carries. It does NOT judge whether a prescribed spelling is correct: on the day either card was filed the prose and every copy of it agreed, and no gate reading only the tree can know a ruling. What it catches is the state right after, when the call sites move and the prose does not. `pnpm check:handler-key-reads` runs next, on the same parser again: it fails when an `on*` handler key that a REGISTERED renderer reads off the authored document is not a declared member of the zod arm for the type it is registered under. `BaseSchema` is `.passthrough()`, so an undeclared key is not refused — it stops being judged and the value is KEPT, then reaches the renderer that reads it; measured on the built dist, `{ type: 'kanban', columns: [], onCardClick: { action: 'toast' } }` went from REFUSED to ACCEPTED with the object surviving into the parsed output ([#7664](https://github.com/objectstack-ai/objectui/issues/7664)). Every gate stayed green, because the [#6124](https://github.com/objectstack-ai/objectui/issues/6124) ledger's population is two hand-written arrays of tuples and that change re-keyed the arm by SUBSTITUTION — so its length assertion held, and a count ratchet would have been green too, which is why `72498f257`, the commit that landed this gate, rejected that option on the instance itself. This gate derives BOTH populations: the arms from every `type: z.literal(…)` in `packages/types/src/zod`, and the read sites from every real `ComponentRegistry.register(…)` call — read off the AST, because one types file NAMES that call in prose eleven times and registers nothing. It follows the document one component at a time rather than every JSX child, because most children are handed a DIFFERENT document (a dashboard's widgets each get their own), and the chain it must reach is four hops long: `register('kanban', ObjectKanbanRenderer)` names a component, that component is an HOC, the document arrives at `ObjectKanban` through a render-prop parameter and at `KanbanRenderer` through an object spread. It says nothing about keys that reach a renderer only through a `{...props}` spread onto a Radix root or a DOM listener slot — there is no read site to derive from — nor about the ledger's `?: never` tombstones, which have no read site by construction; `KNOWN_UNDECLARED_READS` is an exemption list that only shrinks, each row naming the card that owns the fix, and a row whose read site the gate can no longer find fails it. It lives in `scripts/` because the read sites are spread across `@object-ui/plugin-*` and `packages/components`, which `@object-ui/types` may not import — `check:phantom-deps` rejects it and it would close a cycle. `pnpm check:metadata-write-doors` runs next, on the same parser again: it fails when an in-repo DOOR that can PUT an object-metadata document does not apply the object-metadata write guard. [#7714](https://github.com/objectstack-ai/objectui/issues/7714) ruled one client behaviour — a half-filled relationship is held client-side and the PUT body never carries one without a non-empty `reference` — and its PR implemented that ruling by ENUMERATING the writers it knew of, which were two. The identical defect was then reproduced on a THIRD writer neither guard covered, in that card's own required dogfood (recorded in `9662aca56`, the commit that landed this gate), and [#8676](https://github.com/objectstack-ai/objectui/issues/8676) swept and found nine more. The half that outlives the count is that the sweep the question is naturally asked in cannot see its own subject: `git grep 'client\.save('` returns ZERO over the file that third writer lives in, because the call is `client.save<any>(type, …)` and the generic argument sits between the name and the paren — and a hand-rolled `fetch` PUT to `/api/v1/meta/object/:name` is not that spelling at all. So this gate enumerates DOORS, never writers: the writer set is OPEN and nobody has to announce a new member, while the transport set is CLOSED and this repository owns it, so guarding the doors covers every writer past and future without a list anywhere. It derives every call carrying a `method: 'PUT'` literal whose URL RESOLVES to a `/meta` path — resolved through templates, fields and helper return values rather than read, because the repo's central door spells its URL three hops from the call and says nothing at the call site — plus every call to the SDK's `meta.saveItem`, which lives in a package this repo does not own and so cannot be guarded from the inside. A door whose type is a string literal other than `object` is exempt; a door whose type is a runtime value is judged CAPABLE, which is the fail-closed direction. It answers COVERAGE only — whether a guarded door's body is correct is the guard's own pins — and it refuses to report OK unless it found at least one door of each kind and at least one guarded door, so a renamed transport turns it red rather than green. Same placement rationale as the gates around it: it parses the sources with `typescript`, so it needs the install and nothing built. `pnpm check:published-tsconfig-exclude` follows, config reads only: it fails when a published package's build `tsconfig.json` excludes tooling by FILE NAME (`*.test.ts`) without also excluding the tooling DIRECTORIES (`**/__tests__/**` and its two siblings, derived from `TOOLING_FILE` rather than retyped). A name-only exclude stops the files that happen to be named that way and nothing else, so the first shared helper added to a `__tests__/` directory becomes a program input and an emitting program writes it into the published `dist` — three times so far, each found by a human and never by a gate ([#4006](https://github.com/objectstack-ai/objectui/issues/4006), [#4836](https://github.com/objectstack-ai/objectui/issues/4836), and a third in the same package as the first, all three recorded in `6aeba673c`, the commit that landed this gate). [#7212](https://github.com/objectstack-ai/objectui/issues/7212) measured the standing exposure — 29 published packages carrying the name form with ZERO offending files, green because nobody had added such a helper yet — and the gate landed together with their conversion so `main` was green on merge. It reads `exclude` arrays and nothing else: no build, no artifact, no emit model, which is the narrower scope that keeps it clear of the modelling [#4846](https://github.com/objectstack-ai/objectui/issues/4846) declined for the artifact-level gate. Six published packages are named carve-outs, each re-proving its own reason on every run: `cli`, `create-plugin` and `data-objectstack` emit from a `tsup` entry graph, `plugin-charts` keeps its tooling exclude in the `dts()` options, and `console` and `runner` are Vite applications with `noEmit: true` and no `dts()` plugin. `pnpm check:side-effects-array` runs next, sources only and no build: it fails when a package's `sideEffects` ARRAY and its module bodies disagree in either direction — a module that registers something at load time and is not named (a bundler drops it, and the registration is gone from a *consumer's* app with no error, no warning and exit 0), or a name whose module no longer registers anything. `@object-ui/app-shell` declares such an array because both simpler answers are measurably wrong for it: omitting the field makes the whole package unshakeable, and `"sideEffects": false` silently drops three live SDUI widget registrations to zero chunks ([#6535](https://github.com/objectstack-ai/objectui/issues/6535), [#6683](https://github.com/objectstack-ai/objectui/issues/6683)). The enumeration is re-derived from the module bodies on every run rather than listed, so there is no second copy to rot. The artifact half of the same contract — do those registrations survive a real bundler — cannot run in this job at all: it needs a built console, so it lives in the SDUI registration pin step of `performance-budget.yml`. `pnpm check:element-data-source-declaration` runs next, sources only and no build: it fails when a source that consumes `ElementDataSourceGate` does not also pass through `elementDataSourceBlock()`, the seam that declares the `dataSource` key the gate reads. A block that wraps the gate off-seam publishes an authoring surface missing the one key its own runtime honours, and the html tier reports that key with the same `unknown-prop` warning it gives the spellings that do nothing ([#6678](https://github.com/objectstack-ai/objectui/issues/6678)). `pnpm check:esm-specifiers` follows it for the same reason — sources only, no build: it fails when a published package whose build preserves import specifiers (a bare emitting `tsc`, which never rewrites them) writes a relative specifier with no file extension. Node's ESM resolver does not extension-search relative specifiers, so such a specifier makes the published entry unloadable outside a bundler; `@object-ui/react`'s entry died with `ERR_MODULE_NOT_FOUND` while every bundler-based consumer, the whole test suite and CI stayed green ([#4538](https://github.com/objectstack-ai/objectui/issues/4538)). The half that actually *imports* each built entry needs a full build and runs in `node-esm-load-gate.yml`. `pnpm check:action-forward-parity` fails when an action renderer's forward whitelist drops a key the action runtime reads — the class that shipped six times one key at a time, each time green, because the key parses and publishes while the payload is dropped one hop before the runner ([#4050](https://github.com/objectstack-ai/objectui/issues/4050)). `pnpm check:designer-field-key-parity` fails when one of the field designers' statically declared payload shapes (`FieldMetadataPayload`, `ServerFieldSchema`, `DesignerFieldDefinition`) declares a key the installed `@objectstack/spec` `FieldSchema` refuses by NAME. Such a key makes `PUT /api/v1/meta/object/:name` return a hard 422 `INVALID_METADATA` that blocks *every subsequent save* of that object, and the author cannot tell from the designer UI which key did it — the class had been filed three times, each closed with a per-key tombstone written after the instance was found in production, with nothing detecting the next one ([#4644](https://github.com/objectstack-ai/objectui/issues/4644) `indexed`, [#4687](https://github.com/objectstack-ai/objectui/issues/4687) `distance_metric`, [#4676](https://github.com/objectstack-ai/objectui/issues/4676) `placeholder`, gated by [#5761](https://github.com/objectstack-ai/objectui/issues/5761)). It reads the accept set off the schema itself rather than from a list, and it covers a deliberately documented *subset* of the write path: a key that reaches the payload only through a `patchDef` spread or an index signature is outside its reach, and the boundary is stated in the script's own docblock. Its draft-I/O half — the `readFields`/`writeFields` round-trip, which has no declared shape to read — runs in the test suite as `object-fields-io.spec-keys.test.ts`. Same placement rationale as the gates around it: it parses the sources with `typescript` and imports the installed spec, so it needs the install and nothing built. `pnpm check:icon-record-names` fails when an authored icon NAME that reaches a resolver reading lucide's runtime `icons` record is not a live key of that record. lucide retires a spelling by dropping it from that record while keeping it as a deprecated named export, so the retired name still imports, still type-checks and still renders wherever it is used as a *component* — `Edit === SquarePen` is true — and resolves to nothing wherever it is used as a *string*: nothing goes red in either direction, which is why the class was repaired twice in two packages before anyone gated it ([#5586](https://github.com/objectstack-ai/objectui/issues/5586), [#5622](https://github.com/objectstack-ai/objectui/issues/5622), [#5633](https://github.com/objectstack-ai/objectui/issues/5633)). It carries no list of retired spellings — the record itself is the judgement — and it re-discovers the resolver population from source on every run, which is how its first pass found four record-reading resolvers nobody had catalogued. It sits here because it parses the sources with `typescript` and reads the installed lucide: the install, and nothing built. The three locale gates sit in the middle because all of them parse the sources with `typescript`: they need the install and nothing built. `pnpm check:i18n-keys` fails when a `t()` call site asks for a key the `en` pack does not define ([#3530](https://github.com/objectstack-ai/objectui/issues/3530)); `pnpm check:i18n-drift` fails when a change to an `en` string is not accompanied by the nine translation packs ([#3650](https://github.com/objectstack-ai/objectui/issues/3650)), and it is why this job's checkout sets `fetch-depth: 0` — it diffs against the merge base, which a depth-1 clone cannot resolve. `pnpm check:i18n-designer-parity` fails when the metadata-admin designer's own module-local string tables come apart — an `en` row with no `zh` row, or a shared row whose two values carry different `{placeholders}` ([#8834](https://github.com/objectstack-ai/objectui/issues/8834)). The two gates before it are blind to that file by construction — the first classifies the module `module-local table` by declaration and skips it, the second read only the ten locale packs and this table is not one of them — so the same card also gave `pnpm check:i18n-drift` that table as a SECOND population, which is the half that catches a changed `en` value whose `zh` row did not follow. `pnpm type-check:scripts` (`tsconfig.scripts.json`) covers `scripts/**/*.ts`, which `pnpm type-check` cannot reach at all — `scripts/` has no package.json, so turbo never walks it, and the coverage guard decides coverage per *package*. Until [#3494](https://github.com/objectstack-ai/objectui/issues/3494) that left the pin tests in `scripts/__tests__/` — including the one pinning this very page — compiled by nothing. `pnpm type-check:vitest-config` runs `apps/console/tsconfig.node.json` directly — the program that already lists `../../vitest.config.mts` and `apps/console/vitest.config.ts` ([#3476](https://github.com/objectstack-ai/objectui/issues/3476)) — because until [#7328](https://github.com/objectstack-ai/objectui/issues/7328) the only thing that ran it was the console's own `type-check` script, reached through the task runner, whose `type-check` task waits on `^build`. (Named in prose rather than as a code span on purpose: the pin below reads this cell as this job's gate list, so spelling that invocation out would credit the job with a command it does not run.) The cheapest compiler that reads the root Vitest config was therefore reachable only through the most expensive job here, and PR #7291 paid for it: a conditionally spread `dist` project whose literal `extends: true` widened to `boolean` degraded the whole `projects` array to `never[]`, every gate its author ran was green, and CI reported three errors, two of them at `../../vitest.config.mts`. It sits in the cheap half beside `pnpm type-check:scripts` for the same measured reason — nothing in its program imports an `@object-ui/*` package, so it needs the install and nothing built. `pnpm type-check:vitest-setup` (`tsconfig.vitest-setup.json`) closes the same gap for the four repo-root `vitest.setup.*` files, uncovered until [#3515](https://github.com/objectstack-ai/objectui/issues/3515); it runs *last*, after `pnpm type-check`, because `vitest.setup.dom.tsx` side-effect-imports four `@object-ui/*` packages and resolves them through the declarations that turbo's `^build` produces. | Every run; on a PR the steps short-circuit when only ignored paths changed |
+./content/docs/guide/ci-cd-pipeline.md:242:| `coverage-report` | Test (coverage) | Downloads the four blob reports, refuses to continue unless all four arrived, merges them with `pnpm test:coverage --merge-reports` into one complete report — which is where the configured coverage thresholds are enforced, over the whole merged map, the shard legs having overridden them to zero — and publishes that report as the `coverage-report` artifact (kept 7 days, the same as the blobs it is derived from). Its last step runs on every path and states the outcome: the job is **red, with an error annotation**, whenever the gate did not run for the commit — before [#5403](https://github.com/objectstack-ai/objectui/issues/5403) the final step carried the implicit `success()` and was silently skipped by 311 of 373 coverage jobs, which is how four days of a 100%-failing coverage job went unnoticed. A breach of the thresholds is reported *separately* from a lane that never delivered, because the two call for opposite actions. ⛔ It never merges a report from fewer than four shards: a wrong coverage number is worse than a missing one. The Codecov upload this job used to carry was retired by [#5436](https://github.com/objectstack-ai/objectui/issues/5436) — `CODECOV_TOKEN` was never set, so it failed on every push; the trend dashboard and PR coverage comments are gone with it, the gate is not. | **Push only** |
+./content/docs/guide/ci-cd-pipeline.md:257:  (`performance-budget.yml`), as the comment on the `e2e` job states.
+./content/docs/guide/ci-cd-pipeline.md:375:  for as long as any `tsconfig.json` carried a comment
+./content/docs/guide/ci-cd-pipeline.md:383:issue it came from in a comment beside the rule itself. Until #2923 this workflow was
+./content/docs/guide/ci-cd-pipeline.md:461:only form an exception takes. A trailing `# v9.0.0`-style comment beside a ref is a version *hint*,
+./content/docs/guide/ci-cd-pipeline.md:547:- Posts a PR comment with the budget report and pass/fail status — but **only when the bundle was actually measured**. A run that was cancelled (a second push supersedes the first via `cancel-in-progress`) posts nothing, and a run whose build never produced a bundle posts a neutral "not measured" note instead of a verdict. A `FAIL` verdict therefore always carries the measured size that exceeded the budget.
+./content/docs/guide/ci-cd-pipeline.md:548:- The comment is rendered by `scripts/render-budget-comment.mjs` (unit-tested), not by logic inlined in YAML.
+./content/docs/guide/ci-cd-pipeline.md:552:and the PR comment carries the same two numbers, so the log already tells you the size and the
+./content/docs/guide/ci-cd-pipeline.md:553:overshoot. Read the package size report appended to that comment next: the entry chunk is
+./content/docs/guide/ci-cd-pipeline.md:578:PR comment. The report is generated only from a **complete** package build, so it is never a
+./content/docs/guide/ci-cd-pipeline.md:607:stable; see the header comment in the workflow file (#2835).
+./content/docs/guide/ci-cd-pipeline.md:646:comment), so every promotion would stale a hand-copied enumeration here; it already did
+./content/docs/guide/ci-cd-pipeline.md:876:marker is an inert HTML comment and leaves the fence info string bare, so the three gates that key on
+./content/docs/guide/ci-cd-pipeline.md:1113:reason — `{/* doc-snippet: fragment - why */}` in `.mdx`, the HTML-comment form in `.md`. A block
+./content/docs/guide/ci-cd-pipeline.md:1148:`/* doc-snippet: emits tsx */` comment — one vocabulary with the fragment marker above; each `${…}`
+./content/docs/guide/ci-cd-pipeline.md:1558:multi-line block is one node, a trailing `//` comment is trivia that can never contribute a name, and
+./content/docs/guide/ci-cd-pipeline.md:1586:trailing comment (which must **not** be reported), an `X as Y` with `X` fabricated, and one mid-block
+./content/docs/guide/ci-cd-pipeline.md:2521:that hand-off with `scripts/render-changeset-claims-comment.mjs`, and posts it as a comment on the
+./content/docs/guide/ci-cd-pipeline.md:2525:- **One comment per pull request, updated in place.** The job finds its previous comment by the
+./content/docs/guide/ci-cd-pipeline.md:2526:  first line of the body, which is a plain-text marker rather than the usual hidden HTML comment:
+./content/docs/guide/ci-cd-pipeline.md:2527:  GitHub deletes tag-shaped fragments from a stored body — an HTML comment alone on the first line
+./content/docs/guide/ci-cd-pipeline.md:2528:  included — and a marker that vanishes makes every re-run post a *new* comment. See AGENTS.md.
+./content/docs/guide/ci-cd-pipeline.md:2529:- **A revision that resolves the finding updates the same comment** to say so, rather than leaving
+./content/docs/guide/ci-cd-pipeline.md:2531:  comment gets no comment at all.
+./content/docs/guide/ci-cd-pipeline.md:2533:  required context, and the comment says both in its own opening lines. Failing a build over prose
+./content/docs/guide/ci-cd-pipeline.md:2623:return, and the PR comment names the cost.
+./content/docs/guide/ci-cd-pipeline.md:2713:account loses every issue, pull request and comment it authored, while every branch and commit
+./content/docs/guide/ci-cd-pipeline.md:2796:or comments, and it **never opens an issue** — a finding that fired four times an hour would produce
+./content/docs/guide/ci-cd-pipeline.md:2944:- **Major updates**: commented for manual review; never approved, never enqueued.
+./content/docs/guide/ci-cd-pipeline.md:2972:the job goes red, and a comment on the PR names what refused.
+./content/docs/guide/ci-cd-pipeline.md:3137:Two workflows mention `corepack enable` in comments only and must stay that way:
+./eslint-rules/no-query-params-under-options.test.js:23: * remaining textual match in the repo is a comment or a test header describing
+./eslint-rules/no-query-params-under-options.test.js:24: * that history, and an AST rule cannot see a comment. That is the whole reason
+./content/docs/guide/theming.md:279:    // Every key here is a ColorPalette key; the comment is the CSS variable
+./content/docs/guide/slotted-pages.md:78:composes the node; the view also skips the `sys_comment` read for such an
+./content/docs/guide/slotted-pages.md:79:object, and the server rejects comment writes against it with
+./content/docs/fields/widget-props.mdx:54:`packages/fields/src/widgets/types.ts`, where every key carries a doc comment naming
+./content/docs/guide/layout.md:207:<!-- doc-snippet: fragment — a SHAPE excerpt, not an expression — the keys carry `?` optional markers and trailing prose comments, so the object literal cannot parse as TypeScript (measured: TS1109 / TS1005 / TS1011) -->
+./content/docs/guide/layout.md:292:<!-- doc-snippet: fragment — a SHAPE excerpt, not an expression — the keys carry `?` optional markers and trailing prose comments, so the object literal cannot parse as TypeScript (measured: TS1109 / TS1005 / TS1011) -->
+./content/docs/fields/rich-text.mdx:115:- **Comments**: Rich formatted comments
+./packages/runner/CHANGELOG.md:362:    to the spec's function while its comment said it "mirrors" it, so every
+./packages/runner/CHANGELOG.md:526:    icon-registry sites, and the resolvers themselves now say so in a comment.
+./packages/runner/CHANGELOG.md:562:  what its doc comment invites — would hand every consumer an array where `.data`
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:70: * through the tree's ONE answer to "is this span a comment, or code?" — not a
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:74: * regex form opens a phantom comment and blanks the real code underneath —
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:77: * (`scripts/js-comment-mask.mjs`, and the corpus gate that keeps it honest).
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:80:import { maskComments } from '../../../../scripts/js-comment-mask.mjs';
+./content/docs/plugins/plugin-timeline.mdx:353:  icon: '🎯',  // Any emoji or short text
+./content/docs/guide/user-state-persistence.md:40:<!-- doc-snippet: fragment — a provider-tree sketch: the `Suspense` fallback is a literal `{...}` ellipsis and the JSX comments stand in for the components' own props, so the block shows nesting order rather than compiling -->
+./packages/layout/src/ResponsiveGrid.tsx:18: * — the doc-comment shape objectstack#4115 catalogues, where the claim is what
+./packages/layout/src/ResponsiveGrid.tsx:38: * re-homed. Its own comment in this file already recorded the reason: it had no
+./content/docs/api/schema-reference.md:718:> **Handler keys are not authorable in JSON, and this face refuses three of them by name.** `onBack` has been a named refusal since objectui#7344; since objectui#7804 this face also declares `onNavigate` and `onAddComment` as objectui#6124 **runtime slots**: a React host supplies the function through the TypeScript interface or as a React prop, and the validator **refuses the key by name** — the message leads with the slot's label (`SPA navigation callback`, `New comment callback`), states that the key "is a RUNTIME SLOT for a host-supplied function, not authorable metadata (objectui#6124): JSON has no function value, and no handler key consumes a declarative action object", and closes by pointing at the node-type spelling (`{ "type": "toast", … }`, an `action:button` node). Until then an authored `onNavigate: { "action": "toast" }` parsed **green** — `BaseSchema` is `.passthrough()`, so a key no arm declares is not refused, it stops being judged and the value is kept — and because every read site only tests the key for truthiness, the kept object then reached a call site expecting a function: `handleBack`, `handleEdit` and the post-delete redirect call `schema.onNavigate(url, { replace })` in `DetailView`'s own body, while `onAddComment` is forwarded as a prop into the comment composer, which renders *because* the key is truthy and then awaits it on send. ⚠️ `onTabChange` is a fourth handler key this view reads and it is **still undeclared** — and where the `object-kanban` board's third key, `onCardMove`, has been a **tombstone** refused by name since objectui#9342, an authored `onTabChange` is not refused at all: it is **kept**, read through a cast and handed to the tab strip's `onValueChange`, so it still reaches a call site expecting a function at the first tab switch. That gap is open on objectui#7804.
+./packages/layout/src/index.ts:106:  //     word appears only in a comment and an `aria-label`). Declaring it would
+./packages/layout/src/index.ts:171:  // `ComponentRegistry` + `.register(`, and a verbatim copy in a comment reads
+./packages/plugin-kanban/src/__tests__/swimlaneScrollSync-8448.test.tsx:26: * case. The ruling (comment 5597568414) is **option A — one horizontal axis for
+./content/docs/plugins/plugin-detail.mdx:20:The Feed & Chatter system provides Airtable-style record-level collaboration. It includes components for threaded discussions, field change history, @mentions, emoji reactions, and notification subscriptions — all driven by `FeedItem[]` data.
+./content/docs/plugins/plugin-detail.mdx:29:| `ReactionPicker` | Emoji reaction selector |
+./content/docs/plugins/plugin-detail.mdx:44:    type: 'comment',
+./content/docs/plugins/plugin-detail.mdx:48:    reactions: [{ emoji: '👍', count: 2, reacted: true }],
+./content/docs/plugins/plugin-detail.mdx:75:  onToggleReaction={(itemId, emoji) => console.log('Reaction:', itemId, emoji)}
+./content/docs/plugins/plugin-detail.mdx:90:    types: ['comment', 'field_change'],
+./content/docs/plugins/plugin-detail.mdx:108:In the Console app, `RecordChatterPanel` is integrated with record detail views. Comments are fetched from the `sys_comment` object using a thread ID pattern of `{objectName}:{recordId}`:
+./content/docs/plugins/plugin-detail.mdx:121:// Fetch comments — `find` resolves to a `QueryResult`, so the rows are `.data`.
+./content/docs/plugins/plugin-detail.mdx:122:const comments = await dataSource.find('sys_comment', {
+./content/docs/plugins/plugin-detail.mdx:128:const feedItems: FeedItem[] = comments.data.map((c) => ({
+./content/docs/plugins/plugin-detail.mdx:130:  type: 'comment',
+./content/docs/plugins/plugin-detail.mdx:134:  reactions: c.reactions ?? [],
+./content/docs/plugins/plugin-detail.mdx:172:- **Threaded Discussions**: Nested comment replies with collapsible threading
+./content/docs/plugins/plugin-detail.mdx:173:- **Activity Timeline**: Unified view of comments, field changes, tasks, and system events
+./content/docs/plugins/plugin-detail.mdx:174:- **Filter Modes**: Filter by `all`, `comments_only`, `changes_only`, or `tasks_only`
+./content/docs/plugins/plugin-detail.mdx:176:- **Emoji Reactions**: Toggle emoji reactions on any feed item
+./content/docs/plugins/plugin-detail.mdx:211:   record body in one, carrying the merged `sys_comment` + `sys_activity` feed
+./content/docs/plugins/plugin-detail.mdx:212:   *and* the comment / reply / reaction handlers. When it is present the block
+./content/docs/plugins/plugin-detail.mdx:222:`commented` / `mentioned` are skipped (their content lives in `sys_comment`),
+./content/docs/plugins/plugin-detail.mdx:241:`commented` / `mentioned` / `login` / `logout` — and they go silently on
+./content/docs/plugins/plugin-detail.mdx:254:| `filterMode` | Which slice the filter dropdown opens on (`all` / `comments_only` / `changes_only` / `tasks_only`). The user can still change it. An unrecognised value falls back to `all`. | — |
+./content/docs/plugins/plugin-detail.mdx:258:| `unifiedTimeline` | Default `true` mixes field changes and comments in one timeline (Airtable style). `false` un-mixes them: the panel becomes a discussion stream and field changes stay in `record:history`. | — |
+./content/docs/plugins/plugin-detail.mdx:259:| `showCommentInput` | Shows the composer. | A host discussion context to persist the comment. Without one the feed is read-only and no composer is rendered. |
+./content/docs/plugins/plugin-detail.mdx:261:| `enableReactions` | Shows emoji reactions on feed items. Existing reactions still render without a host; toggling one needs the host handler. | A host `onToggleReaction`. |
+./content/docs/plugins/plugin-detail.mdx:262:| `enableThreading` | Groups replies under their parent comment. Posting a reply needs the host handler. | A host `onAddReply`. |
+./content/docs/plugins/plugin-detail.mdx:282:| `comment` | `sys_comment` rows, merged in by the console's record page and handed to the block through the discussion context |
+./content/docs/plugins/plugin-detail.mdx:367:  showCommentInput?: boolean,      // Show comment input
+./content/docs/plugins/plugin-detail.mdx:369:  enableReactions?: boolean,       // Enable emoji reactions
+./content/docs/plugins/plugin-detail.mdx:380:  type: 'comment' | 'field_change' | 'task' | 'event' | 'system' | 'email' | 'call',
+./content/docs/plugins/plugin-detail.mdx:391:  reactions?: Reaction[],          // Emoji reactions
+./content/docs/plugins/plugin-detail.mdx:392:  pinned?: boolean,                // Pinned comment
+./content/docs/plugins/plugin-detail.mdx:418:| `onAddComment` | `(text: string) => void` | — | New comment callback |
+./content/docs/plugins/plugin-detail.mdx:419:| `onAddReply` | `(parentId, text) => void` | — | Reply to comment callback |
+./content/docs/plugins/plugin-detail.mdx:420:| `onToggleReaction` | `(itemId, emoji) => void` | — | Toggle emoji reaction callback |
+./content/docs/plugins/plugin-detail.mdx:438:| `onAddComment` | `(text: string) => void` | — | New comment callback |
+./content/docs/plugins/plugin-detail.mdx:439:| `onAddReply` | `(parentId, text) => void` | — | Reply to comment callback |
+./content/docs/plugins/plugin-detail.mdx:440:| `onToggleReaction` | `(itemId, emoji) => void` | — | Toggle emoji reaction callback |
+./content/docs/plugins/plugin-detail.mdx:449:| `reactions` | `Reaction[]` | required | Current reactions |
+./content/docs/plugins/plugin-detail.mdx:450:| `onToggleReaction` | `(emoji: string) => void` | — | Toggle reaction callback |
+./content/docs/plugins/plugin-detail.mdx:451:| `emojiOptions` | `string[]` | default set | Available emoji options |
+./content/docs/plugins/plugin-detail.mdx:458:| `parentItem` | `FeedItem` | required | Parent comment item |
+./content/docs/plugins/plugin-detail.mdx:481:const filterModes: FeedFilterMode[] = ['all', 'comments_only', 'changes_only', 'tasks_only'];
+./content/docs/plugins/plugin-detail.mdx:486:// Example: Filter to comments only
+./content/docs/plugins/plugin-detail.mdx:489:  filterMode="comments_only"
+./README.md:383:| **[@object-ui/collaboration](./packages/collaboration)** | Presence, live cursors, conflict resolution, comment threads |
+./apps/console/src/pages/system/auditLogActions.test.ts:13: * revised twice mid-flight (see issue comments 2026-08-13/14): `import`
+./apps/console/src/pages/system/auditLogActions.test.ts:24: * a stale prose comment that had been wrong since the day it was written.
+./packages/plugin-kanban/CHANGELOG.md:253:  **One ellipsis (objectui#3878).** `en` ended 33 values with three ASCII full stops (`Loading...`, `Ask anything...`) and 110 with the typographic ellipsis `…`, and the nine translation packs had copied `en` value by value — so a user could read both glyphs on one screen: `common.loading` beside `dashboard.loading`, `console.ai.askAnything` beside its own panel's siblings. All ten packs now spell it `…` (U+2026), per the maintainer-authorized consistency pass registered on objectstack#6015. 312 pack values changed: 34 in `en` (the 33 trailing plus the one mid-sentence `collaboration.commentPlaceholder`) and 278 across the nine. Eleven inline `defaultValue` call sites were re-synchronised with the new `en` text, which `scripts/check-i18n-call-site-keys.mjs` requires byte-for-byte.
+./packages/plugin-kanban/CHANGELOG.md:255:  The convention is now pinned so the split cannot regrow: `packages/i18n/src/__tests__/ellipsis-glyph-3878.test.ts` fails, by key name, on any value in any of the ten packs that holds three ASCII full stops. It is deliberately wider than "a trailing `...` in `en`", because the census showed the narrow rule would have shipped with two holes in it — `collaboration.commentPlaceholder` puts the ellipsis mid-sentence, and `list.loading` had the packs wrong while `en` was already right, which no `en`-only rule can see.
+./vitest.setup.shared-global-leak-guard.ts:4: * ## The invariant, and why it needed a gate rather than a comment
+./tsconfig.tier-base.json:12:// ruling (director seat, 2026-09-13) rules a rename and a comment and nothing
+./tsconfig.tier-base.json:59:// states: a glob containing `**` followed by `/` closes a block comment early,
+./docs/audits/2026-08-zod-to-json-schema-fidelity.md:343:`BaseSchema` ends `.passthrough()` (`base.zod.ts:197`, comment: *"Allow additional
+./docs/audits/2026-08-zod-to-json-schema-fidelity.md:354:comments. Nothing anywhere closes a node. On `ButtonSchema` the projection is
+./package.json:89:    "check:comment-mask-corpus": "node scripts/check-comment-mask-corpus.mjs",
+./docs/audits/2026-09-test-tsconfig-parity-census.md:208:| jest-dom in `plugin-timeline` | **LATENT** — 0 of its 26 program files use a matcher | but **paid**: `ObjectTimeline.expandFls-7429.test.tsx:147` uses `expect(...).toBeTruthy()` with a comment, from PR #8713, *because* the matcher would not type-check |
+./docs/audits/2026-09-test-tsconfig-parity-census.md:209:| `lib` ES2020 | **LATENT** — of the 20 `.at(` matches inside ES2020 programs, 6 are comments and the other 14 sit on `any`-typed receivers (`makeAdapter()` returns `as Record<string, any>`), so none is a real `TS2550` | but **paid**: **5 comment sites in `plugin-designer`** documenting index arithmetic written instead of `.at(-1)` |
+./docs/audits/2026-09-test-tsconfig-parity-census.md:230:**6 of the 38 programs are on ES2022**, where it does. That comment is what the absence of
+./docs/audits/2026-09-test-tsconfig-parity-census.md:289:   value must carry a comment on that key. `permissions`, `app-shell`, `plugin-map`
+./docs/audits/2026-09-test-tsconfig-parity-census.md:292:   **Would have caught**: this card, objectui#8691, and the false comment in
+./packages/layout/src/__tests__/page-header-authorable-keys.test.tsx:361:    // (the word occurs only in a comment and an `aria-label`). Declaring it would
+./examples/console-starter/test/vite-alias-closure.test.ts:28: * word "import" appearing in ordinary comment prose swallowed the next two real
+./packages/plugin-kanban/src/__tests__/swimlaneVerticalScroll-8449.test.tsx:30: * ## The ruling (comment 5597654059), and what it makes mechanical
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:26:comment 5819441716, which quotes it verbatim). The reply declined two other items by number
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:88:  comments** (`crm.app.ts:169`, `account_detail.page.ts:32`,
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:145:were each read: all are prose comments, test docstrings, or `@objectstack/spec/ui` type
+./ROADMAP.md:44:5. **Console Advanced Polish** — Remaining upgrades for forms, import/export, automation, comments
+./ROADMAP.md:219:- [x] Activity feed filtering (comments only / field changes only)
+./ROADMAP.md:224:  - [x] `CommentInput` — comment input with Ctrl+Enter submit
+./ROADMAP.md:228:  - [x] `ReactionPicker` — emoji reaction selector
+./ROADMAP.md:229:  - [x] `ThreadedReplies` — collapsible comment reply threading
+./ROADMAP.md:331:  - ✅ **Spec source annotations**: Every field annotated with `// spec: NamedListView.*` or `// UI extension` comment
+./ROADMAP.md:864:- [x] SystemHubPage auto-generates metadata type cards from registry (dashboard, page, report) — nothing is generated and none of those three types has a card: `metadataTypeCards` in `apps/console/src/pages/system/SystemHubPage.tsx` is a hand-written literal (Applications, Metadata, Datasources), and the comment directly above it records why the per-type cards went away — the engine started auto-listing every type, so a card per type stopped paying for itself. What enumerates types from the registry today is the engine's own type directory, `MetadataDirectoryPage`, which the hand-written "Metadata" card links to
+./ROADMAP.md:1672:**Fix:** Changed default logic from `!== false` (opt-out) to `=== true` (opt-in) for `showHideFields`, `showColor`, and `showDensity` in the `toolbarFlags` computation. Updated `@default` JSDoc comments in `NamedListView` and `ListViewSchema` interfaces from `@default true` to `@default false`.
+./ROADMAP.md:1727:- [x] `collapseWhenEmpty` prop: suppress "No activity recorded" message when true, showing only comment input
+./packages/layout/src/__tests__/app-shell-docs-nav-example.test.ts:58: * renderer) and `rightRail` (ADR-0057 P3a) were shipped, exported, commented
+./packages/layout/src/__tests__/app-shell-docs-nav-example.test.ts:79:import { maskComments } from '../../../../scripts/js-comment-mask.mjs';
+./packages/layout/src/__tests__/app-shell-docs-nav-example.test.ts:222:/** Drop block and line comments, so a trailing `// …` never lands in a type. */
+./docs/audits/2026-07-objectview-detailview-schema.md:201:(`history.entries[]`, `comments[]`, `activities[]`) alongside callbacks. The mismatch is
+./docs/audits/2026-07-objectview-detailview-schema.md:219:`showHeader`). The other 22 — `history`, `comments`, `activities`, `recordNavigation`,
+./docs/audits/2026-07-objectview-detailview-schema.md:237:`loading`, `data`, `history`, `comments`, `activities`, `recordNavigation`, `onNavigate`,
+./packages/plugin-kanban/src/__tests__/ObjectKanban.structuredMembersReachTheirSinks-8313.test.tsx:221:    // comment names the mechanism it actually measured rather than the one
+./packages/plugin-tree/src/ObjectTree.tsx:235: * ⛔ This comment sits ABOVE the function on purpose: the reader census in
+
+exec
+/bin/zsh -lc "rg -n \"onToggleReaction|toggleReaction|handle.*Reaction|Reaction\" apps/console/src/pages apps/console/src/components --glob '*.tsx' --glob '*.ts' | head -120" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 154ms:
+exec
+/bin/zsh -lc "rg -n \"toggle.*reaction|reaction.*toggle|onToggleReaction|reactions\" apps/console/src --glob '*.{ts,tsx}' | head -150" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 153ms:
+apps/console/src/__tests__/registry-inputs-spec-parity.test.ts:2606:    pins: 'The nested activity-feed config\'s MEMBERS, and the fact that authoring the object REPLACES rather than merges. `record-chatter.tsx` composes `{ position, collapsible, feed: DEFAULTS, ...schema }` — a shallow spread — so an authored `feed` displaces the renderer\'s three defaults wholesale and every member not restated falls back to `RecordActivityTimeline`\'s own default. Those defaults are NOT uniform, which is the trap this pin exists for and is asserted per member: `showCommentInput` is `!== false` (ON when absent) while `enableReactions` and `enableThreading` are `?? false` (OFF), so `feed: {}` silently takes reactions and threading down while leaving the composer up. Each of the three carries its own observable — composer placeholder, the `Add reaction` affordance, and whether a reply is pulled out of the ROOT row list — each with the absent-`feed` control (objectui#8071 slice 6).',
+
+exec
+/bin/zsh -lc "rg -n \"onToggleReaction|toggleReaction|enableReactions\" apps packages --glob '*.{ts,tsx}' --glob '"'!**/*.test.*'"' | head -160" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 219ms:
+packages/types/src/record-components.ts:479:  enableReactions?: boolean;
+packages/react/src/context/DiscussionContext.tsx:47:  onToggleReaction?: (itemId: string, reaction: string) => void | Promise<void>;
+packages/react/src/context/DiscussionContext.tsx:74:    value.onToggleReaction,
+packages/plugin-detail/src/RecordActivityTimeline.tsx:82:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordActivityTimeline.tsx:204:  onToggleReaction,
+packages/plugin-detail/src/RecordActivityTimeline.tsx:230:  const enableReactions = config?.enableReactions ?? false;
+packages/plugin-detail/src/RecordActivityTimeline.tsx:533:                        {enableReactions && item.reactions && item.reactions.length > 0 && (
+packages/plugin-detail/src/RecordActivityTimeline.tsx:537:                              onToggleReaction={
+packages/plugin-detail/src/RecordActivityTimeline.tsx:538:                                onToggleReaction
+packages/plugin-detail/src/RecordActivityTimeline.tsx:539:                                  ? (emoji) => onToggleReaction(item.id, emoji)
+packages/plugin-detail/src/RecordActivityTimeline.tsx:547:                        {enableReactions && (!item.reactions || item.reactions.length === 0) && onToggleReaction && (
+packages/plugin-detail/src/RecordActivityTimeline.tsx:551:                              onToggleReaction={(emoji) => onToggleReaction(item.id, emoji)}
+packages/plugin-detail/src/RecordChatterPanel.tsx:33:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordChatterPanel.tsx:77:  onToggleReaction,
+packages/plugin-detail/src/RecordChatterPanel.tsx:160:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/RecordChatterPanel.tsx:217:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/ReactionPicker.tsx:21:  onToggleReaction?: (emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/ReactionPicker.tsx:34:  onToggleReaction,
+packages/plugin-detail/src/ReactionPicker.tsx:43:      onToggleReaction?.(emoji);
+packages/plugin-detail/src/ReactionPicker.tsx:46:    [onToggleReaction],
+packages/plugin-detail/src/ReactionPicker.tsx:74:            disabled={!onToggleReaction}
+packages/plugin-detail/src/ReactionPicker.tsx:84:      {onToggleReaction && (
+packages/plugin-detail/src/index.tsx:716:    { name: 'enableReactions', type: 'boolean', description: 'Show emoji reactions on feed items. Toggling one requires a host discussion context; without it existing reactions still render, read-only.' },
+packages/plugin-detail/src/renderers/record-chatter.tsx:163:      enableReactions: true,
+packages/plugin-detail/src/renderers/record-chatter.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+packages/app-shell/src/views/RecordDetailView.tsx:2541:          onToggleReaction={handleToggleReaction as any}
+packages/plugin-detail/src/renderers/record-activity.tsx:49: *   need `onAddReply`) · `enableReactions` (needs `onToggleReaction`) ·
+packages/plugin-detail/src/renderers/record-activity.tsx:155:    enableReactions: read('enableReactions'),
+packages/plugin-detail/src/renderers/record-activity.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+
+exec
+/bin/zsh -lc "rg -n \"handleToggleReaction|reaction\" packages/app-shell/src/views/RecordDetailView.tsx | head -80 && sed -n '2470,2570p' packages/app-shell/src/views/RecordDetailView.tsx" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 144ms:
+1649:    // reactions (JSON string), parent_id, created_at, updated_at.
+1654:    const parseReactions = (raw: unknown): FeedItem['reactions'] => {
+1682:          reactions: parseReactions(c.reactions),
+1900:  const handleToggleReaction = useCallback(
+1910:          const reactions = [...(item.reactions ?? [])];
+1911:          const idx = reactions.findIndex(r => r.emoji === emoji);
+1913:            const r = reactions[idx];
+1915:              // Remove user's reaction
+1917:                reactions.splice(idx, 1);
+1919:                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+1922:              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+1925:            reactions.push({ emoji, count: 1, reacted: true });
+1927:          const updated = { ...item, reactions };
+1928:          // Persist reactions to backend as JSON. The schema stores
+1929:          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+1936:            for (const r of reactions) {
+1941:              // proper backend reaction endpoint in M11.
+1950:              reactions: JSON.stringify(remoteShape),
+2541:          onToggleReaction={handleToggleReaction as any}
+    <div className="h-full bg-background overflow-hidden flex flex-col relative">
+      {/* Shared cross-cutting chrome: lifecycle badge + presence avatars —
+          rendered above the page tree so custom Page-assigned record pages
+          don't lose these affordances. */}
+      <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-50 flex items-center gap-2">
+        {recordPresence.length > 0 && (
+          <PresenceAvatars users={recordPresence} size="sm" maxVisible={3} showStatus />
+        )}
+        <ManagedByBadge managedBy={(objectDef as any)?.managedBy} />
+      </div>
+
+      <RecordContextProvider
+        objectName={objectName!}
+        recordId={pureRecordId}
+        data={readablePageRecord}
+        objectSchema={objectDef}
+        dataSource={dataSource}
+        embedded={embedded}
+        refresh={headerRefresh}
+        headerSystemActions={synthSystemActions}
+        isFavorite={isRecordFavorite}
+        onToggleFavorite={favoriteRecord ? handleToggleRecordFavorite : undefined}
+      >
+        {/* objectui#2407 P2 — ONE record-level inline-edit session spanning
+            the highlights strip AND the details body (both descend from this
+            provider), committed together by the single <InlineEditSaveBar>
+            below. `canEdit` carries the object-lifecycle / permission gate
+            AND the approval lock (objectui#2572 item 2): a locked record
+            hides the pencil affordances and no-ops `enter()`, so users can't
+            type into a draft that Save would reject with RECORD_LOCKED.
+            `locked` surfaces the approval lock as its own signal so the
+            DetailView approval band renders from the SAME dual-source
+            `approvalLocked` that gated `canEdit` — engaging even on backends
+            that track the lock via approval requests only and never
+            materialize an `approval_status` field (objectui#2618).
+            `approvalPending` rides alongside it so a node that declares
+            `lockRecord: false` still shows its band and recall button while
+            leaving the record editable (objectui#2902).
+
+            objectui#4213 — the object's per-record `userActions.edit` predicate
+            joins the SAME conjunction, and joins it exactly where
+            `approvalLocked` already sits. This expression mirrors the header's
+            `sys_edit` gate on purpose (the header CTA and the body pencils are
+            one edit affordance in two places), so folding the predicate into
+            only one of them would re-create, inside a single file, precisely
+            the header-vs-row asymmetry #4213 is about: Edit gone from the
+            header while double-click still opened a draft the object says this
+            record may not have. `disabledWhen` suppresses the pencils for the
+            same reason `approvalLocked` does — a draft Save would reject. */}
+        <InlineEditProvider
+          canEdit={
+            resolveRecordHeaderActionGates(objectDef, effectiveApiOperations).edit
+            && recordWriteAllowed
+            && !approvalLocked
+            && editVisible
+            && !editDisabledByPredicate
+          }
+          locked={approvalLocked}
+          approvalPending={approvalPending}
+          approvalProgress={approvalProgress}
+          approvalIsSubmitter={approvalIsSubmitter}
+          lockedReason={t('detail.lockedTooltip', {
+            defaultValue: 'This record has a pending approval request; editing is locked',
+          })}
+        >
+        <HighlightFieldsProvider>
+        <DiscussionContextProvider
+          items={feedItems as any}
+          loading={feedLoading}
+          onAddComment={handleAddComment as any}
+          onAddReply={handleAddReply as any}
+          onToggleReaction={handleToggleReaction as any}
+          mentionSuggestions={mentionSuggestions}
+        >
+        {/* No `approval` handler in the set below (objectui#3055): the record
+            page has no bespoke approval action TYPE any more. A decision is an
+            ordinary `type:'api'` action declared on `sys_approval_request` and
+            run by the shared runtime the decision bar mounts.
+            `org` is the spec-declared `${ctx.org.*}` scope. This provider
+            shadows the shell runtime's for every action on the record page, so
+            it carries the same `actionContextOrg` projection, or
+            `${ctx.org.id}` interpolates empty here (objectui#10918). */}
+        <ActionProvider
+          context={{ record: pageRecord || {}, objectName, user: currentUser, org: actionContextOrg(activeOrganization) }}
+          onConfirm={confirmHandler}
+          onToast={toastHandler}
+          onNavigate={navigateHandler}
+          onParamCollection={paramCollectionHandler}
+          onResultDialog={resultDialogHandler}
+          onModal={modalHandler}
+          handlers={{ api: apiHandler, flow: flowHandler, script: serverActionHandler, modal: modalActionHandler }}
+        >
+          <div className="flex-1 overflow-hidden flex flex-row">
+            <div className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 scroll-pb-48">
+              {originFrom?.pathname && originFrom?.label && (
+                <Link
+                  to={originFrom.pathname}
+                  className="inline-flex items-center gap-1 mb-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>{originFrom.label}</span>
+
+exec
+/bin/zsh -lc "sed -n '1860,1970p' packages/app-shell/src/views/RecordDetailView.tsx && rg -n \"toastHandler|useToast|toast\\(\" packages/app-shell/src/views/RecordDetailView.tsx | head -40" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 142ms:
+        body: text,
+        createdAt: new Date().toISOString(),
+        parentId,
+      };
+      const threadId = `${objectName}:${pureRecordId}`;
+      const mentionIds = extractMentions(text, mentionSuggestions);
+      try {
+        await dataSource.create('sys_comment', {
+          id: newItem.id,
+          thread_id: threadId,
+          author_id: currentUser.id,
+          author_name: currentUser.name,
+          author_avatar_url: 'avatar' in currentUser ? (currentUser as any).avatar : undefined,
+          body: text,
+          mentions: JSON.stringify(mentionIds),
+          created_at: newItem.createdAt,
+          parent_id: parentId,
+        });
+      } catch (err) {
+        throw commentWriteFailed(err);
+      }
+      // Same record-scoped write as `handleAddComment` — the reply and the
+      // parent's bumped `replyCount` both belong to THIS record's slice
+      // (objectui#3268), and both land only once the reply is stored.
+      const key = feedRecordKey;
+      setFeedItemsByRecord(prev => {
+        const updated = [...(prev[key] ?? EMPTY_FEED), newItem];
+        return {
+          ...prev,
+          [key]: updated.map(item =>
+            item.id === parentId
+              ? { ...item, replyCount: (item.replyCount ?? 0) + 1 }
+              : item
+          ),
+        };
+      });
+    },
+    [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+  );
+
+  const handleToggleReaction = useCallback(
+    (itemId: string | number, emoji: string) => {
+      if (!feedRecordKey) return;
+      // Reactions are toggled from the panel of the record on screen, so they
+      // apply to that record's slice only (objectui#3268) — an id collision
+      // with a row cached for another record cannot reach across.
+      setFeedItemsByRecord(prevByRecord => ({
+        ...prevByRecord,
+        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+          if (item.id !== itemId) return item;
+          const reactions = [...(item.reactions ?? [])];
+          const idx = reactions.findIndex(r => r.emoji === emoji);
+          if (idx >= 0) {
+            const r = reactions[idx];
+            if (r.reacted) {
+              // Remove user's reaction
+              if (r.count <= 1) {
+                reactions.splice(idx, 1);
+              } else {
+                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+              }
+            } else {
+              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+            }
+          } else {
+            reactions.push({ emoji, count: 1, reacted: true });
+          }
+          const updated = { ...item, reactions };
+          // Persist reactions to backend as JSON. The schema stores
+          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+          // so we rebuild the canonical shape from the optimistic local
+          // state before writing back. A failed update silently keeps the
+          // optimistic UI change (best-effort, surfaced by RUM if needed).
+          if (dataSource) {
+            const userId = currentUser.id;
+            const remoteShape: Record<string, string[]> = {};
+            for (const r of reactions) {
+              // We don't have the original user-id list locally, so we
+              // approximate by emitting the signed-in user when they are
+              // the (only known) reactor. This is an over-simplification
+              // for single-user pilot installs and will be replaced by a
+              // proper backend reaction endpoint in M11.
+              const ids: string[] = [];
+              if (r.reacted) ids.push(userId);
+              // Pad with a synthetic marker so count is preserved across
+              // refreshes from other clients (best-effort).
+              while (ids.length < r.count) ids.push('__other__');
+              remoteShape[r.emoji] = ids;
+            }
+            dataSource.update('sys_comment', String(itemId), {
+              reactions: JSON.stringify(remoteShape),
+            }).catch(() => {});
+          }
+          return updated;
+        }),
+      }));
+    },
+    [currentUser.id, dataSource, feedRecordKey],
+  );
+
+  useEffect(() => {
+    // Reset loading on navigation; the page-record effect above owns data fetching
+    setIsLoading(true);
+    queueMicrotask(() => setIsLoading(false));
+  }, [objectName, recordId]);
+
+  // Build the synthesized-page inputs — the object-derived parts that
+  // `buildDefaultPageSchema` folds into the default record page when no
+  // authored Page is assigned. Must be before early returns to keep hook
+  // count consistent across renders and avoid React error #310.
+  const synthParts = useMemo(() => {
+708:  const toastHandler = useCallback((message: string, options?: { type?: string; duration?: number; undo?: { label?: string } }) => {
+2555:          onToast={toastHandler}
+
+exec
+/bin/zsh -lc "sed -n '1,180p' packages/app-shell/src/views/RecordDetailView.tsx && sed -n '670,725p' packages/app-shell/src/views/RecordDetailView.tsx" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 140ms:
+/**
+ * RecordDetailView Component
+ *
+ * Renders a detail view for a single record, resolved by URL params.
+ * Renders via the SchemaRenderer Page pipeline: an authored
+ * PageSchema(type='record') when one is assigned, else a canonical
+ * default page synthesized from the object definition
+ * (`buildDefaultPageSchema`).
+ */
+
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
+import { activityRowToFeedItem, InlineEditSaveBar, buildDefaultPageSchema, deriveFieldGroupDetailSections, extractMentions, resolveTitleField, useRecordEditable } from '@object-ui/plugin-detail';
+import { Empty, EmptyTitle, EmptyDescription } from '@object-ui/components';
+import { useAuth, createAuthenticatedFetch } from '@object-ui/auth';
+import { usePermissions } from '@object-ui/permissions';
+import { useDisplayLocale } from '@object-ui/i18n';
+import { ActionProvider, useObjectTranslation, useObjectLabel, useActionTextLocalizer, usePageAssignment, RecordContextProvider, SchemaRenderer, DiscussionContextProvider, HighlightFieldsProvider, InlineEditProvider, useGlobalUndo, useDataInvalidation, notifyDataChanged, useRowPredicate } from '@object-ui/react';
+import { buildExpandFields, resolveRecordIdParamSeed, userActionPredicates, withoutDeniedFields } from '@object-ui/core';
+import { toast } from 'sonner';
+import { useRecordPresence, PresenceAvatars } from '@object-ui/collaboration';
+import { Database, ChevronLeft } from 'lucide-react';
+import { MetadataPanel, useMetadataInspector } from './MetadataInspector.js';
+import { SkeletonDetail } from '../skeletons/index.js';
+import { ManagedByBadge } from '../components/ManagedByBadge.js';
+import { resolveEffectiveCrudAffordances } from '../utils/crudAffordances.js';
+import { deriveRelatedLists } from '../utils/deriveRelatedLists.js';
+import { stripDiscussionNodes, hasExplicitAttachments, hasExplicitApprovals } from '../utils/pageSchemaIntrospect.js';
+import { ActionConfirmDialog, type ConfirmDialogState } from './ActionConfirmDialog.js';
+import { ActionParamDialog, type ParamDialogState } from './ActionParamDialog.js';
+import { ActionResultDialog, type ResultDialogState } from './ActionResultDialog.js';
+import { FlowRunner, type ScreenFlowState, type ScreenSpec } from './FlowRunner.js';
+import { FlowRefusalNotice, type FlowRefusalState } from './FlowRefusalNotice.js';
+import { RelatedRecordActionsBridge } from './RelatedRecordActionsBridge.js';
+import { withPageTabsUrlSync } from '../utils/pageTabsUrlSync.js';
+import { RECORD_DETAIL_TAB_PARAM, RECORD_TRAIL_PARAM, decodeRecordTrail, buildRecordTrailHref } from '../urlParams.js';
+import { resolveActionParams } from '../utils/resolveActionParams.js';
+import { createConsoleServerActionHandler } from '../utils/consoleServerAction.js';
+import { modalTargetRefusalMessage } from '../utils/modalTargetDiagnostics.js';
+import { actionContextOrg } from '../utils/actionContextOrg.js';
+import { interpretFlowResponse, judgeFlowLaunch } from '../utils/flowResponse.js';
+import { useRecordBreadcrumbTitle } from '../context/NavigationContext.js';
+// Audit provenance renders as the one-line <RecordMetaFooter>; the other
+// framework-injected bookkeeping columns are hidden from the body outright.
+// Both sets are derived, not restated — see record-detail-system-fields.ts.
+import { AUDIT_FIELD_NAMES, HIDDEN_SYSTEM_FIELD_NAMES } from './record-detail-system-fields.js';
+import type { FeedItem } from '@object-ui/types';
+import type { ActionDef, ActionParamDef, ConfirmationHandler } from '@object-ui/core';
+import type { ConsoleActionDispatch } from '../consoleActionDispatch.js';
+import { useRecordApprovals, recordLockedByApproval, isSubmitterOf } from '../hooks/useRecordApprovals.js';
+import { RecordAttachmentsPanel } from './RecordAttachmentsPanel.js';
+import { RecordApprovalsPanel } from './RecordApprovalsPanel.js';
+import { DeclaredActionsBar } from './DeclaredActionsBar.js';
+import {
+  SYS_APPROVAL_REQUEST_OBJECT,
+  RECORD_APPROVAL_ACTION_LOCATION,
+  RECORD_APPROVAL_EXCLUDED_ACTIONS,
+} from './recordApprovalActions.js';
+// Side-effect registration of `record:approvals` — synthesized record pages
+// reference the node whenever the record has approval requests (#3461), so
+// the type must resolve wherever this view renders, not only under hosts
+// that import the app-shell barrel.
+import './record-approvals-renderer.js';
+import { RecordPermissionAssignmentsRenderer } from './metadata-admin/RecordPermissionAssignmentsRenderer.js';
+import { getRecordDisplayName } from '../utils/index.js';
+import { parseAuditValue, collectAuditChanges, collectLookupIds, formatAuditValue } from '../utils/auditHistoryDisplay.js';
+import { useFavorites } from '../hooks/useFavorites.js';
+import { useActionModal } from '../hooks/useActionModal.js';
+import { useRecentItems } from '../hooks/useRecentItems.js';
+
+interface RecordDetailViewProps {
+  dataSource: any;
+  objects: any[];
+  onEdit: (record: any) => void;
+  /**
+   * When provided, this object name overrides the value derived from the
+   * current URL (`useParams()`). Used when rendering the detail inside a
+   * navigation drawer or split-pane — the parent route owns the URL while
+   * the embedded detail is keyed by an in-memory record selection.
+   */
+  objectNameOverride?: string;
+  /**
+   * When provided, this record id overrides the value derived from the
+   * current URL. See {@link objectNameOverride}.
+   */
+  recordIdOverride?: string;
+  /**
+   * `true` when this view is embedded (drawer / split-pane). Suppresses
+   * side effects that would conflict with the host route — namely the
+   * breadcrumb title publish (the parent route already owns the
+   * breadcrumb).
+   */
+  embedded?: boolean;
+}
+
+const FALLBACK_USER = { id: 'current-user', name: 'Demo User' };
+
+/**
+ * The `user` seeded into this view's own `<ActionProvider>` — identity plus, once
+ * resolved, the caller's system capabilities.
+ *
+ * [ADR-0066 D4 / framework#3923] `systemPermissions` is not decoration here: this
+ * provider SHADOWS the shell-level one (`useConsoleActionRuntime`) for every
+ * action on the record surface, and `ActionEngine.getActionsForLocation` reads the
+ * capability gate off `runner.getContext().user.systemPermissions`. The engine
+ * fails OPEN on `undefined` (unknown ≠ denied), so shipping identity alone
+ * silently un-gated every `record_header` / `record_more` action that declared
+ * `requiredPermissions` — the button rendered, and only the server's 403 stopped
+ * it (and only for platform action routes at that).
+ *
+ * The `permissionsLoaded` gate keeps "no answer yet" apart from "an answer,
+ * whatever it is": while `!permissionsLoaded` (no PermissionProvider mounted,
+ * or still resolving), `systemPermissions` is omitted entirely so the engine's
+ * own fail-open applies. Forwarding `[]` in that window would flip the gate
+ * fail-CLOSED and hide gated actions in a standalone embed.
+ *
+ * [objectui#4656] Once loaded, `systemPermissions` is forwarded AS-IS,
+ * `undefined` included — it is NOT collapsed to `[]`. `MePermissionsProvider`
+ * now preserves the distinction the engine already keys off: `undefined`
+ * means the backend never reported `systemPermissions` at all (a deployment
+ * predating ADR-0066), which is exactly the "unknown" case the engine's own
+ * `Array.isArray(held)` check fails OPEN on — not "holds nothing". Defaulting
+ * it to `[]` here would silently re-introduce the same collapse at this one
+ * call site and gate every `record_header` / `record_more` action closed on
+ * such a deployment. A REPORTED empty array still forwards as `[]` and gates
+ * strictly, unchanged.
+ */
+export function resolveActionUser(
+  user: { id: string; name: string; image?: string } | null | undefined,
+  permissionsLoaded: boolean,
+  systemPermissions: string[] | undefined,
+): { id: string; name: string; avatar?: string; systemPermissions?: string[] } {
+  const identity = user
+    ? { id: user.id, name: user.name, avatar: user.image }
+    : FALLBACK_USER;
+  return permissionsLoaded
+    ? { ...identity, systemPermissions }
+    : identity;
+}
+
+/**
+ * Field-type signals that suggest a "secondary / system / metadata"
+ * placement when auto-grouping fields. These move out of the main
+ * section and into a collapsible "More details" section by default,
+ * keeping the primary section dense with business-critical fields.
+ *
+ * The heuristic is conservative: when no objectDef metadata is available
+ * we surface most fields in the main section; long-form text and
+ * audit-by-name fields drop down.
+ */
+const SECONDARY_FIELD_NAME_HINTS = ['description', 'notes', 'note', 'remark', 'remarks', 'comments'];
+/**
+ * Matched against the RAW `objectDef.fields[x].type`, so every member must be a
+ * `@objectstack/spec` `FieldType` name. `rich-text` was not one: the spec spells
+ * the type `richtext` and REJECTS `rich-text`, which survives only as a typo key
+ * in the spec's own `suggestFieldType` table — a spelling no producer can emit.
+ * The member therefore demoted nothing while a real `richtext` field stayed in
+ * the dense primary section, and the same field failed to read wide in the
+ * detail and form auto-layouts, which carried the identical hole (#4250).
+ */
+const SECONDARY_FIELD_TYPES = new Set(['textarea', 'markdown', 'html', 'richtext', 'json', 'code']);
+
+/**
+ * Exported for the cross-surface pin in `richtextSurfaceParity.test.ts` — the
+ * rule is the behaviour under test, not the set's string membership. Not
+ * re-exported from the package barrel (`views/index.ts` names `RecordDetailView`
+ * only), so this widens no public API.
+ */
+export function isSecondaryField(fieldName: string, fieldDef: any): boolean {
+  if (SECONDARY_FIELD_TYPES.has(fieldDef?.type)) return true;
+  const lc = fieldName.toLowerCase();
+  return SECONDARY_FIELD_NAME_HINTS.some((hint) => lc === hint || lc.endsWith(`_${hint}`));
+}
+
+/**
+ * The discussion feed of a record that has none. A module-level constant, not
+ * a fresh `[]` per render: `feedItems` is handed straight to
+ * `DiscussionContextProvider` as a prop, so a new array identity every render
+ * would defeat every memo downstream of it. Read-only by convention — every
+ * write path below produces a NEW array.
+        options: Array.isArray(p.options)
+          ? p.options.map((o: any) => ({ ...o, label: actionParamOptionLabel(objForI18n, action?.name, p.name, o.value, o.label) }))
+          : p.options,
+      }));
+      setParamState({
+        open: true,
+        params: localized,
+        // Title the dialog as the action rather than the generic "Action
+        // parameters" — from `label` alone, the one spelling an action carries
+        // for this. The `|| action?.title` fallback that used to sit here read
+        // a key declared on no action surface at all — not `@objectstack/spec`'s
+        // `ActionSchema` (44 keys walked at spec 17.0.0), not `ActionDef` or its
+        // pinned `ACTION_DEF_KEYS` / `SPEC_ACTION_KEYS`, not `@object-ui/types`'
+        // renderer view (`ui-action.ts`) or `crud.ts` — and forwarded by none of
+        // the four action renderers, so it could not fire from authored
+        // metadata. This was the SECOND copy of the limb objectui#4282 removed
+        // from `useConsoleActionRuntime`: this view builds its own runtime
+        // rather than routing through that hook, so the two param-collection
+        // handlers drift as a pair (objectui#5610). Reads exactly one key, like
+        // `description` below.
+        title: action?.label,
+        description: actionDescription(objForI18n, action?.name, action?.description),
+        resolve,
+      });
+    });
+  }, [objectName, objectDef, objects, fieldLabel, fieldOptionLabel, actionParamText, actionParamOptionLabel]);
+
+  // Global undo/redo (Ctrl+Z), backed by the dataSource — the success toast's
+  // "Undo" button (for `undoable` actions) restores the record's prior values.
+  const undoCtl = useGlobalUndo({
+    dataSource,
+    onUndo: (op: any) => {
+      if (op?.objectName) notifyDataChanged({ objectName: op.objectName, recordId: op.recordId });
+      else notifyRecordChanged();
+      toast.success('Change undone');
+    },
+  });
+
+  const toastHandler = useCallback((message: string, options?: { type?: string; duration?: number; undo?: { label?: string } }) => {
+    if (options?.type === 'error') { toast.error(message); return; }
+    if (options?.undo) {
+      toast.success(message, {
+        duration: options.duration,
+        action: { label: options.undo.label || 'Undo', onClick: () => { void undoCtl.undo(); } },
+      });
+      return;
+    }
+    toast.success(message, { duration: options?.duration });
+  }, [undoCtl]);
+
+  const navigateHandler = useCallback((url: string, options?: { external?: boolean; newTab?: boolean }) => {
+    if (options?.external || options?.newTab) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      navigate(url);
+    }
+
+exec
+/bin/zsh -lc 'rg -n "feedItemsByRecord|const feedItems" packages/app-shell/src/views/RecordDetailView.tsx | head -30' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 135ms:
+329:  const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
+1621:  const feedItems = (feedRecordKey ? feedItemsByRecord[feedRecordKey] : undefined) ?? EMPTY_FEED;
+
+codex
+The handler currently fires a write from inside the state updater, ignores rejected writes, and has no serialization between clicks. I’m replacing that with a per-comment save queue: clicks update the display immediately, then each toggle is saved in order; a failed toggle is removed from the displayed result and reported, while later clicks are reapplied.
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..b98cc2e6712cec728530624cfd327bf8b7b9ef3c
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,93 @@
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
++          }
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      queue.pending.push(emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource || queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..b98cc2e6712cec728530624cfd327bf8b7b9ef3c
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,93 @@
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
++          }
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      queue.pending.push(emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource || queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..091d12560c56b30c3d3232591d391297f3a54f2e
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,97 @@
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource) {
++        queue.persisted = queue.displayed;
++        return;
++      }
++      queue.pending.push(emoji);
++      if (queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
++          }
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+
+exec
+/bin/zsh -lc 'git diff -- packages/app-shell/src/views/RecordDetailView.tsx && git status --short' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 263ms:
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..091d12560 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,97 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource) {
++        queue.persisted = queue.displayed;
++        return;
++      }
++      queue.pending.push(emoji);
++      if (queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
++          }
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+ M packages/app-shell/src/views/RecordDetailView.tsx
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..091d12560c56b30c3d3232591d391297f3a54f2e
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,97 @@
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource) {
++        queue.persisted = queue.displayed;
++        return;
++      }
++      queue.pending.push(emoji);
++      if (queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
++          }
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+
+codex
+Updated reaction handling in [RecordDetailView.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx). Clicks still update the UI immediately and are saved in order. If a save fails, the failed toggle is rolled back, later clicks remain reflected, and an error toast appears.
+
+I left tests untouched and did not run them.
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..091d12560c56b30c3d3232591d391297f3a54f2e
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1897,64 +1897,97 @@
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionSaveQueues = useRef(new Map<string, {
++    persisted: NonNullable<FeedItem['reactions']>;
++    displayed: NonNullable<FeedItem['reactions']>;
++    pending: string[];
++    saving: boolean;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionSaveQueues.current.get(queueKey);
++      if (!queue) {
++        const item = feedItems.find(candidate => candidate.id === itemId);
++        if (!item) return;
++        const initial = (item.reactions ?? []).map(reaction => ({ ...reaction }));
++        queue = { persisted: initial, displayed: initial, pending: [], saving: false };
++        reactionSaveQueues.current.set(queueKey, queue);
++      }
++
++      const toggle = (reactions: NonNullable<FeedItem['reactions']>, selectedEmoji: string) => {
++        const next = reactions.map(reaction => ({ ...reaction }));
++        const idx = next.findIndex(reaction => reaction.emoji === selectedEmoji);
++        if (idx >= 0) {
++          const reaction = next[idx];
++          if (reaction.reacted) {
++            if (reaction.count <= 1) next.splice(idx, 1);
++            else next[idx] = { ...reaction, count: reaction.count - 1, reacted: false };
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            next[idx] = { ...reaction, count: reaction.count + 1, reacted: true };
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
++        } else {
++          next.push({ emoji: selectedEmoji, count: 1, reacted: true });
++        }
++        return next;
++      };
++
++      const applyDisplayed = (reactions: NonNullable<FeedItem['reactions']>) => {
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item
++          ),
++        }));
++      };
++
++      queue.displayed = toggle(queue.displayed, emoji);
++      applyDisplayed(queue.displayed);
++      if (!dataSource) {
++        queue.persisted = queue.displayed;
++        return;
++      }
++      queue.pending.push(emoji);
++      if (queue.saving) return;
++
++      queue.saving = true;
++      const saveQueuedToggles = async () => {
++        while (queue!.pending.length > 0) {
++          const nextEmoji = queue!.pending.shift()!;
++          const nextPersisted = toggle(queue!.persisted, nextEmoji);
++          const remoteShape: Record<string, string[]> = {};
++          for (const reaction of nextPersisted) {
++            const ids: string[] = [];
++            if (reaction.reacted) ids.push(currentUser.id);
++            while (ids.length < reaction.count) ids.push('__other__');
++            remoteShape[reaction.emoji] = ids;
++          }
++          try {
++            await dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            });
++            queue!.persisted = nextPersisted;
++          } catch {
++            toast.error('Could not save reaction. Please try again.');
++            // Drop the failed click from the view, then keep every later click
++            // optimistic on top of the last state known to be stored.
++            queue!.displayed = queue!.pending.reduce(
++              (reactions, pendingEmoji) => toggle(reactions, pendingEmoji),
++              queue!.persisted,
++            );
++            applyDisplayed(queue!.displayed);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++        queue!.saving = false;
++        if (reactionSaveQueues.current.get(queueKey) === queue) {
++          reactionSaveQueues.current.delete(queueKey);
++        }
++      };
++      void saveQueuedToggles();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey],
+   );
+ 
+   useEffect(() => {
+
+tokens used
+40,136
+Updated reaction handling in [RecordDetailView.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx). Clicks still update the UI immediately and are saved in order. If a save fails, the failed toggle is rolled back, later clicks remain reflected, and an error toast appears.
+
+I left tests untouched and did not run them.

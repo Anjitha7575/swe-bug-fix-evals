@@ -1,0 +1,15 @@
+Reactions on a comment now update the UI only as the backend accepts them, a failed save shows an error toast and rolls the reaction back, and every click still registers. I didn't touch any tests. The 34 related test files pass (228 tests), but I didn't exercise the behaviour in a browser.
+
+The change is in `packages/app-shell/src/views/RecordDetailView.tsx`, in `handleToggleReaction`:
+
+- **Double saves:** the save request was fired from inside a `setState` updater, which React can run twice. The next state is now computed outside the updater and the save happens once per click.
+- **Silent failure:** the error was swallowed by `.catch(() => {})`. A failed save now shows an error toast.
+- **Stale "applied" state:** each comment has a queue of saves. The UI shows the latest optimistic state while saves are pending. When the queue drains, the UI is set to the last state the backend accepted, so a failed reaction is removed.
+- **Clicks during a pending save:** nothing is disabled. Each click updates the UI immediately and queues its save behind the earlier ones, so the server ends up with the last click's state.
+
+Decisions for you to review:
+
+- **Error message:** I used a `detail.reactionFailed` key with an English `defaultValue` and did not add it to the locale files. Adding it to every locale pack is the cleaner follow-up if you want it translated.
+- **No dataSource:** with no data source the click is now ignored rather than applied locally, since nothing could be stored.
+
+A whole-project `tsc` run shows errors from unbuilt workspace packages (missing `@object-ui/*` modules). None are in the reaction code.

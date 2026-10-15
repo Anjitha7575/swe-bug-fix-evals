@@ -1,0 +1,1985 @@
+OpenAI Codex v0.162.1
+--------
+workdir: /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search
+model: gpt-6-luna
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: none
+reasoning summaries: none
+session id: 01a13df8-cc15-7031-ae05-3c3cf48cb648
+--------
+user
+On the /properties page, type a search term, then change it a moment later. Sometimes the list ends up showing results for the earlier term even though the box shows the newer one. It happens more when the first request is slow. Fix it. Don't edit tests.
+codex
+I’ll trace the `/properties` search flow and fix the stale-response race without changing any tests.
+exec
+/bin/zsh -lc "rg -n \"properties|search\" . --glob '"'!node_modules'"' --glob '"'!vendor'"'" in /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search
+ succeeded in 223ms:
+./README.md:3:Shelterflex is a **Rent Now, Pay Later (RNPL)** platform that enables tenants to secure rental properties with an initial deposit and pay the remaining balance in monthly installments — while allowing landlords to list properties directly, reducing reliance on traditional agents.
+./README.md:18:| **Landlord**            | Lists properties directly, receives guaranteed/partial payments, avoids agent fees                                                                            |
+./README.md:76:- Static pages work without a backend; data-driven features (properties, messages, dashboards, auth) require a running backend
+./load-tests/README.md:18:    ├── property-search.js  # Concurrent tenant search and filters (100 VUs)
+./load-tests/README.md:60:# Run property search scenario
+./load-tests/README.md:61:k6 run load-tests/scenarios/property-search.js
+./load-tests/README.md:114:k6 run --out json=load-tests/baselines/property-search-results.json load-tests/scenarios/property-search.js
+./load-tests/README.md:127:- **Scenario:** Select `all` or target a specific scenario (`property-search`, `payment-flow`, etc.).
+./CONTRIBUTING.md:3:Thanks for contributing. Shelterflex is a **Rent Now, Pay Later (RNPL)** platform for rental markets — tenants pay a deposit upfront and repay the balance in installments, while landlords list properties directly. The platform relies on smart contracts for payments, escrow, staking, and a whistleblower rewards programme.
+./docs/REPO_STRUCTURE.md:3:Shelterflex is a **Rent Now, Pay Later (RNPL)** platform. Tenants secure properties with a partial deposit and repay the balance in installments. Landlords list directly and receive guaranteed or partially guaranteed payments. Whistleblowers report fraudulent listings and earn on-chain rewards, acting as a decentralized trust and quality-assurance layer that also drives organic platform adoption.
+./docs/conversion-receipts.md:916:- **Comprehensive testing** validates all correctness properties
+./e2e/helpers/seed.ts:17:  /** The landlord_properties id (approved, linked to the listing). */
+./e2e/helpers/seed.ts:55:      `INSERT INTO properties (title, address, monthly_rent_ngn, status, landlord_id, created_at)
+./e2e/helpers/seed.ts:91:      `INSERT INTO landlord_properties
+./e2e/helpers/seed.ts:159:      `DELETE FROM inspection_reports WHERE job_id IN (SELECT id FROM inspection_jobs WHERE listing_id IN (SELECT id FROM properties WHERE title LIKE $1))`,
+./e2e/helpers/seed.ts:163:      `DELETE FROM inspection_jobs WHERE listing_id IN (SELECT id FROM properties WHERE title LIKE $1)`,
+./e2e/helpers/seed.ts:167:      `DELETE FROM property_inspections WHERE listing_id IN (SELECT id FROM properties WHERE title LIKE $1)`,
+./e2e/helpers/seed.ts:186:      `DELETE FROM landlord_properties WHERE title LIKE $1`,
+./e2e/helpers/seed.ts:200:      `DELETE FROM properties WHERE title LIKE $1`,
+./docs/specs/whistleblower-earnings-dashboard/design.md:250:After analyzing the acceptance criteria, several properties can be consolidated:
+./docs/specs/whistleblower-earnings-dashboard/design.md:252:- Properties 2.2, 2.3, 2.4 (NGN aggregation) and 2.5 (USDC aggregation) can be combined into comprehensive aggregation properties
+./docs/specs/whistleblower-earnings-dashboard/design.md:253:- Property 1.3 (response structure) is subsumed by properties 2.1 and 3.1 which test the specific structures
+./docs/specs/whistleblower-earnings-dashboard/design.md:256:The following properties represent the minimal set needed for comprehensive validation:
+./docs/specs/whistleblower-earnings-dashboard/design.md:367:- **Property tests**: Verify universal properties across all inputs
+./docs/specs/whistleblower-earnings-dashboard/design.md:400:Property tests verify the correctness properties defined above using a property-based testing library. For TypeScript/Node.js, we will use **fast-check**.
+./docs/specs/whistleblower-earnings-dashboard/design.md:447:Each of the 8 correctness properties should have a corresponding property-based test:
+./e2e/tenant/search-apply.spec.ts:3:test.describe("Tenant property search & application", () => {
+./e2e/tenant/search-apply.spec.ts:10:  test("search with filters → view listing → apply → confirmation", async ({
+./e2e/tenant/search-apply.spec.ts:18:    const searchBox = page.getByPlaceholder(/search|find property/i);
+./e2e/tenant/search-apply.spec.ts:19:    if (await searchBox.isVisible()) {
+./e2e/tenant/search-apply.spec.ts:20:      await searchBox.fill("Lagos");
+./e2e/tenant/search-apply.spec.ts:21:      await searchBox.press("Enter");
+./frontend/store/__tests__/useSessionStore.test.ts:39:      act(() => { result.current.setLastRoute("/dashboard/landlord/properties"); });
+./frontend/store/__tests__/useSessionStore.test.ts:41:      expect(result.current.lastRoute).toBe("/dashboard/landlord/properties");
+./e2e/landlord/create-listing.spec.ts:13:    await page.goto("/dashboard/landlord/properties/new");
+./e2e/landlord/create-listing.spec.ts:39:    // Navigate to properties list and verify it appears
+./e2e/landlord/create-listing.spec.ts:40:    await page.goto("/dashboard/landlord/properties");
+./frontend/components/user-dashboard/UserPropertyCard.tsx:22:    <Link href={`/properties/${property.id}`} className="block">
+./load-tests/scenarios/property-search.js:4: * Simulates 100 concurrent tenants searching property listings with various
+./load-tests/scenarios/property-search.js:7: * Endpoint under test:  GET /api/properties/search
+./load-tests/scenarios/property-search.js:10: *   k6 run load-tests/scenarios/property-search.js
+./load-tests/scenarios/property-search.js:11: *   k6 run -e BASE_URL=https://staging.example.com load-tests/scenarios/property-search.js
+./load-tests/scenarios/property-search.js:30:    scenario: 'property-search',
+./load-tests/scenarios/property-search.js:35:// Helpers — search filter variations
+./load-tests/scenarios/property-search.js:71:      const res = http.get(`${BASE_URL}/api/properties/search${qs}`, {
+./load-tests/scenarios/property-search.js:73:        tags: { name: 'GET /api/properties/search' },
+./load-tests/scenarios/property-search.js:105:      // Use a placeholder property ID — in a real run you would extract from the search results
+./load-tests/scenarios/property-search.js:106:      const res = http.get(`${BASE_URL}/api/properties/test-property-1`, {
+./load-tests/scenarios/property-search.js:108:        tags: { name: 'GET /api/properties/:id' },
+./e2e/landlord/application-to-tenancy.spec.ts:16:    await page.goto("/dashboard/landlord/properties");
+./e2e/landlord/application-to-tenancy.spec.ts:28:    await page.goto(`/properties/${seed.approvedListingId}`);
+./e2e/landlord/application-to-tenancy.spec.ts:71:      `/dashboard/landlord/properties/${seed.landlordPropertyId}/applications`,
+./contracts/staking_pool/src/lib.rs:23:pub mod formal_properties;
+./contracts/staking_pool/src/lib.rs:2900:    // the contract, matches the Kani-proven model in formal_properties.rs.
+./e2e/landlord/verification.spec.ts:226:      const create = await page.request.post("/api/landlord/properties", {
+./contracts/staking_pool/src/formal_properties.rs:1://! Kani formal verification harnesses for `staking_pool` safety properties.
+./frontend/STATE_HANDLING_CONVENTION.md:95:  title="No saved properties yet"
+./frontend/STATE_HANDLING_CONVENTION.md:97:  action={{ label: "Browse properties", href: "/properties" }}
+./frontend/STATE_HANDLING_CONVENTION.md:143:    description="Payouts appear here once a tenant pays rent on one of your properties."
+./frontend/components/property-card.tsx:291:  const searchParams = useSearchParams();
+./frontend/components/property-card.tsx:294:  const compareIds = parseCompareIds(searchParams.get("ids"));
+./frontend/components/property-card.tsx:305:  const detailHref = href ?? `/properties/${property.listingId}`;
+./frontend/components/property-card.tsx:389:      showErrorToast(new Error(`You can compare up to ${MAX_COMPARE} properties`), "Compare limit reached");
+./frontend/components/property-card.tsx:393:    const newParams = new URLSearchParams(searchParams.toString());
+./frontend/components/property-card.tsx:399:    router.push(`/properties?${newParams.toString()}`);
+./frontend/components/property-card.tsx:553:/** Map search API listing to card props. */
+./frontend/components/admin/AuditLogFilters.tsx:96:        {/* Actor ID text search */}
+./frontend/components/admin/AuditLogFilters.tsx:164:        {/* Resource ID text search */}
+./frontend/ANALYTICS_README.md:11:- Custom event properties with data validation
+./frontend/ANALYTICS_README.md:143:- `track(event, properties?)` - Track custom events
+./frontend/ANALYTICS_README.md:153:- `startFunnel(funnelName, userId, properties?)` - Start funnel tracking
+./frontend/ANALYTICS_README.md:154:- `trackStep(funnelName, userId, stepName, properties?)` - Track funnel steps
+./frontend/ANALYTICS_README.md:155:- `completeFunnel(funnelName, userId, properties?)` - Complete funnel
+./frontend/app/not-found.tsx:35:              <Link href="/properties">
+./frontend/components/dashboard-header.tsx:54:          <Link href="/properties">
+./frontend/components/dashboard-header.tsx:99:          <Link href="/properties" className="block">
+./frontend/components/PropertyMap.tsx:7:import type { PropertyListing } from "@/lib/propertiesApi";
+./frontend/components/PropertyMap.tsx:16:  properties: PropertyWithCoords[];
+./frontend/components/PropertyMap.tsx:34:  properties,
+./frontend/components/PropertyMap.tsx:38:  // Filter to only properties that have valid coordinates
+./frontend/components/PropertyMap.tsx:39:  const mappableProperties = properties.filter(
+./frontend/components/GlobalSearch.tsx:107:        aria-label="Global search"
+./frontend/components/GlobalSearch.tsx:119:              placeholder="Search properties, deals, documents..."
+./frontend/components/GlobalSearch.tsx:125:            id="global-search-list"
+./frontend/components/GlobalSearch.tsx:134:                  aria-label="Loading search results"
+./frontend/components/GlobalSearch.tsx:165:                    Try adjusting your search terms
+./frontend/components/GlobalSearch.tsx:200:                  Type to search across everything
+./frontend/components/footer.tsx:10:    { label: "Find a Home", href: "/properties" },
+./frontend/e2e/landlord-analytics.spec.ts:29:    await page.route('**/api/landlord/properties', async (route) => {
+./frontend/components/properties/ApartmentReviews.tsx:42:  const searchParams = useSearchParams();
+./frontend/components/properties/ApartmentReviews.tsx:44:  const ratingFilter = searchParams.get("rating") || "all";
+./frontend/components/properties/ApartmentReviews.tsx:45:  const sortBy = searchParams.get("sort") || "newest";
+./frontend/components/properties/ApartmentReviews.tsx:46:  const verifiedOnly = searchParams.get("verified") === "true";
+./frontend/components/properties/ApartmentReviews.tsx:47:  const page = Number(searchParams.get("page")) || 1;
+./frontend/components/properties/ApartmentReviews.tsx:84:    const params = new URLSearchParams(searchParams.toString());
+./frontend/components/properties/ApartmentReviews.tsx:95:    const params = new URLSearchParams(searchParams.toString());
+./frontend/components/properties/ApartmentReviews.tsx:224:                const params = new URLSearchParams(searchParams.toString());
+./frontend/components/language-switcher.tsx:38:    const search = typeof window !== "undefined" ? window.location.search : "";
+./frontend/components/language-switcher.tsx:40:    router.push(`/${newLocale}${pathnameWithoutLocale}${search}${hash}`);
+./frontend/components/dashboard/SettingsPageSkeleton.tsx:18:            {["dashboard", "properties", "tenants", "messages", "settings"].map((item) => (
+./frontend/components/dashboard/DashboardSidebar.tsx:60:    { href: "/properties", label: "Browse Properties", icon: Building2 },
+./frontend/components/dashboard/DashboardSidebar.tsx:62:      href: "/properties/saved",
+./frontend/components/dashboard/DashboardSidebar.tsx:81:      href: "/dashboard/landlord/properties",
+./frontend/components/dashboard/DashboardSidebar.tsx:128:  "/properties",
+./frontend/components/properties/PropertyAmenities.tsx:14:import { AmenitiesLegend } from "@/components/properties/AmenitiesLegend"
+./frontend/components/header.tsx:18:  { href: "/properties", label: "Find a Home" },
+./frontend/components/header.tsx:190:              aria-label="Open global search"
+./frontend/app/onboarding/inspector/page.tsx:54:  const searchParams = useSearchParams();
+./frontend/app/onboarding/inspector/page.tsx:55:  const stepParam = searchParams.get("step");
+./frontend/app/onboarding/inspector/page.tsx:194:          <p className="text-muted-foreground mt-2">Complete your profile to start inspecting properties.</p>
+./frontend/components/properties/PropertyPageContent.tsx:12:import { getProperty, type PropertyListing } from "@/lib/propertiesApi"
+./frontend/components/properties/PropertyPageContent.tsx:14:import { PropertyGallery } from "@/components/properties/PropertyGallery"
+./frontend/components/properties/PropertyPageContent.tsx:15:import { PropertyInfo } from "@/components/properties/PropertyInfo"
+./frontend/components/properties/PropertyPageContent.tsx:16:import { PropertyDescription } from "@/components/properties/PropertyDescription"
+./frontend/components/properties/PropertyPageContent.tsx:17:import { PropertyAmenities } from "@/components/properties/PropertyAmenities"
+./frontend/components/properties/PropertyPageContent.tsx:18:import { PropertyLightbox } from "@/components/properties/PropertyLightbox"
+./frontend/components/properties/PropertyPageContent.tsx:19:import { PropertyReportDialog } from "@/components/properties/PropertyReportDialog"
+./frontend/components/properties/PropertyPageContent.tsx:20:import { TrustIndicatorBar } from "@/components/properties/TrustIndicatorBar"
+./frontend/components/properties/PropertyPageContent.tsx:21:import type { GalleryImage } from "@/components/properties/PropertyLightbox"
+./frontend/components/properties/PropertyPageContent.tsx:24:  import("@/components/properties/PropertySidebar").then((mod) => mod.PropertySidebar)
+./frontend/components/properties/PropertyPageContent.tsx:28:  import("@/components/properties/InspectionReportAccordion").then(
+./frontend/components/properties/PropertyPageContent.tsx:34:  import("@/components/properties/ApartmentReviews").then(
+./frontend/components/properties/PropertyPageContent.tsx:209:          <Link href="/properties">
+./frontend/components/properties/PropertySidebar.tsx:19:import PropertyPriceBreakdown from "@/components/properties/PropertyPriceBreakdown"
+./frontend/components/properties/PropertySidebar.tsx:20:import { LandlordSnippet } from "@/components/properties/LandlordSnippet"
+./frontend/components/properties/PropertySidebar.tsx:21:import type { LandlordProfile } from "@/components/properties/LandlordSnippet"
+./frontend/components/landlord/LandlordSidebar.tsx:62:      href: "/dashboard/landlord/properties",
+./frontend/e2e/tenant-vault.spec.ts:8:  test('displays vault page header and search controls', async ({ page }) => {
+./frontend/e2e/tenant-vault.spec.ts:34:  test('search input is functional', async ({ page }) => {
+./frontend/e2e/tenant-vault.spec.ts:35:    const searchInput = page.getByPlaceholder('Search by name, description, or tag...')
+./frontend/e2e/tenant-vault.spec.ts:36:    await searchInput.fill('lease agreement')
+./frontend/e2e/tenant-vault.spec.ts:37:    await expect(searchInput).toHaveValue('lease agreement')
+./frontend/e2e/tenant-vault.spec.ts:53:    const searchInput = page.getByPlaceholder('Search by name, description, or tag...')
+./frontend/e2e/tenant-vault.spec.ts:54:    await searchInput.fill('test')
+./frontend/e2e/tenant-vault.spec.ts:60:    const searchInput = page.getByPlaceholder('Search by name, description, or tag...')
+./frontend/e2e/tenant-vault.spec.ts:61:    await searchInput.fill('test')
+./frontend/e2e/tenant-vault.spec.ts:69:    await expect(searchInput).toHaveValue('')
+./frontend/e2e/tenant-vault.spec.ts:86:    const searchInput = page.getByPlaceholder('Search by name, description, or tag...')
+./frontend/e2e/tenant-vault.spec.ts:87:    await searchInput.fill('trigger-search')
+./contracts/rent_wallet/src/lib.rs:13:mod formal_properties;
+./frontend/components/properties/PropertyInfo.tsx:4:import { VerificationBadge } from "@/components/properties/verification-badge"
+./frontend/components/MapListingCard.tsx:8:import type { PropertyListing } from "@/lib/propertiesApi";
+./frontend/components/MapListingCard.tsx:74:        <Link href={`/properties/${property.listingId}`} className="block pt-1">
+./frontend/components/properties/ApartmentReviews.test.tsx:5:import { ApartmentReviews } from '@/components/properties/ApartmentReviews';
+./frontend/app/login/page.tsx:19:  const searchParams = useSearchParams();
+./frontend/app/login/page.tsx:20:  const returnTo = searchParams.get("returnTo");
+./frontend/components/properties/PropertyInfo.test.tsx:5:import { PropertyInfo } from '@/components/properties/PropertyInfo';
+./frontend/components/properties/PhotoGallery.test.tsx:5:import { PhotoGallery } from '@/components/properties/PhotoGallery';
+./frontend/app/login/page.test.tsx:7:const searchParamsMock = new URLSearchParams();
+./frontend/app/login/page.test.tsx:11:  useSearchParams: () => searchParamsMock,
+./frontend/components/ui/data-state.test.tsx:144:        title="No saved properties yet"
+./frontend/components/ui/data-state.test.tsx:146:        action={{ label: "Browse properties", href: "/properties" }}
+./frontend/components/ui/data-state.test.tsx:150:    expect(screen.getByText("No saved properties yet")).toBeInTheDocument();
+./frontend/components/ui/data-state.test.tsx:151:    expect(screen.getByRole("link", { name: "Browse properties" })).toHaveAttribute(
+./frontend/components/ui/data-state.test.tsx:153:      "/properties",
+./frontend/components/ui/data-state.test.tsx:161:        title="No properties found"
+./frontend/components/ui/data-state.test.tsx:162:        description="Clearing your filters widens the search."
+./frontend/components/virtualized-property-list.tsx:2:import type { PropertyListing } from '@/lib/propertiesApi'
+./frontend/components/virtualized-property-list.tsx:6:  properties: PropertyListing[]
+./frontend/components/virtualized-property-list.tsx:19:  properties,
+./frontend/components/virtualized-property-list.tsx:66:      properties.length,
+./frontend/components/virtualized-property-list.tsx:71:  }, [scrollTop, containerHeight, properties.length])
+./frontend/components/virtualized-property-list.tsx:74:    return properties.slice(visibleRange.startIndex, visibleRange.endIndex)
+./frontend/components/virtualized-property-list.tsx:75:  }, [properties, visibleRange])
+./frontend/components/virtualized-property-list.tsx:97:          <p>Loading properties...</p>
+./frontend/components/virtualized-property-list.tsx:101:      {!isLoading && properties.length === 0 && (
+./frontend/components/virtualized-property-list.tsx:103:          <p>No properties found</p>
+./frontend/components/virtualized-property-list.tsx:107:      {!isLoading && properties.length > 0 && (
+./frontend/components/virtualized-property-list.tsx:110:            height: properties.length * ITEM_HEIGHT,
+./frontend/components/__tests__/property-card.test.tsx:166:    ).toHaveAttribute("href", "/properties/listing-1");
+./frontend/components/inspector/ServiceAreaPicker.tsx:19:  const [search, setSearch] = useState("");
+./frontend/components/inspector/ServiceAreaPicker.tsx:22:    lga.toLowerCase().includes(search.toLowerCase())
+./frontend/components/inspector/ServiceAreaPicker.tsx:41:          value={search}
+./frontend/components/prescreener/EligibilityResultCard.tsx:74:        <Link href="/properties" className="flex-1">
+./frontend/lib/savedPropertiesApi.ts:2: * Tenant saved properties API
+./frontend/lib/savedPropertiesApi.ts:19:    "/api/tenant/saved-properties",
+./frontend/lib/savedPropertiesApi.ts:26:    `/api/tenant/saved-properties/${encodeURIComponent(listingId)}`,
+./frontend/lib/savedPropertiesApi.ts:33:    `/api/tenant/saved-properties/${encodeURIComponent(listingId)}`,
+./frontend/app/rating-card/[token]/layout.tsx:8: * search index: the token is the only access control, and an indexed — or
+./frontend/components/ui/mobile-menu.tsx:83:                  aria-label="Open global search"
+./frontend/app/report/page.tsx:266:                  <Link href="/properties" className="flex-1">
+./frontend/lib/landlordApi.ts:32:  properties: LandlordProperty[];
+./frontend/lib/landlordApi.ts:83:    return apiFetch<LandlordProperty[]>("/api/landlord/properties");
+./frontend/lib/landlordApi.ts:87:    return apiFetch<LandlordProperty>(`/api/landlord/properties/${id}`);
+./frontend/lib/landlordApi.ts:104:    return apiPost<any>("/api/landlord/properties", payload);
+./frontend/lib/landlordPropertiesApi.ts:43:  properties: LandlordPropertyRecord[];
+./frontend/lib/landlordPropertiesApi.ts:105:    `/properties/${propertyId}/photos`,
+./frontend/lib/landlordPropertiesApi.ts:117:  return apiFetch<void>(`/properties/${propertyId}/photos/${photoId}`, {
+./frontend/lib/landlordPropertiesApi.ts:128:    `/properties/${propertyId}/photos/order`,
+./frontend/lib/landlordPropertiesApi.ts:141:    `/properties/${propertyId}/photos/${photoId}/primary`,
+./frontend/lib/landlordPropertiesApi.ts:159:    `/api/landlord/properties${query ? `?${query}` : ""}`,
+./frontend/lib/landlordPropertiesApi.ts:166:  return apiGet<LandlordPropertyRecord>(`/api/landlord/properties/${id}`);
+./frontend/lib/landlordPropertiesApi.ts:172:  return apiPost<LandlordPropertyRecord>("/api/landlord/properties", payload);
+./frontend/lib/landlordPropertiesApi.ts:180:    `/api/landlord/properties/${id}`,
+./frontend/lib/landlordPropertiesApi.ts:189:    `/api/landlord/properties/${id}/deactivate`,
+./frontend/lib/landlordPropertiesApi.ts:198:    `/api/landlord/properties/${id}/relist`,
+./frontend/lib/landlordPropertiesApi.ts:207:    `/api/properties/${propertyId}/photos/presign`,
+./frontend/lib/landlordPropertiesApi.ts:221:  return apiFetch(`/api/properties/${propertyId}/photos/batch`, {
+./frontend/lib/landlordPropertiesApi.ts:228:  return apiFetch<void>(`/api/landlord/properties/${id}`, {
+./frontend/lib/funnel-analysis.ts:13:  properties?: Record<string, any>
+./frontend/lib/funnel-analysis.ts:45:  properties: Record<string, any>
+./frontend/lib/funnel-analysis.ts:52:  properties: Record<string, any>
+./frontend/lib/funnel-analysis.ts:94:        { name: 'visit_properties', description: 'Visit properties page', required: true },
+./frontend/lib/funnel-analysis.ts:95:        { name: 'search_properties', description: 'Search for properties', required: true },
+./frontend/lib/funnel-analysis.ts:172:  startFunnel(funnelName: string, userId: string, properties?: Record<string, any>): void {
+./frontend/lib/funnel-analysis.ts:188:      properties: properties || {},
+./frontend/lib/funnel-analysis.ts:194:      ...properties
+./frontend/lib/funnel-analysis.ts:198:  trackStep(funnelName: string, userId: string, stepName: string, properties?: Record<string, any>): void {
+./frontend/lib/funnel-analysis.ts:224:      properties: properties || {}
+./frontend/lib/funnel-analysis.ts:230:      ...properties
+./frontend/lib/funnel-analysis.ts:234:  completeFunnel(funnelName: string, userId: string, properties?: Record<string, any>): void {
+./frontend/lib/funnel-analysis.ts:253:      ...properties
+./frontend/lib/analytics.ts:4:  properties?: Record<string, any>
+./frontend/lib/analytics.ts:16:  properties?: Record<string, any>
+./frontend/lib/analytics.ts:163:  track(event: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics.ts:168:      properties: this.sanitizeData(properties),
+./frontend/lib/analytics.ts:195:  startFunnel(funnelName: string, firstStep: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics.ts:201:      properties: this.sanitizeData(properties)
+./frontend/lib/analytics.ts:210:      ...properties
+./frontend/lib/analytics.ts:214:  trackFunnelStep(funnelName: string, stepName: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics.ts:227:      properties: this.sanitizeData(properties)
+./frontend/lib/analytics.ts:237:      ...properties
+./frontend/lib/analytics.ts:241:  completeFunnel(funnelName: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics.ts:253:      completionTime: Date.now() - (steps[0]?.properties?.timestamp || Date.now()),
+./frontend/lib/analytics.ts:254:      ...properties
+./frontend/lib/analytics.ts:374:        globalThis.va('track', event.event, event.properties)
+./frontend/lib/analytics.ts:412:      completedSteps: steps.filter(s => s.properties?.completed).length,
+./frontend/lib/analytics.ts:413:      conversionRate: steps.filter(s => s.properties?.completed).length / steps.length,
+./frontend/lib/auditLogsApi.ts:40:  const search = new URLSearchParams()
+./frontend/lib/auditLogsApi.ts:41:  if (params.actorId) search.set('actorId', params.actorId)
+./frontend/lib/auditLogsApi.ts:42:  if (params.action) search.set('action', params.action)
+./frontend/lib/auditLogsApi.ts:43:  if (params.resourceType) search.set('resourceType', params.resourceType)
+./frontend/lib/auditLogsApi.ts:44:  if (params.resourceId) search.set('resourceId', params.resourceId)
+./frontend/lib/auditLogsApi.ts:45:  if (params.startDate) search.set('startDate', params.startDate)
+./frontend/lib/auditLogsApi.ts:46:  if (params.endDate) search.set('endDate', params.endDate)
+./frontend/lib/auditLogsApi.ts:47:  if (params.page != null) search.set('page', String(params.page))
+./frontend/lib/auditLogsApi.ts:48:  if (params.limit != null) search.set('limit', String(params.limit))
+./frontend/lib/auditLogsApi.ts:49:  const qs = search.toString()
+./frontend/lib/seo.ts:42: * search snippet would leak a tenant's payment record even after the token is
+./frontend/lib/seo.ts:61:  /** Route path, e.g. `/properties`. Becomes the canonical URL. */
+./frontend/lib/globalSearchApi.ts:1:import { searchProperties } from "@/lib/propertiesApi"
+./frontend/lib/globalSearchApi.ts:17:async function searchPropertiesApi(query: string): Promise<SearchResult[]> {
+./frontend/lib/globalSearchApi.ts:19:    const res = await searchProperties({ query, pageSize: 5 })
+./frontend/lib/globalSearchApi.ts:27:      href: `/properties/${p.listingId}`,
+./frontend/lib/globalSearchApi.ts:34:async function searchDealsApi(query: string): Promise<SearchResult[]> {
+./frontend/lib/globalSearchApi.ts:36:    const path = withQuery("/api/deals/search", {
+./frontend/lib/globalSearchApi.ts:55:async function searchDocumentsApi(query: string): Promise<SearchResult[]> {
+./frontend/lib/globalSearchApi.ts:58:      search: query,
+./frontend/lib/globalSearchApi.ts:76:async function searchTransactionsApi(query: string): Promise<SearchResult[]> {
+./frontend/lib/globalSearchApi.ts:78:    const path = withQuery("/api/transactions/search", {
+./frontend/lib/globalSearchApi.ts:97:async function searchConversationsApi(query: string): Promise<SearchResult[]> {
+./frontend/lib/globalSearchApi.ts:99:    const path = withQuery("/api/conversations/search", {
+./frontend/lib/globalSearchApi.ts:126:  const properties = await searchPropertiesApi(query)
+./frontend/lib/globalSearchApi.ts:127:  if (properties.length > 0) {
+./frontend/lib/globalSearchApi.ts:128:    groups.push({ label: "Properties", results: properties })
+./frontend/lib/globalSearchApi.ts:133:      searchDealsApi(query),
+./frontend/lib/globalSearchApi.ts:134:      searchDocumentsApi(query),
+./frontend/lib/globalSearchApi.ts:135:      searchTransactionsApi(query),
+./frontend/lib/globalSearchApi.ts:136:      searchConversationsApi(query),
+./contracts/bond_collateral/src/lib.rs:9:mod formal_properties;
+./frontend/lib/propertiesApi.ts:3: * Handles property search and listing operations
+./frontend/lib/propertiesApi.ts:59:export async function searchProperties(
+./frontend/lib/propertiesApi.ts:63:    "/api/properties/search",
+./frontend/lib/propertiesApi.ts:70:  return apiGet<PropertyDetailResponse>(`/api/properties/${id}`);
+./frontend/lib/propertiesApi.ts:85:  const path = withQuery("/api/properties", query);
+./frontend/lib/propertyInspectionApi.ts:135:    return fetchWithAuth(`/properties/${propertyId}/inspection-summary`);
+./frontend/app/api/admin/alerts/route.ts:4:  const response = await fetch(`${backend}/api/admin/alerts${request.nextUrl.search}`, { headers: { "x-admin-secret": process.env.ADMIN_SECRET || process.env.MANUAL_ADMIN_SECRET || "" }, cache: "no-store" })
+./frontend/lib/content/homepage.ts:20:      "All listed properties are verified and inspected by our team.",
+./frontend/lib/documentVaultApi.ts:106:  search?: string;
+./frontend/lib/documentVaultApi.ts:120:  if (params?.search) query.search = params.search;
+./frontend/scripts/analyze-performance.js:19:  '/properties',
+./frontend/scripts/analyze-performance.js:20:  '/properties/[id]',
+./frontend/scripts/analyze-performance.js:38:  '/properties': {
+./frontend/scripts/analyze-performance.js:43:  '/properties/[id]': {
+./frontend/scripts/analyze-performance.js:78:  '/properties': {
+./frontend/scripts/analyze-performance.js:82:  '/properties/[id]': {
+./frontend/scripts/analyze-performance.js:266:    else if (route === '/properties') rationale = 'Listing page - based on current ~550KB';
+./frontend/scripts/analyze-performance.js:267:    else if (route === '/properties/[id]') rationale = 'Detail page - allows for images/maps';
+./frontend/scripts/analyze-performance.js:284:    else if (route === '/properties') rationale = 'Listing page - moderate complexity';
+./frontend/scripts/analyze-performance.js:285:    else if (route === '/properties/[id]') rationale = 'Detail page - images/maps allowed';
+./frontend/lib/analytics-init.ts:40:export function trackUserInteraction(action: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:44:      ...properties
+./frontend/lib/analytics-init.ts:50:export function trackFormSubmission(formName: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:54:      ...properties
+./frontend/lib/analytics-init.ts:60:export function trackConversion(type: string, value?: number, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:65:      ...properties
+./frontend/lib/analytics-init.ts:82:export function trackFeatureUsage(feature: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:86:      ...properties
+./frontend/lib/analytics-init.ts:98:export function trackRegistrationStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:100:    funnelAnalysis.trackStep('user_registration', userId, step, properties)
+./frontend/lib/analytics-init.ts:104:export function completeUserRegistration(userId: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:106:    funnelAnalysis.completeFunnel('user_registration', userId, properties)
+./frontend/lib/analytics-init.ts:116:export function trackPropertyDiscoveryStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:118:    funnelAnalysis.trackStep('property_discovery', userId, step, properties)
+./frontend/lib/analytics-init.ts:128:export function trackRentalApplicationStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:130:    funnelAnalysis.trackStep('rental_application', userId, step, properties)
+./frontend/lib/analytics-init.ts:140:export function trackPaymentSetupStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:142:    funnelAnalysis.trackStep('payment_setup', userId, step, properties)
+./frontend/lib/analytics-init.ts:152:export function trackStakingInvestmentStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:154:    funnelAnalysis.trackStep('staking_investment', userId, step, properties)
+./frontend/lib/analytics-init.ts:164:export function trackWhistleblowerReportStep(userId: string, step: string, properties?: Record<string, any>): void {
+./frontend/lib/analytics-init.ts:166:    funnelAnalysis.trackStep('whistleblower_report', userId, step, properties)
+./frontend/lib/analytics-init.ts:198:  const trackEvent = (event: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:199:    trackUserInteraction(event, properties)
+./frontend/lib/analytics-init.ts:206:  const trackForm = (formName: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:207:    trackFormSubmission(formName, properties)
+./frontend/lib/analytics-init.ts:210:  const trackConversionEvent = (type: string, value?: number, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:211:    trackConversion(type, value, properties)
+./frontend/lib/analytics-init.ts:218:  const trackFeature = (feature: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:219:    trackFeatureUsage(feature, properties)
+./frontend/lib/analytics-init.ts:235:  const start = (userId: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:237:      funnelAnalysis.startFunnel(funnelName, userId, properties)
+./frontend/lib/analytics-init.ts:241:  const trackStep = (userId: string, step: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:243:      funnelAnalysis.trackStep(funnelName, userId, step, properties)
+./frontend/lib/analytics-init.ts:247:  const complete = (userId: string, properties?: Record<string, any>) => {
+./frontend/lib/analytics-init.ts:249:      funnelAnalysis.completeFunnel(funnelName, userId, properties)
+./frontend/scripts/check-performance-budget.js:19:  '/properties': 700 * 1024, // 700KB
+./frontend/scripts/check-performance-budget.js:20:  '/properties/[id]': 800 * 1024, // 800KB
+./frontend/lib/__tests__/api-rate-limit.test.ts:23:    const result = await apiFetch<{ success: boolean }>('/properties');
+./backend/src/services/storageService.test.ts:43:    const expires = u.searchParams.get('X-Amz-Expires')
+./frontend/lib/__tests__/propertiesApi.test.ts:3:  searchProperties,
+./frontend/lib/__tests__/propertiesApi.test.ts:8:} from "../propertiesApi";
+./frontend/lib/__tests__/propertiesApi.test.ts:49:describe("searchProperties", () => {
+./frontend/lib/__tests__/propertiesApi.test.ts:69:    const result = await searchProperties(filters);
+./frontend/lib/__tests__/propertiesApi.test.ts:72:      expect.stringContaining("/api/properties/search?"),
+./frontend/lib/__tests__/propertiesApi.test.ts:87:    await searchProperties({ city: "Lagos" });
+./frontend/lib/__tests__/propertiesApi.test.ts:94:  it("returns empty array when no properties match", async () => {
+./frontend/lib/__tests__/propertiesApi.test.ts:104:    const result = await searchProperties({});
+./frontend/lib/__tests__/propertiesApi.test.ts:119:    expect(apiGet).toHaveBeenCalledWith("/api/properties/L-001");
+./frontend/lib/__tests__/propertiesApi.test.ts:125:  it("calls /api/properties with no params when none provided", async () => {
+./frontend/lib/__tests__/propertiesApi.test.ts:137:    expect(apiGet).toHaveBeenCalledWith("/api/properties");
+./frontend/lib/__tests__/propertiesApi.test.ts:194:    await expect(searchProperties({})).rejects.toThrow("Network error");
+./frontend/lib/__tests__/api.test.ts:22:  it('has status and code properties', () => {
+./frontend/lib/employersApi.ts:22:export async function searchEmployers(
+./frontend/lib/employersApi.ts:29:    `/api/employers/search${query ? `?${query}` : ""}`,
+./frontend/lib/__tests__/documentVaultApi.test.ts:60:  it("includes category, status, tags, search, page, pageSize params", async () => {
+./frontend/lib/__tests__/documentVaultApi.test.ts:71:      search: "lease",
+./frontend/lib/__tests__/documentVaultApi.test.ts:81:    expect(path).toContain("search=lease");
+./frontend/lib/api/messaging.ts:12:export async function fetchConversations(cursor?: string, limit = 50, search?: string): Promise<PaginatedConversations> {
+./frontend/lib/api/messaging.ts:16:  if (search) params.set("search", search)
+./frontend/lib/pii-scrubber.ts:233:    for (const param of urlObj.searchParams.keys()) {
+./frontend/lib/pii-scrubber.ts:235:        urlObj.searchParams.set(param, '[REDACTED]')
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:42:  it("fetches properties with no params", async () => {
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:44:      properties: [],
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:53:    expect(apiGet).toHaveBeenCalledWith("/api/landlord/properties");
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:54:    expect(result.properties).toEqual([]);
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:59:      properties: [],
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:81:    expect(apiGet).toHaveBeenCalledWith("/api/landlord/properties/P-001");
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:93:    expect(apiPost).toHaveBeenCalledWith("/api/landlord/properties", payload);
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:104:    expect(apiPatch).toHaveBeenCalledWith("/api/landlord/properties/P-001", { title: "Updated" });
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:115:    expect(apiPatch).toHaveBeenCalledWith("/api/landlord/properties/P-001/deactivate", {});
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:126:    expect(apiPatch).toHaveBeenCalledWith("/api/landlord/properties/P-001/relist", {});
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:144:    expect(apiPost).toHaveBeenCalledWith("/api/properties/P-001/photos/presign", {});
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:159:      "/api/properties/P-001/photos/batch",
+./frontend/lib/__tests__/landlordPropertiesApi.test.ts:172:    expect(apiFetch).toHaveBeenCalledWith("/api/landlord/properties/P-001", {
+./contracts/reentrancy_guard/src/lib.rs:13:mod formal_properties;
+./frontend/lib/__tests__/landlordApi.test.ts:21:        properties: [],
+./frontend/lib/__tests__/landlordApi.test.ts:28:      expect(result.properties).toEqual([]);
+./frontend/lib/__tests__/landlordApi.test.ts:33:    it("fetches all landlord properties", async () => {
+./frontend/lib/__tests__/landlordApi.test.ts:38:      expect(apiFetch).toHaveBeenCalledWith("/api/landlord/properties");
+./frontend/lib/__tests__/landlordApi.test.ts:53:      expect(apiFetch).toHaveBeenCalledWith("/api/landlord/properties/P-001");
+./frontend/lib/__tests__/landlordApi.test.ts:66:      expect(apiFetch).toHaveBeenCalledWith("/api/landlord/properties/42");
+./frontend/lib/__tests__/landlordApi.test.ts:135:      expect(apiPost).toHaveBeenCalledWith("/api/landlord/properties", payload);
+./backend/src/app.ts:669:  // publicSearch: 60 req/min per IP for unauthenticated listing/search endpoints
+./backend/src/app.ts:677:  // Apply publicSearch limiter to listing/property search routes
+./backend/src/app.ts:678:  app.use('/api/v1/landlord/properties', publicSearchLimiter)
+./backend/src/app.ts:836:    app.use("/api/landlord/properties", createLandlordPropertiesRouter());
+./backend/src/app.ts:845:      "/api/tenant/saved-properties",
+./backend/src/app.ts:936:  app.use("/api/v1/landlord/properties", createLandlordPropertiesRouter());
+./backend/src/app.ts:946:    "/api/v1/tenant/saved-properties",
+./contracts/reentrancy_guard/src/formal_properties.rs:11: * This module contains Kani proof harnesses to verify critical safety properties
+./frontend/lib/__tests__/funnel-analysis.test.ts:84:          properties: { source: 'ad' },
+./frontend/lib/__tests__/funnel-analysis.test.ts:106:        { step: 'details', completedAt: 1_000_500, properties: { field: 'x' } },
+./backend/eslint.config.js:80:            return node.properties.some((prop) => {
+./frontend/lib/__tests__/savedPropertiesApi.test.ts:32:    expect(apiGet).toHaveBeenCalledWith("/api/tenant/saved-properties");
+./frontend/lib/__tests__/savedPropertiesApi.test.ts:36:  it("returns empty array when no saved properties", async () => {
+./frontend/lib/__tests__/savedPropertiesApi.test.ts:57:      "/api/tenant/saved-properties/L-001",
+./frontend/lib/__tests__/savedPropertiesApi.test.ts:71:      "/api/tenant/saved-properties/L%2F001",
+./frontend/lib/__tests__/savedPropertiesApi.test.ts:87:      "/api/tenant/saved-properties/L-001",
+./frontend/lib/__tests__/analytics.test.ts:103:        properties: { label: 'Buy' },
+./frontend/lib/__tests__/analytics.test.ts:147:      expect(events.at(-1)?.properties).toEqual({ i: 998 })
+./frontend/lib/__tests__/analytics.test.ts:155:      return a.getEvents('e')[0].properties
+./frontend/lib/__tests__/analytics.test.ts:191:    it('leaves properties undefined when none are given', () => {
+./frontend/lib/__tests__/analytics.test.ts:194:      expect(a.getEvents('bare')[0].properties).toBeUndefined()
+./frontend/lib/__tests__/analytics.test.ts:211:      expect(identified.properties).toEqual({ userId: 'u1', traits: ['plan'] })
+./frontend/lib/__tests__/analytics.test.ts:225:      a.trackPageView('/properties')
+./frontend/lib/__tests__/analytics.test.ts:227:      expect(views[0].properties?.page).toBe(globalThis.location.pathname)
+./frontend/lib/__tests__/analytics.test.ts:228:      expect(views[1].properties).toEqual({ page: '/properties', title: document.title, referrer: document.referrer })
+./frontend/lib/__tests__/analytics.test.ts:243:      expect(a.getFunnelData('signup')).toEqual([{ name: 'visit', step: 1, properties: { source: 'ad' } }])
+./frontend/lib/__tests__/analytics.test.ts:244:      expect(a.getEvents('funnel_start')[0].properties).toEqual({
+./frontend/lib/__tests__/analytics.test.ts:256:      expect(a.getEvents('funnel_step').map(e => e.properties)).toEqual([
+./frontend/lib/__tests__/analytics.test.ts:279:      expect(a.getEvents('funnel_complete')[0].properties).toEqual({
+./frontend/lib/__tests__/analytics.test.ts:293:      expect(a.getEvents('funnel_complete')[0].properties?.completionTime).toBe(5_000)
+./frontend/lib/__tests__/analytics.test.ts:372:      expect(a.getEvents().filter(e => e.event.startsWith('performance_')).map(e => [e.event, e.properties])).toEqual([
+./backend/src/db.test.ts:54:  it('handles pool without count properties gracefully', () => {
+./frontend/app/wallet/WalletClient.tsx:162:  const searchParams = useSearchParams();
+./frontend/app/wallet/WalletClient.tsx:166:    const filterParam = searchParams.get("filter");
+./frontend/app/wallet/WalletClient.tsx:168:  }, [searchParams]);
+./frontend/app/wallet/WalletClient.tsx:171:    const currencyParam = searchParams.get("currency");
+./frontend/app/wallet/WalletClient.tsx:173:  }, [searchParams]);
+./frontend/app/wallet/WalletClient.tsx:177:      const params = new URLSearchParams(searchParams);
+./frontend/app/wallet/WalletClient.tsx:185:    [searchParams, pathname, router]
+./frontend/app/wallet/WalletClient.tsx:190:      const params = new URLSearchParams(searchParams);
+./frontend/app/wallet/WalletClient.tsx:198:    [searchParams, pathname, router]
+./frontend/app/HomeClient.tsx:69:                <Link href="/properties">
+./backend/package-lock.json:5017:        "streamsearch": "^1.1.0"
+./backend/package-lock.json:9785:    "node_modules/streamsearch": {
+./backend/package-lock.json:9787:      "resolved": "https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz",
+./backend/migrations/007_landlord_properties.sql:2:CREATE TABLE IF NOT EXISTS landlord_properties (
+./backend/migrations/007_landlord_properties.sql:20:    CONSTRAINT landlord_properties_photos_must_be_array CHECK (jsonb_typeof(photos) = 'array')
+./backend/migrations/007_landlord_properties.sql:23:CREATE INDEX IF NOT EXISTS landlord_properties_landlord_id_idx ON landlord_properties (landlord_id);
+./backend/migrations/007_landlord_properties.sql:24:CREATE INDEX IF NOT EXISTS landlord_properties_status_idx ON landlord_properties (status);
+./backend/migrations/007_landlord_properties.sql:25:CREATE INDEX IF NOT EXISTS landlord_properties_created_at_idx ON landlord_properties (created_at DESC);
+./backend/migrations/007_landlord_properties.sql:26:CREATE INDEX IF NOT EXISTS landlord_properties_search_idx ON landlord_properties
+./backend/migrations/039_soft_delete_data_retention.sql:38:-- Landlord properties table
+./backend/migrations/039_soft_delete_data_retention.sql:39:ALTER TABLE landlord_properties ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+./backend/migrations/039_soft_delete_data_retention.sql:40:CREATE INDEX IF NOT EXISTS idx_landlord_properties_deleted_at ON landlord_properties (deleted_at) WHERE deleted_at IS NOT NULL;
+./backend/src/migrations/005-add-missing-indexes.ts:22:      -- search() filters commonly use user_id + event_type + created_at range
+./backend/src/migrations/005-add-missing-indexes.ts:26:      -- search() also filters by actor_type + event_type
+./backend/src/migrations/005-add-missing-indexes.ts:106:       * -- Query 2: Audit log search with user + event_type + date range
+./backend/migrations/036_listings_search_vector.sql:1:-- Add full-text search vector for approved listing discovery.
+./backend/migrations/036_listings_search_vector.sql:3:  ADD COLUMN IF NOT EXISTS search_vector tsvector GENERATED ALWAYS AS (
+./backend/migrations/036_listings_search_vector.sql:13:CREATE INDEX IF NOT EXISTS idx_listings_search_vector
+./backend/migrations/036_listings_search_vector.sql:14:  ON whistleblower_listings USING GIN (search_vector);
+./backend/docs/openapi-risk-endpoints.yml:87:                properties:
+./backend/docs/openapi-risk-endpoints.yml:131:                properties:
+./backend/docs/openapi-risk-endpoints.yml:187:                properties:
+./backend/docs/openapi-risk-endpoints.yml:269:      properties:
+./backend/docs/openapi-risk-endpoints.yml:305:      properties:
+./backend/docs/openapi-risk-endpoints.yml:314:      properties:
+./backend/docs/openapi-risk-endpoints.yml:325:      properties:
+./backend/docs/openapi-risk-endpoints.yml:337:          properties:
+./backend/docs/openapi-risk-endpoints.yml:356:      properties:
+./backend/docs/openapi-risk-endpoints.yml:373:      properties:
+./backend/docs/openapi-risk-endpoints.yml:400:      properties:
+./backend/docs/openapi-risk-endpoints.yml:412:          properties:
+./backend/docs/openapi-risk-endpoints.yml:441:      properties:
+./backend/docs/openapi-risk-endpoints.yml:457:          properties:
+./backend/openapi.yml:36:                properties:
+./backend/openapi.yml:68:              properties:
+./backend/openapi.yml:81:                properties:
+./backend/openapi.yml:106:              properties:
+./backend/openapi.yml:124:                properties:
+./backend/openapi.yml:151:                properties:
+./backend/openapi.yml:176:                properties:
+./backend/openapi.yml:200:                properties:
+./backend/openapi.yml:366:                properties:
+./backend/openapi.yml:466:                properties:
+./backend/openapi.yml:649:              properties:
+./backend/openapi.yml:690:                properties:
+./backend/openapi.yml:734:              properties:
+./backend/openapi.yml:754:                properties:
+./backend/openapi.yml:880:                properties:
+./backend/openapi.yml:986:                properties:
+./backend/openapi.yml:1024:                properties:
+./backend/openapi.yml:1068:                properties:
+./backend/openapi.yml:1121:                properties:
+./backend/openapi.yml:1167:                properties:
+./backend/openapi.yml:1216:              properties:
+./backend/openapi.yml:1237:                properties:
+./backend/openapi.yml:1304:                properties:
+./backend/openapi.yml:1313:                    properties:
+./backend/openapi.yml:1332:                    properties:
+./backend/openapi.yml:1356:                properties:
+./backend/openapi.yml:1442:                properties:
+./backend/openapi.yml:1479:              properties:
+./backend/openapi.yml:1494:                properties:
+./backend/openapi.yml:1552:              properties:
+./backend/openapi.yml:1572:                properties:
+./backend/openapi.yml:1577:                        properties:
+./backend/openapi.yml:1811:              properties:
+./backend/openapi.yml:1837:                properties:
+./backend/openapi.yml:1900:              properties:
+./backend/openapi.yml:1908:                  properties:
+./backend/openapi.yml:1925:                properties:
+./backend/openapi.yml:1945:                    properties:
+./backend/openapi.yml:1978:              properties:
+./backend/openapi.yml:1997:                properties:
+./backend/openapi.yml:2020:      properties:
+./backend/openapi.yml:2041:      properties:
+./backend/openapi.yml:2055:      properties:
+./backend/openapi.yml:2078:      properties:
+./backend/openapi.yml:2107:      properties:
+./backend/openapi.yml:2125:      properties:
+./backend/openapi.yml:2145:      properties:
+./backend/openapi.yml:2169:      properties:
+./backend/openapi.yml:2193:      properties:
+./backend/openapi.yml:2249:      properties:
+./backend/openapi.yml:2291:      properties:
+./backend/openapi.yml:2338:      properties:
+./backend/openapi.yml:2377:      properties:
+./backend/openapi.yml:2437:      properties:
+./backend/openapi.yml:2525:      properties:
+./backend/openapi.yml:2555:      properties:
+./backend/openapi.yml:2610:      properties:
+./backend/openapi.yml:2657:      properties:
+./backend/openapi.yml:2689:      properties:
+./backend/openapi.yml:2697:      properties:
+./backend/openapi.yml:2709:      properties:
+./backend/openapi.yml:2738:      properties:
+./backend/openapi.yml:2763:      properties:
+./backend/openapi.yml:2798:      properties:
+./backend/openapi.yml:2812:      properties:
+./backend/openapi.yml:2854:      properties:
+./backend/openapi.yml:2903:      properties:
+./backend/openapi.yml:2939:      properties:
+./backend/openapi.yml:2945:          properties:
+./backend/openapi.yml:2974:      properties:
+./backend/openapi.yml:2997:      properties:
+./backend/openapi.yml:3019:      properties:
+./backend/openapi.yml:3038:      properties:
+./backend/openapi.yml:3064:      properties:
+./backend/openapi.yml:3073:          properties:
+./backend/migrations/020_apartment_reviews.sql:2:-- Stores user-submitted reviews for apartments (landlord properties)
+./backend/migrations/020_apartment_reviews.sql:5:    apartment_id UUID NOT NULL REFERENCES landlord_properties(id) ON DELETE CASCADE,
+./backend/pnpm-lock.yaml:2768:  streamsearch@1.1.0:
+./backend/pnpm-lock.yaml:4416:      streamsearch: 1.1.0
+./backend/pnpm-lock.yaml:5875:  streamsearch@1.1.0: {}
+./backend/src/config/rateLimits.ts:48:  search: {
+./backend/src/config/rateLimits.ts:51:    keyPrefix: 'search',
+./frontend/app/sitemap.ts:7: * This file generates a sitemap.xml for search engines, listing all genuinely
+./frontend/app/sitemap.ts:11: * Dynamic routes (e.g., /properties/[id]) are not included here; they would
+./frontend/app/sitemap.ts:31:    "/properties",
+./frontend/app/sitemap.ts:32:    "/properties/compare",
+./frontend/app/sitemap.ts:33:    "/properties/map",
+./frontend/app/sitemap.ts:34:    "/properties/saved",
+./backend/src/config/rateLimitConfig.ts:28:    keyPrefix: 'rl:public_search',
+./frontend/app/properties/page.tsx:8: * Server entry point for `/properties` — see the note in `app/page.tsx` on why
+./frontend/app/properties/page.tsx:11: * The canonical URL is the bare `/properties` path deliberately: the browsing
+./frontend/app/properties/page.tsx:19:  path: "/properties",
+./backend/migrations/025_property_photos.sql:5:    property_id UUID NOT NULL REFERENCES landlord_properties(id) ON DELETE CASCADE,
+./backend/docs/openapi.yml:38:                properties:
+./backend/docs/openapi.yml:71:              properties:
+./backend/docs/openapi.yml:84:                properties:
+./backend/docs/openapi.yml:110:              properties:
+./backend/docs/openapi.yml:128:                properties:
+./backend/docs/openapi.yml:157:                properties:
+./backend/docs/openapi.yml:184:                properties:
+./backend/docs/openapi.yml:209:              properties:
+./backend/docs/openapi.yml:221:                properties:
+./backend/docs/openapi.yml:325:                properties:
+./backend/docs/openapi.yml:338:                      properties:
+./backend/docs/openapi.yml:368:                          properties:
+./backend/docs/openapi.yml:559:                properties:
+./backend/docs/openapi.yml:593:                properties:
+./backend/docs/openapi.yml:619:              properties:
+./backend/docs/openapi.yml:632:                properties:
+./backend/docs/openapi.yml:663:              properties:
+./backend/docs/openapi.yml:676:                properties:
+./backend/docs/openapi.yml:708:                properties:
+./backend/docs/openapi.yml:740:                properties:
+./backend/docs/openapi.yml:778:                properties:
+./backend/docs/openapi.yml:810:                properties:
+./backend/docs/openapi.yml:840:                properties:
+./backend/docs/openapi.yml:898:                properties:
+./backend/docs/openapi.yml:1066:                properties:
+./backend/docs/openapi.yml:1167:                properties:
+./backend/docs/openapi.yml:1309:              properties:
+./backend/docs/openapi.yml:1359:                properties:
+./backend/docs/openapi.yml:1403:              properties:
+./backend/docs/openapi.yml:1423:                properties:
+./backend/docs/openapi.yml:1555:                properties:
+./backend/docs/openapi.yml:1662:                properties:
+./backend/docs/openapi.yml:1701:                properties:
+./backend/docs/openapi.yml:1746:                properties:
+./backend/docs/openapi.yml:1800:                properties:
+./backend/docs/openapi.yml:1862:                properties:
+./backend/docs/openapi.yml:1930:                properties:
+./backend/docs/openapi.yml:1938:                    properties:
+./backend/docs/openapi.yml:1967:                properties:
+./backend/docs/openapi.yml:1975:                    properties:
+./backend/docs/openapi.yml:2029:                properties:
+./backend/docs/openapi.yml:2091:              properties:
+./backend/docs/openapi.yml:2106:                properties:
+./backend/docs/openapi.yml:2172:                properties:
+./backend/docs/openapi.yml:2181:                    properties:
+./backend/docs/openapi.yml:2200:                    properties:
+./backend/docs/openapi.yml:2224:                properties:
+./backend/docs/openapi.yml:2314:                properties:
+./backend/docs/openapi.yml:2355:              properties:
+./backend/docs/openapi.yml:2370:                properties:
+./backend/docs/openapi.yml:2432:              properties:
+./backend/docs/openapi.yml:2452:                properties:
+./backend/docs/openapi.yml:2457:                        properties:
+./backend/docs/openapi.yml:2509:              properties:
+./backend/docs/openapi.yml:2536:                properties:
+./backend/docs/openapi.yml:2578:              properties:
+./backend/docs/openapi.yml:2605:                properties:
+./backend/docs/openapi.yml:2646:              properties:
+./backend/docs/openapi.yml:2671:                properties:
+./backend/docs/openapi.yml:2711:              properties:
+./backend/docs/openapi.yml:2730:                properties:
+./backend/docs/openapi.yml:2770:              properties:
+./backend/docs/openapi.yml:2789:                properties:
+./backend/docs/openapi.yml:2829:              properties:
+./backend/docs/openapi.yml:2848:                properties:
+./backend/docs/openapi.yml:2888:              properties:
+./backend/docs/openapi.yml:2907:                properties:
+./backend/docs/openapi.yml:3285:              properties:
+./backend/docs/openapi.yml:3322:              properties:
+./backend/docs/openapi.yml:3337:                properties:
+./backend/docs/openapi.yml:3414:              properties:
+./backend/docs/openapi.yml:3440:                properties:
+./backend/docs/openapi.yml:3518:              properties:
+./backend/docs/openapi.yml:3526:                  properties:
+./backend/docs/openapi.yml:3543:                properties:
+./backend/docs/openapi.yml:3563:                    properties:
+./backend/docs/openapi.yml:3598:              properties:
+./backend/docs/openapi.yml:3617:                properties:
+./backend/docs/openapi.yml:3886:      properties:
+./backend/docs/openapi.yml:3906:      properties:
+./backend/docs/openapi.yml:3916:      properties:
+./backend/docs/openapi.yml:3927:      properties:
+./backend/docs/openapi.yml:3939:      properties:
+./backend/docs/openapi.yml:3954:      properties:
+./backend/docs/openapi.yml:3977:      properties:
+./backend/docs/openapi.yml:4015:      properties:
+./backend/docs/openapi.yml:4033:      properties:
+./backend/docs/openapi.yml:4050:      properties:
+./backend/docs/openapi.yml:4077:      properties:
+./backend/docs/openapi.yml:4088:      properties:
+./backend/docs/openapi.yml:4113:      properties:
+./backend/docs/openapi.yml:4137:      properties:
+./backend/docs/openapi.yml:4146:      properties:
+./backend/docs/openapi.yml:4164:      properties:
+./backend/docs/openapi.yml:4182:      properties:
+./backend/docs/openapi.yml:4196:      properties:
+./backend/docs/openapi.yml:4210:      properties:
+./backend/docs/openapi.yml:4233:      properties:
+./backend/docs/openapi.yml:4262:      properties:
+./backend/docs/openapi.yml:4286:      properties:
+./backend/docs/openapi.yml:4342:      properties:
+./backend/docs/openapi.yml:4384:      properties:
+./backend/docs/openapi.yml:4431:      properties:
+./backend/docs/openapi.yml:4470:      properties:
+./backend/docs/openapi.yml:4530:      properties:
+./backend/docs/openapi.yml:4618:      properties:
+./backend/docs/openapi.yml:4648:      properties:
+./backend/docs/openapi.yml:4703:      properties:
+./backend/docs/openapi.yml:4750:      properties:
+./backend/docs/openapi.yml:4782:      properties:
+./backend/docs/openapi.yml:4790:      properties:
+./backend/docs/openapi.yml:4802:      properties:
+./backend/docs/openapi.yml:4831:      properties:
+./backend/docs/openapi.yml:4856:      properties:
+./backend/docs/openapi.yml:4902:      properties:
+./backend/docs/openapi.yml:4952:      properties:
+./backend/docs/openapi.yml:4966:      properties:
+./backend/docs/openapi.yml:5008:      properties:
+./backend/docs/openapi.yml:5061:      properties:
+./backend/docs/openapi.yml:5138:      properties:
+./backend/docs/openapi.yml:5173:      properties:
+./backend/docs/openapi.yml:5213:      properties:
+./backend/docs/openapi.yml:5219:          properties:
+./backend/docs/openapi.yml:5248:      properties:
+./backend/docs/openapi.yml:5271:      properties:
+./backend/docs/openapi.yml:5293:      properties:
+./backend/docs/openapi.yml:5312:      properties:
+./backend/docs/openapi.yml:5338:      properties:
+./backend/docs/openapi.yml:5347:          properties:
+./backend/docs/openapi.yml:5362:      properties:
+./backend/docs/openapi.yml:5369:          properties:
+./backend/docs/openapi.yml:5378:      properties:
+./backend/docs/openapi.yml:5385:          properties:
+./backend/docs/openapi.yml:5398:                properties:
+./backend/docs/openapi.yml:5406:      properties:
+./backend/docs/openapi.yml:5412:          properties:
+./backend/docs/openapi.yml:5419:      properties:
+./backend/docs/openapi.yml:5434:      properties:
+./backend/docs/openapi.yml:5440:          properties:
+./backend/docs/openapi.yml:5471:      properties:
+./backend/docs/openapi.yml:5517:      properties:
+./backend/docs/openapi.yml:5534:      properties:
+./backend/docs/openapi.yml:5547:      properties:
+./backend/docs/openapi.yml:5568:      properties:
+./backend/docs/openapi.yml:5578:      properties:
+./backend/docs/openapi.yml:5590:      properties:
+./backend/docs/openapi.yml:5603:      properties:
+./backend/src/services/cacheInvalidation.ts:293:    tags.push('listings', 'search')
+./backend/migrations/008_audit_log.sql:32:-- Indexes for search / filter queries
+./backend/migrations/025_tenant_documents.sql:34:-- Full-text search on file name and description
+./backend/migrations/025_tenant_documents.sql:35:CREATE INDEX IF NOT EXISTS idx_tenant_documents_search ON tenant_documents USING GIN (
+./backend/migrations/028_landlord_property_listing_fields.sql:3:ALTER TABLE landlord_properties
+./backend/migrations/028_landlord_property_listing_fields.sql:13:UPDATE landlord_properties SET status = 'pending_review' WHERE status = 'pending';
+./backend/migrations/028_landlord_property_listing_fields.sql:14:UPDATE landlord_properties SET status = 'approved' WHERE status = 'active';
+./backend/migrations/028_landlord_property_listing_fields.sql:15:UPDATE landlord_properties SET status = 'deactivated' WHERE status = 'inactive';
+./backend/migrations/028_landlord_property_listing_fields.sql:17:ALTER TABLE landlord_properties DROP CONSTRAINT IF EXISTS landlord_properties_status_check;
+./backend/migrations/028_landlord_property_listing_fields.sql:18:ALTER TABLE landlord_properties ADD CONSTRAINT landlord_properties_status_check
+./backend/migrations/028_landlord_property_listing_fields.sql:21:ALTER TABLE landlord_properties
+./backend/migrations/028_landlord_property_listing_fields.sql:22:  ADD CONSTRAINT landlord_properties_amenities_is_array CHECK (jsonb_typeof(amenities) = 'array');
+./frontend/app/properties/[id]/page.tsx:2:import { getProperty, type PropertyListing } from "@/lib/propertiesApi";
+./frontend/app/properties/[id]/page.tsx:64:  const path = `/properties/${id}`;
+./frontend/app/properties/[id]/page.tsx:104: * Judged worthwhile: rental listings are exactly the content type search
+./frontend/app/properties/[id]/page.tsx:117:    url: absoluteUrl(`/properties/${id}`),
+./frontend/app/properties/[id]/page.tsx:137:            url: absoluteUrl(`/properties/${id}`),
+./backend/migrations/006_deal_listing_reward_store.sql:34:CREATE INDEX IF NOT EXISTS whistleblower_listings_search_idx
+./backend/migrations/migration-order.manifest.json:42:      "filename": "007_landlord_properties.sql"
+./backend/migrations/migration-order.manifest.json:210:      "filename": "036_listings_search_vector.sql"
+./frontend/app/properties/[id]/REGRESSION_CHECK.md:23:pnpm vitest run app/properties/[id]/PropertyDetailClient.regression.test.tsx
+./frontend/app/properties/[id]/REGRESSION_CHECK.md:40:1. Open `frontend/app/properties/[id]/PropertyDetailClient.tsx`
+./frontend/app/properties/[id]/REGRESSION_CHECK.md:55:   pnpm vitest run app/properties/[id]/PropertyDetailClient.regression.test.tsx
+./frontend/app/properties/[id]/REGRESSION_CHECK.md:62:1. Open `frontend/app/properties/[id]/PropertyDetailClient.tsx`
+./frontend/app/properties/[id]/REGRESSION_CHECK.md:70:1. Open `frontend/app/properties/[id]/PropertyDetailClient.tsx`
+./backend/migrations/034_add_missing_indexes.sql:15:-- search() filters commonly use user_id + event_type + created_at range
+./backend/migrations/034_add_missing_indexes.sql:19:-- search() also filters by actor_type + event_type
+./backend/migrations/034_add_missing_indexes.sql:88:COMMENT ON INDEX audit_log_user_event_created_idx IS 'Optimizes audit_log search() with user+event_type+date range filters';
+./frontend/app/properties/[id]/PropertyDetailClient.tsx:1:import PropertyPageContent from "@/components/properties/PropertyPageContent"
+./backend/src/middleware/comprehensiveRateLimit.ts:96:  if (path.startsWith('/api/properties') || path.startsWith('/properties')) {
+./backend/src/middleware/comprehensiveRateLimit.ts:97:    return { ...RateLimitTiers.search, matchedKey: 'search' }
+./backend/src/middleware/comprehensiveRateLimit.ts:153:      if (config.keyPrefix === 'search') {
+./frontend/app/properties/compare/page.tsx:5:export const metadata: Metadata = privatePageMetadata("Compare Properties", "Compare shortlisted Shelterflex properties side by side.")
+./frontend/app/properties/compare/CompareClient.tsx:16:import { getProperty, type PropertyListing } from "@/lib/propertiesApi";
+./frontend/app/properties/compare/CompareClient.tsx:37:  const searchParams = useSearchParams();
+./frontend/app/properties/compare/CompareClient.tsx:39:  const [properties, setProperties] = useState<PropertyWithAmenities[]>([]);
+./frontend/app/properties/compare/CompareClient.tsx:43:  const ids = parseCompareIds(searchParams.get("ids"));
+./frontend/app/properties/compare/CompareClient.tsx:66:        setError(err instanceof Error ? err.message : "Failed to load properties");
+./frontend/app/properties/compare/CompareClient.tsx:78:      const newParams = new URLSearchParams(searchParams.toString());
+./frontend/app/properties/compare/CompareClient.tsx:84:      router.push(`/properties/compare?${newParams.toString()}`);
+./frontend/app/properties/compare/CompareClient.tsx:86:    [ids, searchParams, router]
+./frontend/app/properties/compare/CompareClient.tsx:102:          <Link href="/properties">
+./frontend/app/properties/compare/CompareClient.tsx:115:            href="/properties"
+./frontend/app/properties/compare/CompareClient.tsx:125:              Select at least {MIN_COMPARE} properties to compare side-by-side.
+./frontend/app/properties/compare/CompareClient.tsx:127:            <Link href="/properties">
+./frontend/app/properties/compare/CompareClient.tsx:138:  const amenityRows = buildAmenityDiff(properties);
+./frontend/app/properties/compare/CompareClient.tsx:145:            href="/properties"
+./frontend/app/properties/compare/CompareClient.tsx:153:              {properties.length} of {MAX_COMPARE} properties
+./frontend/app/properties/compare/CompareClient.tsx:165:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:177:                        href={`/properties/${property.listingId}`}
+./frontend/app/properties/compare/CompareClient.tsx:194:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:206:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:218:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:226:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:234:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:244:                {properties.map((property) => (
+./frontend/app/properties/compare/CompareClient.tsx:272:                    <TableCell key={properties[idx].listingId}>
+./frontend/app/properties/compare/CompareClient.tsx:287:          <Link href="/properties">
+./backend/src/reconciliation/INVARIANTS.md:6:one floods ops with false positives. These are the correctness properties the
+./frontend/app/properties/map/MapClient.tsx:27:  searchProperties,
+./frontend/app/properties/map/MapClient.tsx:30:} from "@/lib/propertiesApi";
+./frontend/app/properties/map/MapClient.tsx:220:  const searchParams = useSearchParams();
+./frontend/app/properties/map/MapClient.tsx:222:  const [properties, setProperties] = useState<PropertyListing[]>([]);
+./frontend/app/properties/map/MapClient.tsx:227:  const city = searchParams.get("city") || "";
+./frontend/app/properties/map/MapClient.tsx:228:  const area = searchParams.get("area") || "";
+./frontend/app/properties/map/MapClient.tsx:229:  const minBedrooms = searchParams.get("minBedrooms") || "";
+./frontend/app/properties/map/MapClient.tsx:230:  const maxBedrooms = searchParams.get("maxBedrooms") || "";
+./frontend/app/properties/map/MapClient.tsx:231:  const minBathrooms = searchParams.get("minBathrooms") || "";
+./frontend/app/properties/map/MapClient.tsx:232:  const maxBathrooms = searchParams.get("maxBathrooms") || "";
+./frontend/app/properties/map/MapClient.tsx:233:  const minAnnualRent = searchParams.get("minAnnualRent") || "";
+./frontend/app/properties/map/MapClient.tsx:234:  const maxAnnualRent = searchParams.get("maxAnnualRent") || "";
+./frontend/app/properties/map/MapClient.tsx:235:  const sortBy = searchParams.get("sortBy") || "newest";
+./frontend/app/properties/map/MapClient.tsx:238:    const newParams = new URLSearchParams(searchParams.toString());
+./frontend/app/properties/map/MapClient.tsx:246:    router.push(`/properties/map?${newParams.toString()}`);
+./frontend/app/properties/map/MapClient.tsx:250:    router.push("/properties/map");
+./frontend/app/properties/map/MapClient.tsx:288:      const result = await searchProperties(filters);
+./frontend/app/properties/map/MapClient.tsx:292:      console.error("Failed to fetch properties for map:", error);
+./frontend/app/properties/map/MapClient.tsx:316:  const listViewHref = `/properties${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+./frontend/app/properties/map/MapClient.tsx:340:            Explore properties on the map. Click a pin to see details.
+./frontend/app/properties/map/MapClient.tsx:395:                {isLoading ? "..." : `${total} properties`}
+./frontend/app/properties/map/MapClient.tsx:425:                  Loading properties...
+./frontend/app/properties/map/MapClient.tsx:430:                properties={properties}
+./frontend/app/properties/PropertiesClient.tsx:19:  searchProperties,
+./frontend/app/properties/PropertiesClient.tsx:22:} from "@/lib/propertiesApi";
+./frontend/app/properties/PropertiesClient.tsx:42:  const searchParams = useSearchParams();
+./frontend/app/properties/PropertiesClient.tsx:47:  const [properties, setProperties] = useState<PropertyListing[]>([]);
+./frontend/app/properties/PropertiesClient.tsx:51:  const [searchQuery, setSearchQuery] = useState(
+./frontend/app/properties/PropertiesClient.tsx:52:    searchParams.get("query") || "",
+./frontend/app/properties/PropertiesClient.tsx:55:  const compareIds = parseCompareIds(searchParams.get("ids"));
+./frontend/app/properties/PropertiesClient.tsx:63:    const saved = sessionStorage.getItem('properties_scroll_top');
+./frontend/app/properties/PropertiesClient.tsx:70:    sessionStorage.removeItem('properties_scroll_top');
+./frontend/app/properties/PropertiesClient.tsx:80:        sessionStorage.setItem('properties_scroll_top', String(scrollTopRef.current));
+./frontend/app/properties/PropertiesClient.tsx:87:  const rawSort = searchParams.get("sortBy") || "";
+./frontend/app/properties/PropertiesClient.tsx:89:  const rawPage = parseInt(searchParams.get("page") || "", 10);
+./frontend/app/properties/PropertiesClient.tsx:91:  const city = searchParams.get("city") || "";
+./frontend/app/properties/PropertiesClient.tsx:92:  const area = searchParams.get("area") || "";
+./frontend/app/properties/PropertiesClient.tsx:93:  const minBedrooms = searchParams.get("minBedrooms") || "";
+./frontend/app/properties/PropertiesClient.tsx:94:  const maxBedrooms = searchParams.get("maxBedrooms") || "";
+./frontend/app/properties/PropertiesClient.tsx:95:  const minBathrooms = searchParams.get("minBathrooms") || "";
+./frontend/app/properties/PropertiesClient.tsx:96:  const maxBathrooms = searchParams.get("maxBathrooms") || "";
+./frontend/app/properties/PropertiesClient.tsx:97:  const minAnnualRent = searchParams.get("minAnnualRent") || "";
+./frontend/app/properties/PropertiesClient.tsx:98:  const maxAnnualRent = searchParams.get("maxAnnualRent") || "";
+./frontend/app/properties/PropertiesClient.tsx:101:    const newParams = new URLSearchParams(searchParams.toString());
+./frontend/app/properties/PropertiesClient.tsx:113:    router.push(`/properties?${newParams.toString()}`);
+./frontend/app/properties/PropertiesClient.tsx:118:    router.push("/properties");
+./frontend/app/properties/PropertiesClient.tsx:140:      if (searchQuery.trim()) filters.query = searchQuery.trim();
+./frontend/app/properties/PropertiesClient.tsx:156:      const result = await searchProperties(filters);
+./frontend/app/properties/PropertiesClient.tsx:161:      console.error("Failed to fetch properties:", error);
+./frontend/app/properties/PropertiesClient.tsx:168:    searchQuery,
+./frontend/app/properties/PropertiesClient.tsx:184:      trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+./frontend/app/properties/PropertiesClient.tsx:185:      trackPropertyDiscoveryStep("anonymous", "search_properties");
+./frontend/app/properties/PropertiesClient.tsx:189:  }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+./frontend/app/properties/PropertiesClient.tsx:251:            Browse through our collection of verified rental properties. All
+./frontend/app/properties/PropertiesClient.tsx:266:                value={searchQuery}
+./frontend/app/properties/PropertiesClient.tsx:270:                    updateParams({ query: searchQuery });
+./frontend/app/properties/PropertiesClient.tsx:279:                onClick={() => updateParams({ query: searchQuery })}
+./frontend/app/properties/PropertiesClient.tsx:284:              <Link href={`/properties/map?${searchParams.toString()}`}>
+./frontend/app/properties/PropertiesClient.tsx:291:                <Link href={`/properties/compare?${searchParams.toString()}`}>
+./frontend/app/properties/PropertiesClient.tsx:590:              properties
+./frontend/app/properties/PropertiesClient.tsx:596:              label="Loading properties"
+./frontend/app/properties/PropertiesClient.tsx:603:          ) : properties.length === 0 ? (
+./frontend/app/properties/PropertiesClient.tsx:606:              title="No properties found"
+./frontend/app/properties/PropertiesClient.tsx:607:              description="Nothing matches this search yet. Clearing your filters widens the search across every city we cover."
+./frontend/app/properties/PropertiesClient.tsx:614:                  properties={properties}
+./frontend/app/properties/PropertiesClient.tsx:662:            Loading properties...
+./frontend/app/properties/saved/SavedClient.tsx:21:import { getProperty, type PropertyListing } from "@/lib/propertiesApi";
+./frontend/app/properties/saved/SavedClient.tsx:31:  const [properties, setProperties] = useState<SavedProperty[]>([]);
+./frontend/app/properties/saved/SavedClient.tsx:78:          setError("Could not load your saved properties. Please try again.");
+./frontend/app/properties/saved/SavedClient.tsx:119:  const visibleProperties = properties.filter((p) => !p.removed);
+./frontend/app/properties/saved/SavedClient.tsx:134:              href="/properties"
+./frontend/app/properties/saved/SavedClient.tsx:138:              Back to search
+./frontend/app/properties/saved/SavedClient.tsx:149:                    : `${visibleProperties.length} saved ${visibleProperties.length === 1 ? "property" : "properties"}`}
+./frontend/app/properties/saved/SavedClient.tsx:158:              label="Loading saved properties"
+./frontend/app/properties/saved/SavedClient.tsx:170:              title="Could not load your saved properties"
+./frontend/app/properties/saved/SavedClient.tsx:180:              title="No saved properties yet"
+./frontend/app/properties/saved/SavedClient.tsx:182:              action={{ label: "Browse properties", href: "/properties" }}
+./frontend/app/properties/saved/SavedClient.tsx:212:                    href={`/properties/${listing.listingId}`}
+./frontend/app/properties/saved/SavedClient.tsx:220:                  <Link href="/properties/compare">
+./backend/src/soroban/circuit-breaker-config.test.ts:135:      // Verify all required properties exist
+./backend/src/services/abuseDetectionService.ts:14:const searchHitsStore = new Map<string, { count: number; expiresAt: number }>()
+./backend/src/services/abuseDetectionService.ts:48:    searchHitsStore.clear()
+./backend/src/services/abuseDetectionService.ts:100:  const record = searchHitsStore.get(ip)
+./backend/src/services/abuseDetectionService.ts:106:    searchHitsStore.set(ip, { count: 1, expiresAt: now + windowMs })
+./backend/src/services/abuseDetectionService.ts:109:  if (count > 180) { // 3x search limit (60 req/min)
+./backend/src/services/abuseDetectionService.ts:121:    const key = `search_hits:${ip}`
+./backend/src/services/dataRetentionService.test.ts:46:        .mockResolvedValueOnce({ rows: [], rowCount: 1 }) // UPDATE landlord_properties
+./backend/src/services/dataRetentionService.test.ts:106:        'landlord_properties', 'ngn_deposits', 'conversions', 'webhook_events',
+./backend/src/services/dataRetentionService.ts:20:  { table: 'landlord_properties', keyColumn: 'id' },
+./backend/src/services/dataRetentionService.ts:109:      'UPDATE landlord_properties SET deleted_at = $1 WHERE landlord_id = $2',
+./backend/src/jobs/scheduler/cron.ts:58:  // Start searching from the next minute
+./backend/src/services/cacheInvalidation.test.ts:252:      // The helper should add property:123, property, listings, and search tags
+./backend/src/models/employerStore.ts:88:  searchActiveByName(query: string): { id: string; name: string }[] {
+./backend/src/services/landlordPropertyListingSync.ts:2: * Keeps whistleblower listings in sync with landlord inventory for tenant search.
+./backend/src/services/websocket/NotificationWebSocketServer.ts:26:      const token = url.searchParams.get("token")
+./frontend/app/public/tenant-rating/[token]/layout.tsx:5: * Token-addressed tenant rating card. Anyone holding the link can open it, so beyond noindex this also sets noarchive/nosnippet — a cached copy or search snippet would leak a tenant's payment record after the token is revoked.
+./backend/src/models/dealStore.test.ts:380:    it('should preserve other deal properties when updating status', async () => {
+./backend/src/models/tenantDocumentVaultStore.ts:33:      search?: string
+./backend/src/models/tenantDocumentVaultStore.ts:166:      search?: string
+./backend/src/models/tenantDocumentVaultStore.ts:184:    if (filters?.search) {
+./backend/src/models/tenantDocumentVaultStore.ts:185:      const q = filters.search.toLowerCase()
+./backend/src/models/tenantDocumentVaultStore.ts:312:      search?: string
+./backend/src/models/tenantDocumentVaultStore.ts:328:    if (filters?.search) {
+./backend/src/models/tenantDocumentVaultStore.ts:332:      params.push(`%${filters.search}%`)
+./backend/src/routes/adminAudit.test.ts:13: * matching x-admin-secret header. Focuses on the business logic: search,
+./backend/src/routes/adminAudit.test.ts:32:    search: mockSearch,
+./backend/src/routes/adminAudit.test.ts:37:    search: mockSearch,
+./backend/src/models/listingStore.ts:16:  search(filters?: ListingFilters): Promise<PaginatedListings>
+./backend/src/models/listingStore.ts:68:    return this.search(filters)
+./backend/src/models/listingStore.ts:71:  async search(filters: ListingFilters = {}): Promise<PaginatedListings> {
+./backend/src/models/listingStore.ts:73:    const searchQuery = q ?? query
+./backend/src/models/listingStore.ts:80:    if (searchQuery && searchQuery.trim()) {
+./backend/src/models/listingStore.ts:81:      const searchTerm = searchQuery.toLowerCase()
+./backend/src/models/listingStore.ts:84:          l.address.toLowerCase().includes(searchTerm) ||
+./backend/src/models/listingStore.ts:85:          l.city?.toLowerCase().includes(searchTerm) ||
+./backend/src/models/listingStore.ts:86:          l.area?.toLowerCase().includes(searchTerm) ||
+./backend/src/models/listingStore.ts:87:          l.description?.toLowerCase().includes(searchTerm),
+./backend/src/models/listingStore.ts:130:    const searchTerm = query.trim().toLowerCase()
+./backend/src/models/listingStore.ts:135:        if (candidate?.toLowerCase().includes(searchTerm)) {
+./backend/src/models/listingStore.ts:352:    return this.search(filters)
+./backend/src/models/listingStore.ts:355:  async search(filters: ListingFilters = {}): Promise<PaginatedListings> {
+./backend/src/models/listingStore.ts:371:      where.push(`search_vector @@ plainto_tsquery('english', $${idx})`)
+./backend/src/models/listingStore.ts:372:      rankExpression = `ts_rank(search_vector, plainto_tsquery('english', $${idx}))`
+./backend/src/models/listingStore.ts:417:      `SELECT *, ${rankExpression} AS search_rank, ${headlineExpression} AS highlighted_snippet
+./backend/src/models/listingStore.ts:419:       ORDER BY search_rank DESC, created_at DESC
+./backend/src/models/listingStore.ts:427:      search_rank: string | number | null
+./backend/src/models/listingStore.ts:661:    search_rank: string | number | null
+./backend/src/models/listingStore.ts:666:      rank: row.search_rank == null ? 0 : toNumber(row.search_rank),
+./backend/src/models/listingStore.ts:697:  async search(filters: ListingFilters = {}): Promise<PaginatedListings> {
+./backend/src/models/listingStore.ts:699:    return adapter.search(filters)
+./backend/src/templates/ai/riskScoringPrompt.ts:45:  properties: {
+./backend/src/schemas/tenantDocumentVault.ts:56:  search: z.string().max(200).optional(),
+./backend/src/models/conversation.ts:69:  search?: string;
+./backend/src/models/conversationStore.ts:87:    const search = filter?.search?.toLowerCase()
+./backend/src/models/conversationStore.ts:92:      if (search) {
+./backend/src/models/conversationStore.ts:94:          p.userId.toLowerCase().includes(search)
+./frontend/app/verify-otp/page.tsx:18:  const searchParams = useSearchParams();
+./frontend/app/verify-otp/page.tsx:19:  const email = searchParams.get("email") ?? "";
+./frontend/app/verify-otp/page.tsx:20:  const returnTo = searchParams.get("returnTo");
+./frontend/app/dashboard/user/page.tsx:23:import { listPublicListings } from "@/lib/propertiesApi";
+./frontend/app/dashboard/user/page.tsx:40:  type TabValue = "my-properties" | "applications" | "wallet";
+./frontend/app/dashboard/user/page.tsx:42:  const [activeTab, setActiveTab] = useState<TabValue>("my-properties");
+./frontend/app/dashboard/user/page.tsx:78:        console.error("Failed to load saved properties:", err);
+./frontend/app/dashboard/user/page.tsx:82:            : "Failed to load saved properties",
+./frontend/app/dashboard/user/page.tsx:190:              Manage your saved properties, applications, and wallet.
+./frontend/app/dashboard/user/page.tsx:200:                value="my-properties"
+./frontend/app/dashboard/user/page.tsx:216:            <TabsContent value="my-properties" className="mt-4">
+./frontend/app/dashboard/user/page.tsx:219:                  label="Loading saved properties"
+./frontend/app/dashboard/user/page.tsx:228:                  title="Failed to load saved properties"
+./frontend/app/dashboard/user/page.tsx:235:                  title="No saved properties yet"
+./frontend/app/dashboard/user/page.tsx:236:                  description="Shortlist properties as you browse and they'll be waiting for you here."
+./frontend/app/dashboard/user/page.tsx:237:                  action={{ label: "Browse properties", href: "/properties" }}
+./frontend/app/dashboard/user/page.tsx:266:                  action={{ label: "Find a property", href: "/properties" }}
+./frontend/app/contact/page.tsx:5:export const metadata: Metadata = buildPageMetadata({ title: "Contact Shelterflex", description: "Contact Shelterflex for help with rental financing, properties, and your account.", path: "/contact" })
+./frontend/app/messages/page.tsx:124:  const [searchInput, setSearchInput] = useState("");
+./frontend/app/messages/page.tsx:182:  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
+./frontend/app/messages/page.tsx:197:    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+./frontend/app/messages/page.tsx:201:    searchTimerRef.current = setTimeout(() => {
+./frontend/app/messages/page.tsx:209:      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+./frontend/app/messages/page.tsx:553:              value={searchInput}
+./frontend/app/messages/page.tsx:588:                No conversations match &ldquo;{debouncedSearch}&rdquo;. Try a different search term.
+./frontend/app/messages/page.tsx:597:              action={{ label: "Browse properties", href: "/properties" }}
+./backend/src/models/landlordProperty.ts:118:  properties: LandlordProperty[]
+./contracts/soroban_access_control/src/lib.rs:6:mod formal_properties;
+./backend/src/routes/listingApplications.test.ts:149:      // Check key properties instead of full object equality (dates serialize to strings)
+./frontend/app/dashboard/admin/outbox/page.tsx:34:  const searchParams = useSearchParams()
+./frontend/app/dashboard/admin/outbox/page.tsx:37:  const paramPage = parseInt(searchParams.get("page") || "1", 10)
+./frontend/app/dashboard/admin/outbox/page.tsx:38:  const paramEventType = searchParams.get("eventType") || ""
+./frontend/app/dashboard/admin/outbox/page.tsx:39:  const paramDateFrom = searchParams.get("dateFrom") || ""
+./frontend/app/dashboard/admin/outbox/page.tsx:40:  const paramDateTo = searchParams.get("dateTo") || ""
+./frontend/app/dashboard/admin/outbox/page.tsx:81:    const current = new URLSearchParams(Array.from(searchParams.entries()))
+./frontend/app/dashboard/admin/outbox/page.tsx:99:    const search = current.toString()
+./frontend/app/dashboard/admin/outbox/page.tsx:100:    const query = search ? `?${search}` : ""
+./frontend/app/dashboard/admin/outbox/page.tsx:102:  }, [searchParams, router, pathname])
+./frontend/SEO_METADATA_CONVENTION.md:24:app/properties/page.tsx            // server: exports metadata, renders <PropertiesClient />
+./frontend/SEO_METADATA_CONVENTION.md:25:app/properties/PropertiesClient.tsx // "use client": the actual UI
+./frontend/SEO_METADATA_CONVENTION.md:28:`/`, `/properties`, `/landlords`, `/wallet`, and `/properties/[id]` all follow
+./frontend/SEO_METADATA_CONVENTION.md:40:  path: "/properties",
+./frontend/SEO_METADATA_CONVENTION.md:47:Canonical URLs are the bare route path. `/properties` encodes filters, sorting,
+./frontend/SEO_METADATA_CONVENTION.md:53:[`app/properties/[id]/page.tsx`](app/properties/[id]/page.tsx) fetches the
+./frontend/SEO_METADATA_CONVENTION.md:56:copy — truncated to the ~160 characters unfurlers and search results show — and
+./frontend/SEO_METADATA_CONVENTION.md:63:worthwhile: rental listings are the content type search engines surface with
+./frontend/SEO_METADATA_CONVENTION.md:81:cached copy or a search snippet would outlive its revocation and expose a named
+./frontend/SEO_METADATA_CONVENTION.md:94:curl -s http://localhost:3000/properties/<id> | grep -E 'og:|twitter:|canonical|<title>'
+./backend/src/models/complianceReportStore.ts:89:  search(filters: {
+./frontend/app/[locale]/contact/page.tsx:4:export const metadata: Metadata = { title: "Contact Shelterflex", description: "Contact Shelterflex for help with rental financing, properties, and your account." }
+./contracts/soroban_access_control/src/formal_properties.rs:10:mod formal_properties {
+./frontend/app/[locale]/about/AboutClient.tsx:196:            <Link href="/properties">
+./frontend/app/dashboard/inspector/page.tsx:230:                  ? "There are no inspection jobs available right now. New jobs appear as landlords list properties — check back shortly."
+./backend/src/routes/complianceReport.ts:197:        const result = complianceReportStore.search({
+./frontend/app/calculator/CalculatorClient.tsx:26:  const searchParams = useSearchParams();
+./frontend/app/calculator/CalculatorClient.tsx:27:  const initialAmount = searchParams.get("amount");
+./backend/src/routes/propertyInspections.test.ts:9:  describe('GET /api/v1/properties/:propertyId/inspection-summary', () => {
+./backend/src/routes/propertyInspections.test.ts:11:      const response = await request.get('/api/v1/properties/non-existent/inspection-summary')
+./backend/src/models/landlordPropertyStore.ts:26:  private properties = new Map<string, LandlordProperty>()
+./backend/src/models/landlordPropertyStore.ts:57:    this.properties.set(property.id, property)
+./backend/src/models/landlordPropertyStore.ts:62:    return this.properties.get(id) ?? null
+./backend/src/models/landlordPropertyStore.ts:67:    let filtered = Array.from(this.properties.values())
+./backend/src/models/landlordPropertyStore.ts:78:      const searchTerm = query.toLowerCase()
+./backend/src/models/landlordPropertyStore.ts:81:          p.title.toLowerCase().includes(searchTerm) ||
+./backend/src/models/landlordPropertyStore.ts:82:          p.address.toLowerCase().includes(searchTerm) ||
+./backend/src/models/landlordPropertyStore.ts:83:          p.city?.toLowerCase().includes(searchTerm) ||
+./backend/src/models/landlordPropertyStore.ts:84:          p.area?.toLowerCase().includes(searchTerm) ||
+./backend/src/models/landlordPropertyStore.ts:85:          p.description?.toLowerCase().includes(searchTerm),
+./backend/src/models/landlordPropertyStore.ts:95:    const properties = filtered.slice(start, end)
+./backend/src/models/landlordPropertyStore.ts:98:      properties,
+./backend/src/models/landlordPropertyStore.ts:107:    const property = this.properties.get(id)
+./backend/src/models/landlordPropertyStore.ts:116:    this.properties.set(id, updated)
+./backend/src/models/landlordPropertyStore.ts:121:    return this.properties.delete(id)
+./backend/src/models/landlordPropertyStore.ts:125:    const property = this.properties.get(id)
+./backend/src/models/landlordPropertyStore.ts:128:      this.properties.set(id, property)
+./backend/src/models/landlordPropertyStore.ts:133:    const property = this.properties.get(id)
+./backend/src/models/landlordPropertyStore.ts:136:      this.properties.set(id, property)
+./backend/src/models/landlordPropertyStore.ts:141:    this.properties.clear()
+./backend/src/models/landlordPropertyStore.ts:202:      `INSERT INTO landlord_properties (
+./backend/src/models/landlordPropertyStore.ts:241:      'SELECT * FROM landlord_properties WHERE id = $1 AND deleted_at IS NULL',
+./backend/src/models/landlordPropertyStore.ts:282:      `SELECT COUNT(*) AS count FROM landlord_properties ${whereClause}`,
+./backend/src/models/landlordPropertyStore.ts:288:      `SELECT * FROM landlord_properties ${whereClause}
+./backend/src/models/landlordPropertyStore.ts:295:    const properties = propertyRows.rows.map((row) => this.mapRow(row as PropertyRow))
+./backend/src/models/landlordPropertyStore.ts:298:      properties,
+./backend/src/models/landlordPropertyStore.ts:329:      `UPDATE landlord_properties
+./backend/src/models/landlordPropertyStore.ts:343:      'UPDATE landlord_properties SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
+./backend/src/models/landlordPropertyStore.ts:352:      'UPDATE landlord_properties SET views = views + 1 WHERE id = $1',
+./backend/src/models/landlordPropertyStore.ts:360:      'UPDATE landlord_properties SET inquiries = inquiries + 1 WHERE id = $1',
+./backend/src/models/landlordPropertyStore.ts:370:    await pool.query('TRUNCATE landlord_properties RESTART IDENTITY CASCADE')
+./frontend/app/admin/kyc/page.tsx:79:  const [search, setSearch] = useState("")
+./frontend/app/admin/kyc/page.tsx:89:      if (search) params.set("userId", search)
+./frontend/app/admin/kyc/page.tsx:103:  }, [page, pageSize, status, search])
+./frontend/app/admin/kyc/page.tsx:129:                value={search}
+./frontend/messages/ar.json:12:    "search": "بحث",
+./frontend/messages/ar.json:24:    "properties": "العقارات",
+./frontend/messages/ar.json:65:  "properties": {
+./frontend/messages/ar.json:67:    "search": "البحث عن عقارات",
+./frontend/messages/es.json:12:    "search": "Buscar",
+./frontend/messages/es.json:24:    "properties": "Propiedades",
+./frontend/messages/es.json:65:  "properties": {
+./frontend/messages/es.json:67:    "search": "Buscar propiedades",
+./backend/src/routes/propertyInspections.ts:189: * GET /properties/:propertyId/inspection-summary
+./backend/src/routes/propertyInspections.ts:193:  '/properties/:propertyId/inspection-summary',
+./frontend/messages/fr.json:12:    "search": "Rechercher",
+./frontend/messages/fr.json:24:    "properties": "Propriétés",
+./frontend/messages/fr.json:65:  "properties": {
+./frontend/messages/fr.json:67:    "search": "Rechercher des propriétés",
+./frontend/messages/en.json:12:    "search": "Search",
+./frontend/messages/en.json:24:    "properties": "Properties",
+./frontend/messages/en.json:65:  "properties": {
+./frontend/messages/en.json:67:    "search": "Search properties",
+./frontend/app/dashboard/landlord/analytics/page.tsx:57:  const [properties, setProperties] = useState<LandlordProperty[]>([]);
+./frontend/app/dashboard/landlord/analytics/page.tsx:98:      console.error("Failed to fetch properties", err);
+./frontend/app/dashboard/landlord/analytics/page.tsx:167:                  {properties.map(p => (
+./frontend/messages/zh.json:12:    "search": "搜索",
+./frontend/messages/zh.json:24:    "properties": "房产",
+./frontend/messages/zh.json:65:  "properties": {
+./frontend/messages/zh.json:67:    "search": "搜索房产",
+./backend/src/repositories/AuditRepository.test.ts:75:    // COUNT(*) for search
+./backend/src/repositories/AuditRepository.test.ts:80:    // SELECT * — used by both verifyChain and search
+./frontend/app/admin/audit-logs/page.tsx:61:  const searchParams = useSearchParams();
+./frontend/app/admin/audit-logs/page.tsx:64:    parseSearchParams(searchParams),
+./backend/src/routes/propertyPhotos.ts:41: * GET /api/properties/:propertyId/photos
+./backend/src/routes/propertyPhotos.ts:44:  '/properties/:propertyId/photos',
+./backend/src/routes/propertyPhotos.ts:99: * POST /api/properties/:propertyId/photos
+./backend/src/routes/propertyPhotos.ts:102:  '/properties/:propertyId/photos',
+./backend/src/routes/propertyPhotos.ts:132:  '/properties/:propertyId/photos/:photoId',
+./backend/src/routes/propertyPhotos.ts:160:  '/properties/:propertyId/photos/order',
+./backend/src/routes/propertyPhotos.ts:189:  '/properties/:propertyId/photos/:photoId/primary',
+./frontend/app/dashboard/landlord/payouts/page.tsx:63:  const searchParams = useSearchParams();
+./frontend/app/dashboard/landlord/payouts/page.tsx:64:  const drillPayoutId = searchParams.get("payout");
+./frontend/app/dashboard/landlord/payouts/page.tsx:71:    (searchParams.get("status") as PayoutStatus) || "",
+./frontend/app/dashboard/landlord/payouts/page.tsx:74:    (searchParams.get("channel") as PayoutChannel) || "",
+./frontend/app/dashboard/landlord/payouts/page.tsx:77:    (searchParams.get("grouping") as PayoutGrouping) || "monthly",
+./frontend/app/dashboard/landlord/payouts/page.tsx:102:    const params = new URLSearchParams(searchParams.toString());
+./frontend/app/dashboard/landlord/payouts/page.tsx:105:  }, [router, pathname, searchParams]);
+./frontend/app/dashboard/landlord/payouts/page.tsx:108:    const params = new URLSearchParams(searchParams.toString());
+./frontend/app/dashboard/landlord/payouts/page.tsx:112:  }, [router, pathname, searchParams]);
+./frontend/app/dashboard/landlord/payouts/page.tsx:117:    const params = new URLSearchParams(searchParams.toString());
+./frontend/app/dashboard/landlord/payouts/page.tsx:122:  }, [searchParams, statusFilter, channelFilter]);
+./frontend/app/dashboard/landlord/payouts/page.tsx:263:                  : "Payouts appear here once a tenant pays rent on one of your properties. Add a payout account so we can send funds the moment they clear."
+./frontend/app/admin/users/page.tsx:118:  const [searchQuery, setSearchQuery] = useState("");
+./frontend/app/admin/users/page.tsx:135:        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+./frontend/app/admin/users/page.tsx:136:        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+./frontend/app/admin/users/page.tsx:143:  }, [users, searchQuery, roleFilter, statusFilter]);
+./frontend/app/admin/users/page.tsx:264:                  value={searchQuery}
+./frontend/pnpm-lock.yaml:3052:  define-properties@1.2.1:
+./frontend/pnpm-lock.yaml:7356:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7366:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7376:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7385:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7392:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7399:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7408:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:7667:  define-properties@1.2.1:
+./frontend/pnpm-lock.yaml:7801:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8173:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8245:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8826:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8835:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8841:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8848:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:8855:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9074:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9085:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9375:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9382:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9396:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9404:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9413:      define-properties: 1.2.1
+./frontend/pnpm-lock.yaml:9419:      define-properties: 1.2.1
+./frontend/app/pre-screen/PreScreenClient.tsx:38:  const searchParams = useSearchParams()
+./frontend/app/pre-screen/PreScreenClient.tsx:41:  const listingPrice = searchParams.get("listingPrice")
+./frontend/app/pre-screen/PreScreenClient.tsx:42:  const stepParam = searchParams.get("step")
+./frontend/app/pre-screen/PreScreenClient.tsx:77:    const params = new URLSearchParams(searchParams.toString())
+./frontend/app/pre-screen/PreScreenClient.tsx:84:    if (newUrl !== `${pathname}?${searchParams.toString()}`) {
+./frontend/app/pre-screen/PreScreenClient.tsx:87:  }, [step, searchParams, pathname, router])
+./frontend/app/dashboard/landlord/page.tsx:47:  const [activeTab, setActiveTab] = useState<"properties" | "applications">(
+./frontend/app/dashboard/landlord/page.tsx:48:    "properties",
+./frontend/app/dashboard/landlord/page.tsx:52:  const [properties, setProperties] = useState<LandlordPropertyRecord[]>([]);
+./frontend/app/dashboard/landlord/page.tsx:59:  const [propertiesLoading, setPropertiesLoading] = useState(true);
+./frontend/app/dashboard/landlord/page.tsx:60:  const [propertiesError, setPropertiesError] = useState<string | null>(null);
+./frontend/app/dashboard/landlord/page.tsx:80:        setProperties(res.properties);
+./frontend/app/dashboard/landlord/page.tsx:82:        const appPromises = res.properties
+./frontend/app/dashboard/landlord/page.tsx:103:        console.error("Failed to load properties:", err);
+./frontend/app/dashboard/landlord/page.tsx:105:          err instanceof Error ? err.message : "Failed to load properties",
+./frontend/app/dashboard/landlord/page.tsx:191:                Here&apos;s what&apos;s happening with your properties
+./frontend/app/dashboard/landlord/page.tsx:194:            <Link href="/dashboard/landlord/properties/new">
+./frontend/app/dashboard/landlord/page.tsx:260:              aria-selected={activeTab === "properties"}
+./frontend/app/dashboard/landlord/page.tsx:261:              onClick={() => setActiveTab("properties")}
+./frontend/app/dashboard/landlord/page.tsx:263:                activeTab === "properties"
+./frontend/app/dashboard/landlord/page.tsx:272:          {activeTab === "properties" && (
+./frontend/app/dashboard/landlord/page.tsx:274:              {propertiesLoading ? (
+./frontend/app/dashboard/landlord/page.tsx:275:                <LoadingState label="Loading your properties" className="grid gap-6">
+./frontend/app/dashboard/landlord/page.tsx:278:                      key={`properties-loading-${index}`}
+./frontend/app/dashboard/landlord/page.tsx:287:              ) : propertiesError ? (
+./frontend/app/dashboard/landlord/page.tsx:290:                  description={propertiesError}
+./frontend/app/dashboard/landlord/page.tsx:293:              ) : properties.length === 0 ? (
+./frontend/app/dashboard/landlord/page.tsx:296:                  title="No properties yet"
+./frontend/app/dashboard/landlord/page.tsx:300:                    href: "/dashboard/landlord/properties/new",
+./frontend/app/dashboard/landlord/page.tsx:304:                properties.map((property) => {
+./frontend/app/dashboard/landlord/page.tsx:347:                              href={`/dashboard/landlord/properties/${property.listingId}/applications`}
+./frontend/app/dashboard/landlord/page.tsx:382:                                      href={`/dashboard/landlord/properties/${property.listingId}/applications`}
+./backend/src/routes/tenantSavedProperties.test.ts:30:    app.use("/api/tenant/saved-properties", createTenantSavedPropertiesRouter());
+./backend/src/routes/tenantSavedProperties.test.ts:38:      .get("/api/tenant/saved-properties")
+./backend/src/routes/tenantSavedProperties.test.ts:46:      .post("/api/tenant/saved-properties/listing-abc")
+./backend/src/routes/tenantSavedProperties.test.ts:50:      .get("/api/tenant/saved-properties")
+./backend/src/routes/tenantSavedProperties.test.ts:57:    await request(app).post("/api/tenant/saved-properties/listing-abc").expect(201);
+./backend/src/routes/tenantSavedProperties.test.ts:60:      .delete("/api/tenant/saved-properties/listing-abc")
+./backend/src/routes/tenantSavedProperties.test.ts:64:      .get("/api/tenant/saved-properties")
+./backend/src/repositories/AuditRepository.ts:218:  async search(filters: AuditSearchFilters = {}): Promise<AuditSearchResult> {
+./frontend/app/landlords/LandlordsClient.tsx:77:    if (!partnerForm.propertyCount) errors.propertyCount = "Number of properties is required.";
+./frontend/app/dashboard/landlord/properties/page.tsx:80:  const [searchQuery, setSearchQuery] = useState("");
+./frontend/app/dashboard/landlord/properties/page.tsx:82:  const [properties, setProperties] = useState<LandlordPropertyRecord[]>([]);
+./frontend/app/dashboard/landlord/properties/page.tsx:93:        query: searchQuery || undefined,
+./frontend/app/dashboard/landlord/properties/page.tsx:96:      setProperties(result.properties);
+./frontend/app/dashboard/landlord/properties/page.tsx:99:      showErrorToast(error, "Failed to load properties");
+./frontend/app/dashboard/landlord/properties/page.tsx:103:  }, [searchQuery, statusFilter]);
+./frontend/app/dashboard/landlord/properties/page.tsx:111:    if (!searchQuery.trim()) return properties;
+./frontend/app/dashboard/landlord/properties/page.tsx:112:    const q = searchQuery.toLowerCase();
+./frontend/app/dashboard/landlord/properties/page.tsx:113:    return properties.filter(
+./frontend/app/dashboard/landlord/properties/page.tsx:118:  }, [properties, searchQuery]);
+./frontend/app/dashboard/landlord/properties/page.tsx:179:            <Link href="/dashboard/landlord/properties/new">
+./frontend/app/dashboard/landlord/properties/page.tsx:191:                placeholder="Search properties..."
+./frontend/app/dashboard/landlord/properties/page.tsx:192:                value={searchQuery}
+./frontend/app/dashboard/landlord/properties/page.tsx:228:                  Could not load your properties. Please try again.
+./frontend/app/dashboard/landlord/properties/page.tsx:240:                <h3 className="mt-4 text-xl font-bold">No properties found</h3>
+./frontend/app/dashboard/landlord/properties/page.tsx:242:                  {searchQuery || statusFilter !== "all"
+./frontend/app/dashboard/landlord/properties/page.tsx:246:                {!searchQuery && statusFilter === "all" && (
+./frontend/app/dashboard/landlord/properties/page.tsx:247:                  <Link href="/dashboard/landlord/properties/new">
+./frontend/app/dashboard/landlord/properties/page.tsx:316:                                  href={`/dashboard/landlord/properties/${property.id}/edit`}
+./frontend/app/dashboard/landlord/properties/page.tsx:326:                                    href={`/properties/${property.listingId}`}
+./contracts/README.md:33:`staking_pool/src/formal_properties.rs` that verify safety properties such as
+./contracts/transaction-receipt-contract/src/lib.rs:19:pub mod formal_properties;
+./contracts/transaction-receipt-contract/src/lib.rs:861:pub mod immutability_properties;
+./frontend/app/dashboard/landlord/tenants/page.tsx:105:                  Tenants will appear here once they are assigned to your properties.
+./frontend/app/dashboard/landlord/tenants/page.tsx:107:                <Link href="/dashboard/landlord/properties" className="mt-6 inline-block">
+./frontend/app/dashboard/landlord/tenants/page.tsx:181:                      <Link href={`/dashboard/landlord/properties`} className="flex-1">
+./contracts/transaction-receipt-contract/src/formal_properties.rs:2:mod formal_properties {
+./frontend/app/dashboard/landlord/properties/new/page.tsx:7:import { CollaborativeDraftEditor } from "@/components/properties/CollaborativeDraftEditor";
+./frontend/app/dashboard/landlord/properties/new/page.tsx:20:          href="/dashboard/landlord/properties"
+./frontend/app/dashboard/landlord/properties/new/page.tsx:24:          Back to properties
+./frontend/app/dashboard/landlord/properties/new/page.tsx:48:              router.push("/dashboard/landlord/properties");
+./backend/src/routes/adminAudit.ts:4: * GET  /api/admin/audit         — search audit log with filters + pagination
+./backend/src/routes/adminAudit.ts:61:      const result = await auditRepository.search({
+./backend/src/models/README.md:36:CREATE INDEX idx_listings_search ON listings USING gin(to_tsvector('english', address || ' ' || COALESCE(city, '') || ' ' || COALESCE(area, '') || ' ' || COALESCE(description, '')));
+./backend/src/models/README.md:177:- Use full-text search for query optimization
+./backend/src/routes/tenantSavedProperties.ts:26: * GET /api/tenant/saved-properties
+./backend/src/routes/tenantSavedProperties.ts:40: * POST /api/tenant/saved-properties/:listingId
+./backend/src/routes/tenantSavedProperties.ts:62: * DELETE /api/tenant/saved-properties/:listingId
+./frontend/app/dashboard/landlord/properties/[id]/photos/page.tsx:4:import { PhotoGallery } from '@/components/properties/PhotoGallery'
+./frontend/app/dashboard/landlord/properties/[id]/photos/page.tsx:73:          <Link href="/dashboard/landlord/properties">
+./frontend/app/dashboard/landlord/properties/[id]/edit/page.tsx:8:import { CollaborativeDraftEditor } from "@/components/properties/CollaborativeDraftEditor";
+./frontend/app/dashboard/landlord/properties/[id]/edit/page.tsx:47:          href="/dashboard/landlord/properties"
+./frontend/app/dashboard/landlord/properties/[id]/edit/page.tsx:51:          Back to properties
+./frontend/app/dashboard/landlord/properties/[id]/edit/page.tsx:83:                  router.push("/dashboard/landlord/properties");
+./backend/src/schemas/messaging.ts:23:  search: z.string().optional(),
+./frontend/app/dashboard/landlord/properties/[id]/applications/page.tsx:117:              href="/dashboard/landlord/properties"
+./backend/src/docs/VALIDATION_AND_SANITIZATION.md:238:router.get('/search', validate(querySchema, 'query'), (req, res) => {
+./frontend/app/dashboard/landlord/settings/page.tsx:249:                      "Get notified when tenants inquire about your properties",
+./backend/src/models/tenantCreditScoreStore.ts:140:  search(filters: {
+./contracts/Cargo.lock:25:name = "android_system_properties"
+./contracts/Cargo.lock:803: "android_system_properties",
+./frontend/app/dashboard/tenant/vault/page.tsx:137:  const [search, setSearch] = useState("");
+./frontend/app/dashboard/tenant/vault/page.tsx:155:        search: search || undefined,
+./frontend/app/dashboard/tenant/vault/page.tsx:169:  }, [search, categoryFilter, statusFilter, page]);
+./frontend/app/dashboard/tenant/vault/page.tsx:177:  }, [search, categoryFilter, statusFilter]);
+./frontend/app/dashboard/tenant/vault/page.tsx:263:                  htmlFor="vault-search"
+./frontend/app/dashboard/tenant/vault/page.tsx:271:                    id="vault-search"
+./frontend/app/dashboard/tenant/vault/page.tsx:274:                    value={search}
+./frontend/app/dashboard/tenant/vault/page.tsx:320:              {(search || categoryFilter || statusFilter) && (
+./frontend/app/dashboard/tenant/vault/page.tsx:372:                {search || categoryFilter || statusFilter
+./frontend/app/dashboard/tenant/vault/page.tsx:373:                  ? "Try adjusting your search or filters"
+./backend/src/routes/employers.ts:62:  router.get('/employers/search', (req: Request, res: Response, next: NextFunction) => {
+./backend/src/routes/employers.ts:65:      const results = employerStore.searchActiveByName(name ?? '')
+./backend/src/routes/tenantCreditScoring.ts:213:        const result = tenantCreditScoreStore.search({
+./backend/src/models/persistence.test.ts:36:  'landlord_properties',
+./backend/src/models/persistence.test.ts:196:  it('enforces monthly listing limits and search filters', async () => {
+./frontend/app/dashboard/tenant/credit-score/page.tsx:147:  const searchParams = useSearchParams();
+./frontend/app/dashboard/tenant/credit-score/page.tsx:148:  const isPending = searchParams.get("pending") === "1";
+./backend/src/routes/landlordProperties.test.ts:40:  describe('POST /api/landlord/properties', () => {
+./backend/src/routes/landlordProperties.test.ts:60:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:72:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:107:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:133:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:142:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:152:  describe('GET /api/landlord/properties', () => {
+./backend/src/routes/landlordProperties.test.ts:174:    it('should list only landlord-owned properties', async () => {
+./backend/src/routes/landlordProperties.test.ts:176:        .get('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:180:      expect(response.body.properties).toHaveLength(1)
+./backend/src/routes/landlordProperties.test.ts:181:      expect(response.body.properties[0].landlordId).toBe(landlordId)
+./backend/src/routes/landlordProperties.test.ts:187:        .get('/api/landlord/properties?query=Prop')
+./backend/src/routes/landlordProperties.test.ts:191:      expect(response.body.properties).toHaveLength(1)
+./backend/src/routes/landlordProperties.test.ts:195:  describe('PATCH /api/landlord/properties/:id', () => {
+./backend/src/routes/landlordProperties.test.ts:208:        .patch(`/api/landlord/properties/${property.id}`)
+./backend/src/routes/landlordProperties.test.ts:229:        .patch(`/api/landlord/properties/${otherProperty.id}`)
+./backend/src/routes/landlordProperties.test.ts:240:        .post('/api/landlord/properties')
+./backend/src/routes/landlordProperties.test.ts:261:  describe('PATCH /api/landlord/properties/:id/deactivate', () => {
+./backend/src/routes/landlordProperties.test.ts:278:        .patch(`/api/landlord/properties/${property.id}/deactivate`)
+./backend/src/routes/landlordProperties.test.ts:286:  describe('PATCH /api/landlord/properties/:id/relist', () => {
+./backend/src/routes/landlordProperties.test.ts:307:        .patch(`/api/landlord/properties/${property.id}/relist`)
+./backend/src/routes/landlordProperties.test.ts:315:  describe('DELETE /api/landlord/properties/:id', () => {
+./backend/src/routes/landlordProperties.test.ts:328:        .delete(`/api/landlord/properties/${property.id}`)
+./frontend/app/dashboard/tenant/page.tsx:50:import { listPublicListings, type PublicListing } from "@/lib/propertiesApi";
+./frontend/app/dashboard/tenant/page.tsx:137:        console.error("Failed to load saved properties:", err);
+./frontend/app/dashboard/tenant/page.tsx:141:            : "Failed to load saved properties",
+./frontend/app/dashboard/tenant/page.tsx:238:                  Complete your profile to apply for properties
+./frontend/app/dashboard/tenant/page.tsx:499:                  action={{ label: "Browse properties", href: "/properties" }}
+./frontend/app/dashboard/tenant/page.tsx:715:                  label="Loading saved properties"
+./frontend/app/dashboard/tenant/page.tsx:725:                  title="Failed to load saved properties"
+./frontend/app/dashboard/tenant/page.tsx:736:                      href={`/properties/${property.listingId}`}
+./frontend/app/dashboard/tenant/page.tsx:740:                    <Link href="/properties" className="text-center">
+./frontend/app/dashboard/tenant/page.tsx:753:                  title="No saved properties yet"
+./frontend/app/dashboard/tenant/page.tsx:755:                  action={{ label: "Browse properties", href: "/properties" }}
+./backend/src/routes/whistleblower.test.ts:298:    it('should search listings by query', async () => {
+./backend/src/routes/tenantDocumentVault.test.ts:235:  it('lists documents filtered by search term', async () => {
+./backend/src/routes/tenantDocumentVault.test.ts:252:    const result = await store.list('user-1', { search: 'lease' })
+./backend/src/routes/listings.test.ts:40:      'search-test-admin',
+./backend/src/routes/listings.test.ts:50:  it('searches approved listings across description, address, city, and area', async () => {
+./backend/src/routes/listings.test.ts:63:      .get('/api/listings/search')
+./backend/src/routes/listings.test.ts:106:      .get('/api/listings/search')
+./backend/src/routes/listings.test.ts:127:      .get('/api/listings/search')
+./backend/src/routes/listings.test.ts:142:      .get('/api/listings/search')
+./backend/src/routes/listings.test.ts:156:      .get('/api/listings/search/suggest')
+./contracts/staking_rewards/src/lib.rs:8:pub mod formal_properties;
+./frontend/app/dashboard/tenant/application/page.tsx:18:import { getProperty, type PropertyListing } from "@/lib/propertiesApi";
+./frontend/app/dashboard/tenant/application/page.tsx:35:  const searchParams = useSearchParams();
+./frontend/app/dashboard/tenant/application/page.tsx:46:  const annualRent = Number(searchParams.get("amount")) || 2400000;
+./frontend/app/dashboard/tenant/application/page.tsx:47:  const deposit = Number(searchParams.get("deposit")) || annualRent * 0.2;
+./frontend/app/dashboard/tenant/application/page.tsx:48:  const duration = Number(searchParams.get("duration")) || 12;
+./frontend/app/dashboard/tenant/application/page.tsx:49:  const propertyId = Number(searchParams.get("propertyId")) || 1;
+./frontend/app/dashboard/tenant/application/page.tsx:167:                  <Link href="/properties" className="flex-1">
+./backend/src/routes/listings.ts:2: * Public property search routes
+./backend/src/routes/listings.ts:15: * GET /api/listings/search
+./backend/src/routes/listings.ts:18:router.get('/search', async (req: Request, res: Response, next) => {
+./backend/src/routes/listings.ts:22:    const result = await listingStore.search({
+./backend/src/routes/listings.ts:45: * GET /api/listings/search/suggest
+./backend/src/routes/listings.ts:48:router.get('/search/suggest', async (req: Request, res: Response, next) => {
+./backend/src/routes/whistleblower.ts:256:   * - query: search term
+./contracts/staking_rewards/src/formal_properties.rs:2:mod formal_properties {
+./frontend/app/dashboard/tenant/settings/page.tsx:163:                  { title: "Property Updates", description: "Get notified about updates to saved properties", defaultChecked: false },
+./backend/src/routes/tenantDocumentVault.ts:50:        search: filters.search,
+./backend/src/routes/properties.test.ts:4:import { createPropertiesRouter } from './properties.js'
+./backend/src/routes/properties.test.ts:9:app.use('/api/properties', createPropertiesRouter())
+./backend/src/routes/properties.test.ts:56:  describe('GET /api/properties/search', () => {
+./backend/src/routes/properties.test.ts:60:      const res = await request(app).get('/api/properties/search').expect(200)
+./backend/src/routes/properties.test.ts:71:      const res = await request(app).get('/api/properties/search').expect(200)
+./backend/src/routes/properties.test.ts:92:      const res = await request(app).get('/api/properties/search').expect(200)
+./backend/src/routes/properties.test.ts:111:      const res = await request(app).get('/api/properties/search').expect(200)
+./backend/src/routes/properties.test.ts:122:        .get('/api/properties/search')
+./backend/src/routes/properties.test.ts:136:        .get('/api/properties/search')
+./backend/src/routes/properties.test.ts:149:        .get('/api/properties/search')
+./backend/src/routes/properties.test.ts:158:        .get('/api/properties/search')
+./backend/src/routes/properties.test.ts:169:        .get('/api/properties/search')
+./backend/src/routes/properties.test.ts:191:      const res = await request(app).get('/api/properties/search').expect(200)
+./backend/src/routes/properties.test.ts:211:  describe('GET /api/properties/:id', () => {
+./backend/src/routes/properties.test.ts:216:        .get(`/api/properties/${approved.listingId}`)
+./backend/src/routes/properties.test.ts:228:        .get(`/api/properties/${approved.listingId}`)
+./backend/src/routes/properties.test.ts:249:        .get(`/api/properties/${pending.listingId}`)
+./backend/src/routes/properties.test.ts:269:        .get(`/api/properties/${listing.listingId}`)
+./backend/src/routes/properties.test.ts:277:        .get('/api/properties/non-existent-uuid')
+./backend/src/routes/publicRoutes.ts:81:           FROM landlord_properties
+./frontend/app/dashboard/tenant/lease/page.tsx:29:import { LeaseESignature } from "@/components/properties/LeaseESignature";
+./frontend/app/dashboard/tenant/lease/page.tsx:31:  searchEmployers,
+./frontend/app/dashboard/tenant/lease/page.tsx:195:      searchEmployers(employerQuery)
+./frontend/app/dashboard/tenant/lease/page.tsx:451:                        htmlFor="employer-search"
+./frontend/app/dashboard/tenant/lease/page.tsx:457:                        id="employer-search"
+./backend/src/routes/properties.ts:2: * Public property search routes
+./backend/src/routes/properties.ts:28: * GET /api/properties/search
+./backend/src/routes/properties.ts:31:router.get('/search', async (req: Request, res: Response, next) => {
+./backend/src/routes/properties.ts:57: * GET /api/properties/:id
+./backend/src/routes/landlordProperties.ts:49:        'You must complete landlord verification before creating properties',
+./backend/src/routes/landlordProperties.ts:99:        throw new AppError(ErrorCode.FORBIDDEN, 403, 'Only landlords can create properties')
+./backend/src/routes/landlordProperties.ts:160:        throw new AppError(ErrorCode.FORBIDDEN, 403, 'Only landlords can update properties')
+./backend/src/routes/landlordProperties.ts:258:        throw new AppError(ErrorCode.FORBIDDEN, 403, 'Only landlords can delete properties')
+./contracts/timelock/src/lib.rs:10:mod security_properties;
+./contracts/timelock/src/security_properties.rs:3://! These properties are enforced by unit tests in `tests.rs` and mirror the
+
+exec
+/bin/zsh -lc "rg -n \"export default|useState|listPublicListings|searchQuery|query\" frontend/app/properties frontend/components --glob '*.tsx'" in /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search
+ succeeded in 148ms:
+frontend/app/properties/page.tsx:12: * UI encodes every filter and page in the query string, and each combination
+frontend/app/properties/page.tsx:22:export default function PropertiesPage() {
+frontend/components/tenant-rewards-summary-card.tsx:3:import { useEffect, useMemo, useState } from "react";
+frontend/components/tenant-rewards-summary-card.tsx:20:  const [state, setState] = useState<LoadState>({ status: "idle" });
+frontend/components/security-dashboard.tsx:3:import React, { useState, useEffect } from 'react'
+frontend/components/security-dashboard.tsx:22:export default function SecurityDashboard() {
+frontend/components/security-dashboard.tsx:23:  const [report, setReport] = useState<SecurityReport | null>(null)
+frontend/components/security-dashboard.tsx:24:  const [loading, setLoading] = useState(false)
+frontend/components/security-dashboard.tsx:25:  const [error, setError] = useState<string | null>(null)
+frontend/app/properties/PropertiesClient.tsx:3:import { useState, useEffect, useCallback, Suspense, useRef } from "react";
+frontend/app/properties/PropertiesClient.tsx:44:  const [savedListingIds, setSavedListingIds] = useState<string[]>([]);
+frontend/app/properties/PropertiesClient.tsx:46:  const [showFilters, setShowFilters] = useState(false);
+frontend/app/properties/PropertiesClient.tsx:47:  const [properties, setProperties] = useState<PropertyListing[]>([]);
+frontend/app/properties/PropertiesClient.tsx:48:  const [total, setTotal] = useState(0);
+frontend/app/properties/PropertiesClient.tsx:49:  const [totalPages, setTotalPages] = useState(0);
+frontend/app/properties/PropertiesClient.tsx:50:  const [isLoading, setIsLoading] = useState(true);
+frontend/app/properties/PropertiesClient.tsx:51:  const [searchQuery, setSearchQuery] = useState(
+frontend/app/properties/PropertiesClient.tsx:52:    searchParams.get("query") || "",
+frontend/app/properties/PropertiesClient.tsx:59:  const [initialScrollTop, setInitialScrollTop] = useState(0);
+frontend/app/properties/PropertiesClient.tsx:140:      if (searchQuery.trim()) filters.query = searchQuery.trim();
+frontend/app/properties/PropertiesClient.tsx:168:    searchQuery,
+frontend/app/properties/PropertiesClient.tsx:184:      trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+frontend/app/properties/PropertiesClient.tsx:189:  }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+frontend/app/properties/PropertiesClient.tsx:266:                value={searchQuery}
+frontend/app/properties/PropertiesClient.tsx:270:                    updateParams({ query: searchQuery });
+frontend/app/properties/PropertiesClient.tsx:279:                onClick={() => updateParams({ query: searchQuery })}
+frontend/app/properties/PropertiesClient.tsx:656:export default function PropertiesClient() {
+frontend/app/properties/[id]/page.tsx:145:export default async function PropertyDetailPage({ params }: PropertyPageProps) {
+frontend/components/FrozenAccountBanner.test.tsx:44:    expect(screen.queryByText(/Reason:/)).not.toBeInTheDocument();
+frontend/components/staking/unstake-modal.tsx:3:import React, { useState } from "react";
+frontend/components/staking/unstake-modal.tsx:35:  const [amount, setAmount] = useState("");
+frontend/components/staking/unstake-modal.tsx:36:  const [isSubmitting, setIsSubmitting] = useState(false);
+frontend/components/staking/unstake-modal.tsx:37:  const [error, setError] = useState<string | null>(null);
+frontend/app/properties/[id]/loading.tsx:3:export default function PropertyDetailLoading() {
+frontend/app/properties/saved/page.tsx:7:export default function SavedPropertiesPage() {
+frontend/components/admin/RevenueChart.tsx:3:import React, { useState } from "react";
+frontend/components/admin/RevenueChart.tsx:86:  const [activeRange, setActiveRange] = useState<"7d" | "30d" | "90d">("30d");
+frontend/components/staking/StakeForm.tsx:3:import React, { useState } from "react";
+frontend/components/staking/StakeForm.tsx:85:  const [selectedLock, setSelectedLock] = useState<LockPeriod>(LOCK_PERIODS[2]); // Default 180 Days
+frontend/app/properties/[id]/PropertyDetailClient.tsx:7:export default function PropertyDetailClient({
+frontend/app/properties/saved/SavedClient.tsx:3:import { useState, useEffect, useCallback } from "react";
+frontend/app/properties/saved/SavedClient.tsx:29:export default function SavedPropertiesPage() {
+frontend/app/properties/saved/SavedClient.tsx:31:  const [properties, setProperties] = useState<SavedProperty[]>([]);
+frontend/app/properties/saved/SavedClient.tsx:32:  const [isLoading, setIsLoading] = useState(true);
+frontend/app/properties/saved/SavedClient.tsx:33:  const [error, setError] = useState<string | null>(null);
+frontend/app/properties/saved/SavedClient.tsx:36:  const [reloadToken, setReloadToken] = useState(0);
+frontend/components/dashboard-header.tsx:6:import { useState } from "react"
+frontend/components/dashboard-header.tsx:10:  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+frontend/components/admin/DeadLetterTable.tsx:4:import { useState } from "react"
+frontend/components/admin/DeadLetterTable.tsx:67:  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+frontend/components/staking/StakingClaimFlow.tsx:3:import { useState } from "react";
+frontend/components/staking/StakingClaimFlow.tsx:41:  const [step, setStep] = useState<ClaimStep>("breakdown");
+frontend/components/staking/StakingClaimFlow.tsx:42:  const [transaction, setTransaction] = useState<TransactionStatus>({
+frontend/components/staking/StakingClaimFlow.tsx:45:  const [copied, setCopied] = useState(false);
+frontend/components/auth-guard.tsx:3:import { useEffect, useState } from "react";
+frontend/components/auth-guard.tsx:12:  const [authState, setAuthState] = useState<AuthState>("checking");
+frontend/components/analytics-dashboard.tsx:3:import React, { useState, useEffect } from 'react'
+frontend/components/analytics-dashboard.tsx:33:export default function AnalyticsDashboard() {
+frontend/components/analytics-dashboard.tsx:34:  const [data, setData] = useState<AnalyticsData>({
+frontend/components/analytics-dashboard.tsx:40:  const [loading, setLoading] = useState(true)
+frontend/components/analytics-dashboard.tsx:41:  const [activeTab, setActiveTab] = useState('overview')
+frontend/components/property-card.tsx:8:  useState,
+frontend/components/property-card.tsx:134:  const [activeIndex, setActiveIndex] = useState(0);
+frontend/components/property-card.tsx:289:  const [favorited, setFavorited] = useState(isFavorited);
+frontend/components/property-card.tsx:290:  const [favoritePending, setFavoritePending] = useState(false);
+frontend/app/properties/compare/page.tsx:7:export default function ComparePage() {
+frontend/components/staking/StakingPage.tsx:12:import React, { useEffect, useState } from "react";
+frontend/components/staking/StakingPage.tsx:34:export default function StakingPage() {
+frontend/components/staking/StakingPage.tsx:36:  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+frontend/components/staking/StakingPage.tsx:41:  const [mvpPosition, setMvpPosition] = useState<MvpStakingPositionResponse | null>(null);
+frontend/components/staking/StakingPage.tsx:42:  const [ngnBalance, setNgnBalance] = useState<NgnBalanceResponse | null>(null);
+frontend/components/staking/StakingPage.tsx:43:  const [stakingMode, setStakingMode] = useState<StakingMode>("ngn_balance");
+frontend/components/staking/StakingPage.tsx:44:  const [stakeAmount, setStakeAmount] = useState("");
+frontend/components/staking/StakingPage.tsx:45:  const [status, setStatus] = useState("");
+frontend/components/staking/StakingPage.tsx:46:  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+frontend/components/staking/StakingPage.tsx:47:  const [isStaking, setIsStaking] = useState(false);
+frontend/components/staking/StakingPage.tsx:48:  const [isConnecting, setIsConnecting] = useState(false);
+frontend/components/staking/StakingPage.tsx:49:  const [isClaimFlowOpen, setIsClaimFlowOpen] = useState(false);
+frontend/components/staking/StakingPage.tsx:52:  const [ngnDepositAmount, setNgnDepositAmount] = useState("");
+frontend/components/staking/StakingPage.tsx:53:  const [ngnQuote, setNgnQuote] = useState<Quote | null>(null);
+frontend/components/staking/StakingPage.tsx:54:  const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+frontend/components/staking/StakingPage.tsx:55:  const [quoteError, setQuoteError] = useState<string | null>(null);
+frontend/components/staking/StakingPage.tsx:56:  const [showNgnFlow, setShowNgnFlow] = useState(false);
+frontend/components/staking/StakingPage.tsx:57:  const [isUnstakeModalOpen, setIsUnstakeModalOpen] = useState(false);
+frontend/components/staking/StakingPage.tsx:291:              Link your Freighter wallet to query lock balances, stake digital assets, and claim contract interest.
+frontend/components/header.tsx:5:import { useState, useRef, useEffect } from "react"
+frontend/components/header.tsx:31:  const [open, setOpen] = useState(false)
+frontend/components/header.tsx:109:  const [hydrated, setHydrated] = useState(false)
+frontend/components/header.tsx:110:  const [globalSearchOpen, setGlobalSearchOpen] = useState(false)
+frontend/components/admin/JobHealthPanel.tsx:11:import { useCallback, useEffect, useState, startTransition } from "react";
+frontend/components/admin/JobHealthPanel.tsx:150:export default function JobHealthPanel() {
+frontend/components/admin/JobHealthPanel.tsx:151:  const [report, setReport] = useState<JobHealthReport | null>(null);
+frontend/components/admin/JobHealthPanel.tsx:152:  const [error, setError] = useState<string | null>(null);
+frontend/components/GlobalSearch.tsx:4:import { useCallback, useEffect, useRef, useState } from "react"
+frontend/components/GlobalSearch.tsx:18:  const [debounced, setDebounced] = useState(value)
+frontend/components/GlobalSearch.tsx:32:  const [query, setQuery] = useState("")
+frontend/components/GlobalSearch.tsx:33:  const [results, setResults] = useState<GroupedResults[]>([])
+frontend/components/GlobalSearch.tsx:34:  const [loading, setLoading] = useState(false)
+frontend/components/GlobalSearch.tsx:35:  const [error, setError] = useState<string | null>(null)
+frontend/components/GlobalSearch.tsx:40:  const debouncedQuery = useDebounce(query, 300)
+frontend/components/GlobalSearch.tsx:117:              value={query}
+frontend/components/admin/AuditLogFilters.tsx:3:import { useState, useCallback } from "react";
+frontend/components/admin/AuditLogFilters.tsx:67:  const [actorId, setActorId] = useState(filters.actorId ?? "");
+frontend/components/network-status-banner.tsx:3:import React, { useCallback, useEffect, useState } from 'react'
+frontend/components/network-status-banner.tsx:17:  const [isOnline, setIsOnline] = useState(true)
+frontend/components/network-status-banner.tsx:18:  const [showBackOnline, setShowBackOnline] = useState(false)
+frontend/components/network-status-banner.tsx:19:  const [queueCount, setQueueCount] = useState(0)
+frontend/components/network-status-banner.tsx:20:  const [failedCount, setFailedCount] = useState(0)
+frontend/components/ui/carousel.tsx:61:  const [canScrollPrev, setCanScrollPrev] = React.useState(false)
+frontend/components/ui/carousel.tsx:62:  const [canScrollNext, setCanScrollNext] = React.useState(false)
+frontend/components/admin/AuditLogTable.tsx:3:import { Fragment, useState } from "react";
+frontend/components/admin/AuditLogTable.tsx:49:  const [expandedId, setExpandedId] = useState<string | null>(null);
+frontend/components/ReferralShareCard.tsx:3:import { useState } from 'react'
+frontend/components/ReferralShareCard.tsx:39:  const [copied, setCopied] = useState(false)
+frontend/components/ReferralShareCard.tsx:40:  const [isSharing, setIsSharing] = useState(false)
+frontend/components/staking/HistoryTable.tsx:3:import React, { useEffect, useState, useCallback } from "react";
+frontend/components/staking/HistoryTable.tsx:21:  const [history, setHistory] = useState<StakingHistoryItem[]>([]);
+frontend/components/staking/HistoryTable.tsx:22:  const [isLoading, setIsLoading] = useState(true);
+frontend/components/staking/HistoryTable.tsx:23:  const [error, setError] = useState<string | null>(null);
+frontend/app/properties/compare/CompareClient.tsx:3:import { useEffect, useState, useCallback, Suspense } from "react";
+frontend/app/properties/compare/CompareClient.tsx:39:  const [properties, setProperties] = useState<PropertyWithAmenities[]>([]);
+frontend/app/properties/compare/CompareClient.tsx:40:  const [loading, setLoading] = useState(true);
+frontend/app/properties/compare/CompareClient.tsx:41:  const [error, setError] = useState<string | null>(null);
+frontend/app/properties/compare/CompareClient.tsx:296:export default function ComparePage() {
+frontend/components/DocumentUploadModal.tsx:3:import { useState, useRef, useCallback, useEffect } from "react";
+frontend/components/DocumentUploadModal.tsx:135:  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+frontend/components/DocumentUploadModal.tsx:136:  const [uploadState, setUploadState] = useState<UploadState>("idle");
+frontend/components/DocumentUploadModal.tsx:137:  const [validationError, setValidationError] = useState<string | null>(null);
+frontend/components/DocumentUploadModal.tsx:138:  const [uploadProgress, setUploadProgress] = useState(0);
+frontend/components/DocumentUploadModal.tsx:139:  const [uploadError, setUploadError] = useState<string | null>(null);
+frontend/components/SkipLink.tsx:7:export default function SkipLink({ href = "#main-content" }: SkipLinkProps) {
+frontend/components/wallet/WithdrawalModal.tsx:3:import { useState, useCallback } from "react";
+frontend/components/wallet/WithdrawalModal.tsx:87:  const [step, setStep] = useState<Step>("input");
+frontend/components/wallet/WithdrawalModal.tsx:88:  const [amount, setAmount] = useState<string>("");
+frontend/components/wallet/WithdrawalModal.tsx:89:  const [accountNumber, setAccountNumber] = useState<string>("");
+frontend/components/wallet/WithdrawalModal.tsx:90:  const [accountName, setAccountName] = useState<string>("");
+frontend/components/wallet/WithdrawalModal.tsx:91:  const [bankName, setBankName] = useState<string>("");
+frontend/components/wallet/WithdrawalModal.tsx:92:  const [isSubmitting, setIsSubmitting] = useState(false);
+frontend/components/wallet/WithdrawalModal.tsx:93:  const [errorMessage, setErrorMessage] = useState<string>("");
+frontend/components/wallet/WithdrawalModal.tsx:94:  const [withdrawalResult, setWithdrawalResult] = useState<WithdrawalResponse | null>(null);
+frontend/components/calculator/RentToOwnCalculator.tsx:3:import { useMemo, useState } from "react";
+frontend/components/calculator/RentToOwnCalculator.tsx:26:export default function RentToOwnCalculator() {
+frontend/components/calculator/RentToOwnCalculator.tsx:27:  const [propertyPrice, setPropertyPrice] = useState(15_000_000);
+frontend/components/calculator/RentToOwnCalculator.tsx:28:  const [depositPct, setDepositPct] = useState(20);
+frontend/components/calculator/RentToOwnCalculator.tsx:29:  const [monthlyBudget, setMonthlyBudget] = useState(300_000);
+frontend/components/calculator/RentToOwnCalculator.tsx:30:  const [ownershipYears, setOwnershipYears] = useState(10);
+frontend/app/properties/map/page.tsx:7:export default function MapPage() {
+frontend/components/wallet/StellarWalletConnect.tsx:3:import React, { useState } from "react";
+frontend/components/wallet/StellarWalletConnect.tsx:18:  const [isConnecting, setIsConnecting] = useState(false);
+frontend/components/wallet/StellarWalletConnect.tsx:19:  const [isSigning, setIsSigning] = useState(false);
+frontend/components/wallet/StellarWalletConnect.tsx:20:  const [error, setError] = useState<string | null>(null);
+frontend/components/wallet/StellarWalletConnect.tsx:21:  const [publicKey, setPublicKey] = useState<string | null>(null);
+frontend/components/BackendHealthCompact.tsx:3:import { useEffect, useState } from "react";
+frontend/components/BackendHealthCompact.tsx:20:export default function BackendHealthCompact() {
+frontend/components/BackendHealthCompact.tsx:24:  const [isVisible, setIsVisible] = useState(() => {
+frontend/components/BackendHealthCompact.tsx:33:  const [state, setState] = useState<State>(() => {
+frontend/components/layout/NotificationBell.tsx:3:import { useState, useRef, useEffect } from "react"
+frontend/components/layout/NotificationBell.tsx:14:  const [open, setOpen] = useState(false)
+frontend/components/CookiePreferenceModal.tsx:3:import { useState } from 'react'
+frontend/components/CookiePreferenceModal.tsx:65:  const [analytics, setAnalytics] = useState(
+frontend/components/CookiePreferenceModal.tsx:68:  const [marketing, setMarketing] = useState(
+frontend/components/CookiePreferenceModal.tsx:71:  const [functional, setFunctional] = useState(
+frontend/components/calculator/RentToOwnPlanCard.tsx:13:export default function RentToOwnPlanCard({ result, propertyPrice }: Props) {
+frontend/components/user-dashboard/ApplicationsTable.test.tsx:36:    const scopedHeaders = container.querySelectorAll("th[scope='col']");
+frontend/app/properties/map/MapClient.tsx:5:import { useState, useEffect, useCallback, Suspense } from "react";
+frontend/app/properties/map/MapClient.tsx:222:  const [properties, setProperties] = useState<PropertyListing[]>([]);
+frontend/app/properties/map/MapClient.tsx:223:  const [total, setTotal] = useState(0);
+frontend/app/properties/map/MapClient.tsx:224:  const [isLoading, setIsLoading] = useState(true);
+frontend/app/properties/map/MapClient.tsx:315:  // Build query string that preserves current filters for the list-view link
+frontend/app/properties/map/MapClient.tsx:442:export default function MapPage() {
+frontend/components/FrozenAccountBanner.tsx:23:export default function FrozenAccountBanner({
+frontend/components/inspector/ReportSubmitForm.tsx:3:import { useRef, useState } from "react";
+frontend/components/inspector/ReportSubmitForm.tsx:37:  const [photos, setPhotos] = useState<File[]>([]);
+frontend/components/inspector/ReportSubmitForm.tsx:38:  const [summary, setSummary] = useState("");
+frontend/components/inspector/ReportSubmitForm.tsx:39:  const [recommendations, setRecommendations] = useState("");
+frontend/components/inspector/ReportSubmitForm.tsx:40:  const [overallCondition, setOverallCondition] = useState<
+frontend/components/inspector/ReportSubmitForm.tsx:43:  const [checklist, setChecklist] = useState<ChecklistCategory[]>(
+frontend/components/inspector/ReportSubmitForm.tsx:54:  const [isSubmitting, setIsSubmitting] = useState(false);
+frontend/components/inspector/ReportSubmitForm.tsx:55:  const [error, setError] = useState("");
+frontend/components/inspector/ReportSubmitForm.tsx:56:  const [status, setStatus] = useState("");
+frontend/components/wallet/WithdrawalHistory.tsx:3:import { useState, useCallback, useEffect } from "react";
+frontend/components/wallet/WithdrawalHistory.tsx:55:  const [withdrawalState, setWithdrawalState] = useState<LoadState<WithdrawalResponse[]>>({
+frontend/components/wallet/WithdrawalHistory.tsx:70:  // Initial fetch using useEffect (not useState initializer)
+frontend/components/calculator/EquityProgressChart.tsx:60:export default function EquityProgressChart({ data, propertyPrice }: Props) {
+frontend/components/virtualized-property-list.tsx:1:import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
+frontend/components/virtualized-property-list.tsx:28:  const [scrollTop, setScrollTop] = useState(0)
+frontend/components/virtualized-property-list.tsx:29:  const [containerHeight, setContainerHeight] = useState(0)
+frontend/components/virtualized-property-list.tsx:144:export default VirtualizedPropertyList
+frontend/components/payment/UpcomingScheduleTable.a11y.test.tsx:37:    const scopedHeaders = container.querySelectorAll("th[scope='col']")
+frontend/components/payment/UpcomingScheduleTable.a11y.test.tsx:56:    expect(screen.queryByRole("button", { name: /pay/i })).not.toBeInTheDocument()
+frontend/components/payment/UpcomingScheduleTable.a11y.test.tsx:85:    const hiddenIcons = container.querySelectorAll("[aria-hidden='true']")
+frontend/components/user-dashboard/WalletLedgerTable.test.tsx:34:    const scopedHeaders = container.querySelectorAll("th[scope='col']");
+frontend/components/user-dashboard/WalletLedgerTable.test.tsx:57:    const debitCell = container.querySelector(".text-destructive");
+frontend/components/inspector/ServiceAreaPicker.tsx:3:import { useState } from "react";
+frontend/components/inspector/ServiceAreaPicker.tsx:19:  const [search, setSearch] = useState("");
+frontend/components/wallet/TopUpModal.tsx:3:import { useState, useCallback } from "react";
+frontend/components/wallet/TopUpModal.tsx:59:  const [step, setStep] = useState<Step>("input");
+frontend/components/wallet/TopUpModal.tsx:60:  const [amount, setAmount] = useState<string>("");
+frontend/components/wallet/TopUpModal.tsx:61:  const [rail, setRail] = useState<TopUpRail | "">("");
+frontend/components/wallet/TopUpModal.tsx:62:  const [isSubmitting, setIsSubmitting] = useState(false);
+frontend/components/wallet/TopUpModal.tsx:63:  const [errorMessage, setErrorMessage] = useState<string>("");
+frontend/components/wallet/TopUpModal.tsx:64:  const [topUpResult, setTopUpResult] = useState<TopUpResponse | null>(null);
+frontend/components/wallet/TopUpModal.tsx:65:  const [copiedField, setCopiedField] = useState<string | null>(null);
+frontend/components/landlord/PhotoGalleryEditor.tsx:3:import { useCallback, useMemo, useRef, useState } from "react";
+frontend/components/landlord/PhotoGalleryEditor.tsx:46:  const [dragPhotoId, setDragPhotoId] = useState<string | null>(null);
+frontend/components/landlord/PhotoGalleryEditor.tsx:47:  const [uploadingPhotoIds, setUploadingPhotoIds] = useState<
+frontend/components/landlord/PhotoGalleryEditor.tsx:50:  const [errors, setErrors] = useState<Record<string, string>>({});
+frontend/components/properties/ApartmentReviews.tsx:3:import { useState, useEffect, useCallback } from "react";
+frontend/components/properties/ApartmentReviews.tsx:49:  const [loading, setLoading] = useState(true);
+frontend/components/properties/ApartmentReviews.tsx:50:  const [error, setError] = useState<string | null>(null);
+frontend/components/properties/ApartmentReviews.tsx:51:  const [reviews, setReviews] = useState<Review[]>([]);
+frontend/components/properties/ApartmentReviews.tsx:52:  const [totalPages, setTotalPages] = useState(1);
+frontend/components/properties/ApartmentReviews.tsx:53:  const [total, setTotal] = useState(0);
+frontend/components/properties/ApartmentReviews.tsx:54:  const [aggregateRating, setAggregateRating] = useState<number | null>(null);
+frontend/components/dashboard/DashboardSidebar.tsx:3:import { useEffect, useRef, useState } from "react";
+frontend/components/dashboard/DashboardSidebar.tsx:139:  const [open, setOpen] = useState(false);
+frontend/components/dashboard/DashboardSidebar.tsx:168:    const focusable = sidebar?.querySelectorAll<HTMLElement>(
+frontend/components/inspector/InspectionChecklist.tsx:3:import { useState } from "react";
+frontend/components/inspector/InspectionChecklist.tsx:76:  const [internalChecklist, setInternalChecklist] = useState<ChecklistCategory[]>(
+frontend/components/staking/ngn-flow/NgnStakingFlow.tsx:8:import React, { useState, useCallback, useEffect } from 'react';
+frontend/components/staking/ngn-flow/NgnStakingFlow.tsx:60:  const [state, setState] = useState<NgnStakingFlowState>({
+frontend/components/payment/PayoutBreakdown.test.tsx:62:    expect(screen.queryByText("Payment confirmed")).not.toBeInTheDocument();
+frontend/components/dashboard/DashboardA11yEnhancer.tsx:13:    const main = document.querySelector("main");
+frontend/components/properties/PropertyPriceBreakdown.tsx:20:export default function PropertyPriceBreakdown({
+frontend/components/ui/mobile-menu.tsx:4:import { useState } from "react"
+frontend/components/ui/mobile-menu.tsx:22:  const [isOpen, setIsOpen] = useState(false)
+frontend/components/payment/FullPaymentModal.tsx:3:import { useState, useCallback } from "react";
+frontend/components/payment/FullPaymentModal.tsx:40:  const [step, setStep] = useState<Step>("loading");
+frontend/components/payment/FullPaymentModal.tsx:41:  const [preview, setPreview] = useState<FullPaymentPreview | null>(null);
+frontend/components/payment/FullPaymentModal.tsx:42:  const [receipt, setReceipt] = useState<FullPaymentReceipt | null>(null);
+frontend/components/payment/FullPaymentModal.tsx:43:  const [errorMsg, setErrorMsg] = useState<string>("");
+frontend/components/staking/DelegationPanel.tsx:3:import React, { useCallback, useEffect, useState } from "react";
+frontend/components/staking/DelegationPanel.tsx:37:  const [position, setPosition] = useState<DelegationPositionResponse | null>(null);
+frontend/components/staking/DelegationPanel.tsx:38:  const [earnings, setEarnings] = useState<DelegateeEarningsResponse | null>(null);
+frontend/components/staking/DelegationPanel.tsx:39:  const [unavailable, setUnavailable] = useState(false);
+frontend/components/staking/DelegationPanel.tsx:40:  const [delegatee, setDelegatee] = useState("");
+frontend/components/staking/DelegationPanel.tsx:41:  const [amount, setAmount] = useState("");
+frontend/components/staking/DelegationPanel.tsx:42:  const [commissionBps, setCommissionBps] = useState("");
+frontend/components/staking/DelegationPanel.tsx:43:  const [status, setStatus] = useState("");
+frontend/components/staking/DelegationPanel.tsx:44:  const [busy, setBusy] = useState<string | null>(null);
+frontend/components/staking/ngn-flow/StatusTracker.test.tsx:180:      expect(screen.queryByText("Maturity Date")).not.toBeInTheDocument();
+frontend/components/payment/DisputeDialog.tsx:3:import { useMemo, useState } from "react";
+frontend/components/payment/DisputeDialog.tsx:46:  const [reason, setReason] = useState<DisputeReason | "">("");
+frontend/components/payment/DisputeDialog.tsx:47:  const [description, setDescription] = useState("");
+frontend/components/payment/DisputeDialog.tsx:48:  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+frontend/components/payment/DisputeDialog.tsx:49:  const [isSubmitting, setIsSubmitting] = useState(false);
+frontend/components/payment/DisputeDialog.tsx:50:  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+frontend/components/payment/DisputeDialog.tsx:51:  const [evidenceError, setEvidenceError] = useState<string | null>(null);
+frontend/components/staking/ngn-flow/DepositInstructions.tsx:28:  const [copied, setCopied] = React.useState<string | null>(null);
+frontend/components/staking/EpochRewardsPanel.tsx:3:import { useEffect, useState, useCallback } from "react";
+frontend/components/staking/EpochRewardsPanel.tsx:19:  const [claimable, setClaimable] = useState<string | null>(null);
+frontend/components/staking/EpochRewardsPanel.tsx:20:  const [currentEpoch, setCurrentEpoch] = useState<number | null>(null);
+frontend/components/staking/EpochRewardsPanel.tsx:21:  const [epochInfo, setEpochInfo] = useState<EpochInfo | null>(null);
+frontend/components/staking/EpochRewardsPanel.tsx:22:  const [loading, setLoading] = useState(true);
+frontend/components/staking/EpochRewardsPanel.tsx:23:  const [isClaiming, setIsClaiming] = useState(false);
+frontend/components/staking/EpochRewardsPanel.tsx:24:  const [error, setError] = useState<string | null>(null);
+frontend/components/landlord/property-listing-form.tsx:3:import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+frontend/components/landlord/property-listing-form.tsx:295:  const [step, setStep] = useState(1);
+frontend/components/landlord/property-listing-form.tsx:296:  const [values, setValues] = useState<PropertyListingFormValues>(() =>
+frontend/components/landlord/property-listing-form.tsx:299:  const [submitting, setSubmitting] = useState(false);
+frontend/components/landlord/property-listing-form.tsx:300:  const [serverError, setServerError] = useState<string | null>(null);
+frontend/components/landlord/property-listing-form.tsx:301:  const [fieldServerErrors, setFieldServerErrors] = useState<
+frontend/components/ui/sidebar.tsx:70:  const [openMobile, setOpenMobile] = React.useState(false)
+frontend/components/ui/sidebar.tsx:74:  const [_open, _setOpen] = React.useState(defaultOpen)
+frontend/components/ui/use-mobile.tsx:6:  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+frontend/components/ui/input-group.tsx:73:        e.currentTarget.parentElement?.querySelector('input')?.focus()
+frontend/components/tenant/RatingDimension.tsx:20:export default function RatingDimension({
+frontend/components/landlord/LandlordAnalyticsCharts.tsx:29:export default function LandlordAnalyticsCharts({
+frontend/components/tenant/ShareCardModal.tsx:3:import { useState } from "react";
+frontend/components/tenant/ShareCardModal.tsx:14:export default function ShareCardModal({
+frontend/components/tenant/ShareCardModal.tsx:18:  const [shareLink, setShareLink] = useState<string | null>(null);
+frontend/components/tenant/ShareCardModal.tsx:19:  const [isCopied, setIsCopied] = useState(false);
+frontend/components/tenant/ShareCardModal.tsx:20:  const [isGenerating, setIsGenerating] = useState(false);
+frontend/components/properties/LeaseESignature.tsx:3:import { useState, useEffect } from "react";
+frontend/components/properties/LeaseESignature.tsx:62:  const [state, setState] = useState<SigningState>("not-ready");
+frontend/components/properties/LeaseESignature.tsx:63:  const [signerName, setSignerName] = useState("");
+frontend/components/properties/LeaseESignature.tsx:64:  const [signDate, setSignDate] = useState(new Date().toISOString().split("T")[0]);
+frontend/components/properties/LeaseESignature.tsx:65:  const [acknowledged, setAcknowledged] = useState(false);
+frontend/components/properties/LeaseESignature.tsx:66:  const [isLoading, setIsLoading] = useState(false);
+frontend/components/properties/LeaseESignature.tsx:67:  const [error, setError] = useState<string | null>(null);
+frontend/components/properties/LeaseESignature.tsx:68:  const [documentIntegrity, setDocumentIntegrity] = useState<DocumentIntegrity | null>(null);
+frontend/components/properties/LeaseESignature.tsx:69:  const [leaseId, setLeaseId] = useState<string | null>(null);
+frontend/components/properties/LeaseESignature.tsx:70:  const [sessionExpiry, setSessionExpiry] = useState<Date | null>(null);
+frontend/components/properties/LeaseESignature.tsx:71:  const [isVoiding, setIsVoiding] = useState(false);
+frontend/components/tenant/document-preview-dialog.tsx:3:import { useState, useCallback, useEffect, useRef } from "react";
+frontend/components/tenant/document-preview-dialog.tsx:110:  const [renderError, setRenderError] = useState<string | null>(null);
+frontend/components/tenant/document-preview-dialog.tsx:111:  const [retryCount, setRetryCount] = useState(0);
+frontend/components/tenant/document-preview-dialog.tsx:112:  const [isRendering, setIsRendering] = useState(false);
+frontend/components/ui/data-state.test.tsx:26:    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+frontend/components/ui/data-state.test.tsx:100:      container.querySelector('[data-slot="loading-state"]'),
+frontend/components/ui/data-state.test.tsx:173:    expect(screen.queryByRole("alert")).toBeNull();
+frontend/components/ui/data-state.test.tsx:174:    expect(screen.queryByRole("status")).toBeNull();
+frontend/components/tenant/RatingCard.tsx:22:export default function RatingCard({
+frontend/components/properties/PhotoGallery.test.tsx:89:      expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
+frontend/components/landlord/BankAccountCard.tsx:3:import { useState } from "react";
+frontend/components/landlord/BankAccountCard.tsx:20:  const [isModalOpen, setIsModalOpen] = useState(false);
+frontend/components/properties/ApartmentReviews.test.tsx:56:    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
+frontend/components/landlord/LandlordSidebar.tsx:16:import { useEffect, useRef, useState } from "react";
+frontend/components/landlord/LandlordSidebar.tsx:20:  const [isOpen, setIsOpen] = useState(false);
+frontend/components/landlord/LandlordSidebar.tsx:27:    const focusable = sidebarRef.current?.querySelectorAll<HTMLElement>(
+frontend/components/landlord/PayoutScheduleSelector.tsx:3:import { useState } from "react";
+frontend/components/landlord/PayoutScheduleSelector.tsx:25:  const [schedule, setSchedule] = useState<PayoutSchedule>(initialSchedule);
+frontend/components/landlord/PayoutScheduleSelector.tsx:26:  const [isSaving, setIsSaving] = useState(false);
+frontend/components/landlord/PayoutScheduleSelector.tsx:27:  const [pendingValue, setPendingValue] = useState<PayoutSchedule | null>(null);
+frontend/components/properties/PropertyPageContent.tsx:3:import { useState, useEffect, useRef, useCallback, Suspense } from "react"
+frontend/components/properties/PropertyPageContent.tsx:43:export default function PropertyPageContent({
+frontend/components/properties/PropertyPageContent.tsx:48:  const [isFavorite, setIsFavorite] = useState(false)
+frontend/components/properties/PropertyPageContent.tsx:49:  const [activeImageIndex, setActiveImageIndex] = useState(0)
+frontend/components/properties/PropertyPageContent.tsx:50:  const [showLightbox, setShowLightbox] = useState(false)
+frontend/components/properties/PropertyPageContent.tsx:51:  const [paymentMonths, setPaymentMonths] = useState(12)
+frontend/components/properties/PropertyPageContent.tsx:52:  const [showReportDialog, setShowReportDialog] = useState(false)
+frontend/components/properties/PropertyPageContent.tsx:54:    useState<InspectionSummary | null>(null)
+frontend/components/properties/PropertyPageContent.tsx:55:  const [isLoadingInspection, setIsLoadingInspection] = useState(false)
+frontend/components/properties/PropertyPageContent.tsx:56:  const [listing, setListing] = useState<PropertyListing | null>(null)
+frontend/components/properties/PropertyPageContent.tsx:57:  const [isLoadingProperty, setIsLoadingProperty] = useState(true)
+frontend/components/properties/PropertyPageContent.tsx:58:  const [propertyError, setPropertyError] = useState<string | null>(null)
+frontend/components/properties/PropertyReportDialog.tsx:3:import { useState } from "react"
+frontend/components/properties/PropertyReportDialog.tsx:37:  const [reportCategory, setReportCategory] = useState("")
+frontend/components/properties/PropertyReportDialog.tsx:38:  const [reportDetails, setReportDetails] = useState("")
+frontend/components/properties/PropertyReportDialog.tsx:39:  const [reportSubmitted, setReportSubmitted] = useState(false)
+frontend/components/properties/PropertyReportDialog.tsx:40:  const [isSubmittingReport, setIsSubmittingReport] = useState(false)
+frontend/components/landlord/payout-drill-down.tsx:3:import { useEffect, useRef, useCallback, useState } from "react";
+frontend/components/landlord/payout-drill-down.tsx:51:  const [payout, setPayout] = useState<LandlordPayout | null>(null);
+frontend/components/landlord/payout-drill-down.tsx:52:  const [loading, setLoading] = useState(true);
+frontend/components/landlord/payout-drill-down.tsx:53:  const [error, setError] = useState<string | null>(null);
+frontend/components/landlord/payout-drill-down.tsx:54:  const [deductionsOpen, setDeductionsOpen] = useState(true);
+frontend/components/properties/PhotoGallery.tsx:3:import React, { useState, useCallback, useRef, useEffect } from 'react'
+frontend/components/properties/PhotoGallery.tsx:40:  const [photos, setPhotos] = useState<PropertyPhoto[]>(initialPhotos)
+frontend/components/properties/PhotoGallery.tsx:41:  const [selectedPhoto, setSelectedPhoto] = useState<PropertyPhoto | null>(null)
+frontend/components/properties/PhotoGallery.tsx:42:  const [lightboxOpen, setLightboxOpen] = useState(false)
+frontend/components/properties/PhotoGallery.tsx:43:  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+frontend/components/properties/PhotoGallery.tsx:44:  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({})
+frontend/components/properties/PhotoGallery.tsx:45:  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+frontend/components/properties/PhotoGallery.tsx:46:  const [photoToDelete, setPhotoToDelete] = useState<PropertyPhoto | null>(null)
+frontend/components/properties/PhotoGallery.tsx:47:  const [recentlyDeleted, setRecentlyDeleted] = useState<PropertyPhoto[]>([])
+frontend/components/properties/PhotoGallery.tsx:48:  const [draggedItem, setDraggedItem] = useState<string | null>(null)
+frontend/components/properties/PhotoGallery.tsx:49:  const [dragOverItem, setDragOverItem] = useState<string | null>(null)
+frontend/components/properties/PhotoGallery.tsx:401:  const [showActions, setShowActions] = useState(false)
+frontend/components/transaction/TransactionStatusPanel.tsx:3:import { useEffect, useMemo, useState } from "react";
+frontend/components/transaction/TransactionStatusPanel.tsx:80:  const [isRetrying, setIsRetrying] = useState(false);
+frontend/components/transaction/TransactionStatusPanel.tsx:81:  const [retryError, setRetryError] = useState<string | null>(null);
+frontend/components/transaction/TransactionStatusPanel.tsx:83:  const [localStatus, setLocalStatus] = useState<DisplayStatus | null>(null);
+frontend/components/transaction/TransactionStatusPanel.tsx:84:  const [internalStalled, setInternalStalled] = useState(false);
+frontend/components/transaction/TransactionStatusPanel.tsx:307:export default TransactionStatusPanel;
+frontend/components/__tests__/header.test.tsx:55:    expect(screen.queryByTestId("backend-health-widget")).not.toBeInTheDocument();
+frontend/components/__tests__/tenant-rewards-summary-card.test.tsx:49:    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+frontend/components/__tests__/tenant-rewards-summary-card.test.tsx:74:    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+frontend/components/__tests__/property-card.test.tsx:73:    const carousel = container.querySelector('[role="region"]');
+
+exec
+/bin/zsh -lc "sed -n '1,220p' frontend/app/properties/PropertiesClient.tsx" in /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search
+ succeeded in 133ms:
+"use client";
+
+import { useState, useEffect, useCallback, Suspense, useRef } from "react";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search, SlidersHorizontal, SearchX, X, Map, Scale } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { PropertyCardSkeleton } from "@/components/property-card-skeleton";
+import { VirtualizedPropertyList } from "@/components/virtualized-property-list";
+import { EmptyState, LoadingState } from "@/components/ui/data-state";
+import useAuthStore from "@/store/useAuthStore";
+import {
+  fetchSavedListingIds,
+  setListingSaved,
+} from "@/lib/savedPropertiesApi";
+import {
+  searchProperties,
+  type PropertySearchFilters,
+  type PropertyListing,
+} from "@/lib/propertiesApi";
+import { trackUserInteraction, startPropertyDiscovery, trackPropertyDiscoveryStep } from "@/lib/analytics-init";
+import {
+  parseCompareIds,
+  canCompare,
+  MIN_COMPARE,
+} from "@/lib/compare";
+
+const CITIES = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu"];
+const BED_OPTIONS = ["Any", "1", "2", "3", "4", "4+"];
+const BATH_OPTIONS = ["Any", "1", "2", "3", "3+"];
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price: Low to High" },
+  { value: "price_desc", label: "Price: High to Low" },
+  { value: "bedrooms_desc", label: "Most Bedrooms" },
+];
+
+function PropertiesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [savedListingIds, setSavedListingIds] = useState<string[]>([]);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [showFilters, setShowFilters] = useState(false);
+  const [properties, setProperties] = useState<PropertyListing[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("query") || "",
+  );
+
+  const compareIds = parseCompareIds(searchParams.get("ids"));
+  const canCompareProperties = canCompare(compareIds);
+
+  const scrollTopRef = useRef(0);
+  const [initialScrollTop, setInitialScrollTop] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = sessionStorage.getItem('properties_scroll_top');
+    if (saved) {
+      const y = parseInt(saved, 10);
+      if (!isNaN(y)) {
+        requestAnimationFrame(() => setInitialScrollTop(y));
+      }
+    }
+    sessionStorage.removeItem('properties_scroll_top');
+  }, []);
+
+  const handleScrollTopChange = useCallback((y: number) => {
+    scrollTopRef.current = y;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('properties_scroll_top', String(scrollTopRef.current));
+      }
+    };
+  }, []);
+
+  // Filter state from URL
+  const VALID_SORT = ["newest", "price_asc", "price_desc", "bedrooms_desc"];
+  const rawSort = searchParams.get("sortBy") || "";
+  const sortBy = VALID_SORT.includes(rawSort) ? rawSort : "newest";
+  const rawPage = parseInt(searchParams.get("page") || "", 10);
+  const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
+  const city = searchParams.get("city") || "";
+  const area = searchParams.get("area") || "";
+  const minBedrooms = searchParams.get("minBedrooms") || "";
+  const maxBedrooms = searchParams.get("maxBedrooms") || "";
+  const minBathrooms = searchParams.get("minBathrooms") || "";
+  const maxBathrooms = searchParams.get("maxBathrooms") || "";
+  const minAnnualRent = searchParams.get("minAnnualRent") || "";
+  const maxAnnualRent = searchParams.get("maxAnnualRent") || "";
+
+  const updateParams = (updates: Record<string, string>) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === "Any" || value === "newest") {
+        newParams.delete(key);
+      } else {
+        newParams.set(key, value);
+      }
+    });
+    // Reset to page 1 when filters change
+    if (!updates.page) {
+      newParams.delete("page");
+    }
+    router.push(`/properties?${newParams.toString()}`);
+  };
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    router.push("/properties");
+  };
+
+  const hasActiveFilters =
+    city ||
+    area ||
+    minBedrooms ||
+    maxBedrooms ||
+    minBathrooms ||
+    maxBathrooms ||
+    minAnnualRent ||
+    maxAnnualRent;
+
+  const fetchProperties = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const filters: PropertySearchFilters = {
+        sortBy: (sortBy as PropertySearchFilters["sortBy"]) || "newest",
+        page,
+        pageSize: 20,
+      };
+
+      if (searchQuery.trim()) filters.query = searchQuery.trim();
+      if (city) filters.city = city;
+      if (area) filters.area = area;
+      if (minBedrooms && minBedrooms !== "Any")
+        filters.minBedrooms = parseInt(minBedrooms, 10);
+      if (maxBedrooms && maxBedrooms !== "Any" && maxBedrooms !== "4+")
+        filters.maxBedrooms = parseInt(maxBedrooms, 10);
+      if (maxBedrooms === "4+") filters.minBedrooms = 4;
+      if (minBathrooms && minBathrooms !== "Any")
+        filters.minBathrooms = parseInt(minBathrooms, 10);
+      if (maxBathrooms && maxBathrooms !== "Any" && maxBathrooms !== "3+")
+        filters.maxBathrooms = parseInt(maxBathrooms, 10);
+      if (maxBathrooms === "3+") filters.minBathrooms = 3;
+      if (minAnnualRent) filters.minAnnualRent = parseInt(minAnnualRent, 10);
+      if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+
+      const result = await searchProperties(filters);
+      setProperties(result.data);
+      setTotal(result.total);
+      setTotalPages(result.totalPages);
+    } catch (error) {
+      console.error("Failed to fetch properties:", error);
+      setProperties([]);
+      setTotal(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    searchQuery,
+    city,
+    area,
+    minBedrooms,
+    maxBedrooms,
+    minBathrooms,
+    maxBathrooms,
+    minAnnualRent,
+    maxAnnualRent,
+    sortBy,
+    page,
+  ]);
+
+  useEffect(() => {
+    startPropertyDiscovery("anonymous");
+    const debounce = setTimeout(() => {
+      trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+      trackPropertyDiscoveryStep("anonymous", "search_properties");
+      void fetchProperties();
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setSavedListingIds([]);
+      return;
+    }
+
+    let cancelled = false;
+    fetchSavedListingIds()
+      .then((ids) => {
+        if (!cancelled) {
+          setSavedListingIds(ids);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSavedListingIds([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  const handleFavoriteChange = async (listingId: string, saved: boolean) => {
+    await setListingSaved(listingId, saved);
+    setSavedListingIds((prev) =>
+      saved
+        ? prev.includes(listingId)
+          ? prev
+
+codex
+The request is sent after a debounce, but once started each response writes into the same results state. I’m adding a per-request freshness guard so only the newest search can update results or loading state.
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337b63441ea1c86e1b0026c5a896bd180a5c..adad70d10afcb43f6734c9e8c5efb855f4669051
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -51,6 +51,7 @@
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
++  const latestSearchRequest = useRef(0);
+ 
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+@@ -129,6 +130,7 @@
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestSearchRequest.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +156,19 @@
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== latestSearchRequest.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== latestSearchRequest.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === latestSearchRequest.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,
+
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337b63441ea1c86e1b0026c5a896bd180a5c..adad70d10afcb43f6734c9e8c5efb855f4669051
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -51,6 +51,7 @@
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
++  const latestSearchRequest = useRef(0);
+ 
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+@@ -129,6 +130,7 @@
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestSearchRequest.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +156,19 @@
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== latestSearchRequest.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== latestSearchRequest.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === latestSearchRequest.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,
+
+codex
+Fixed the stale search race in [PropertiesClient.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx). Each request now gets an ID, and only the latest request can update results, errors, or loading state.
+
+I did not edit tests or run them.
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337b63441ea1c86e1b0026c5a896bd180a5c..adad70d10afcb43f6734c9e8c5efb855f4669051
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -51,6 +51,7 @@
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
++  const latestSearchRequest = useRef(0);
+ 
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+@@ -129,6 +130,7 @@
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestSearchRequest.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +156,19 @@
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== latestSearchRequest.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== latestSearchRequest.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === latestSearchRequest.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,
+
+tokens used
+14,889
+Fixed the stale search race in [PropertiesClient.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx). Each request now gets an ID, and only the latest request can update results, errors, or loading state.
+
+I did not edit tests or run them.

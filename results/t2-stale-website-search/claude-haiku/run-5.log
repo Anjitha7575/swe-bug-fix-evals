@@ -1,0 +1,17 @@
+Searches that finish out of order, or after the box is cleared or the site is switched, no longer change the dialog. The fix is in `services/platform/app/features/websites/components/website-view-dialog.tsx`.
+
+**Cause:** The search callbacks applied every answer they received. An answer for an earlier query, or for a search the box had already left, overwrote the results, the spinner, or the error toast.
+
+**Fix:**
+- Each search request is now a distinct object, stored in a `latestSearch` ref. `useMutation` hands that same object back to the success and error callbacks, so an answer is applied only when it belongs to the latest request.
+- Clearing the box and switching sites clear that ref, so anything still in flight is dropped.
+- Starting a new search clears the previous results right away, so the old list doesn't sit under the spinner.
+- Switching sites also resets the spinner. Before, a search in flight at the switch could leave it spinning.
+
+**Verification:**
+- The existing `website-view-dialog.test.tsx` passes (30 tests). I didn't edit tests.
+- `tsc --noEmit` passes for the platform package.
+- I did not add a regression test for out-of-order answers, since you asked me not to touch tests. The dialog's test mock also doesn't drive search, so that path has no coverage yet.
+- Nothing is committed.
+
+**Not fixed:** The "Load more" and page-list fetch in the same dialog has a similar race when you switch sites mid-fetch. Its guard checks only the page state, not the site, so a late page list from the previous site can be appended. It's outside this search bug, so I left it alone. I can apply the same approach there if you want it.

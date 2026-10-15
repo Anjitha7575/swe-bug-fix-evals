@@ -1,0 +1,11 @@
+I fixed the stale results on `/properties` in `frontend/app/properties/PropertiesClient.tsx`. I didn't touch any tests.
+
+**Cause:** Each keystroke starts a new `searchProperties` request, but nothing ignored the older ones. If an earlier request was slow, its response could arrive after the newer one and overwrite the list, while the search box already showed the newer term.
+
+**Fix:** Each fetch now takes an increasing request id from a ref. When a response arrives, it is applied only if it belongs to the latest request. This covers the success path, the error path, and the loading flag, so an old request can't clear the spinner either. I didn't add an abort signal because `searchProperties` doesn't accept one.
+
+**Verification:**
+- `tsc --noEmit` reports no errors in the edited file. The 5 errors it does report are in `lib/__tests__/` and were already there.
+- ESLint on the file passes with no output.
+- The full vitest run has 87 failures in 20 files, all outside the properties code. The two auth test files fail the same way with my change stashed, so they were already failing.
+- I did not add a regression test for the race, since you asked me not to edit tests. I also didn't reproduce the race in a browser.

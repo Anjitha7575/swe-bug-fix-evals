@@ -1,0 +1,7 @@
+I fixed it in `frontend/app/properties/PropertiesClient.tsx`. The search box now waits 300ms before sending a request, but nothing stopped an older request from finishing after a newer one. When the first request was slow, its response arrived last and replaced the newer results. That's why it showed up more often with slow requests.
+
+**The fix:** each search now gets an increasing request number, stored in a ref (`latestRequestIdRef`). When a response or error comes back, the page only uses it if no newer search has started since. Older results are thrown away, and an error from an old request no longer clears the list. The loading spinner also stays on until the latest request finishes, instead of turning off when an older one comes back.
+
+**Checks:** no tests were edited. TypeScript compiles with no errors in this file, and the 9 existing `propertiesApi` tests pass. No existing test covers this component, so I didn't reproduce the bug or confirm the fix in the running app. The way to check by hand is to slow down the network, type a search term, then change it quickly.
+
+Older requests still run to completion in the background; their results are just ignored. Cancelling them would mean adding an `AbortSignal` option to `searchProperties` in `lib/propertiesApi.ts`. I left that function's signature as it was.

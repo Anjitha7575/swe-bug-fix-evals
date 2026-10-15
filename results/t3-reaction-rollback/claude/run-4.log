@@ -1,0 +1,19 @@
+Reactions on comments now show only what was actually saved, plus clicks that are still saving. When a save fails, the user gets an error and the reaction goes back to its last saved state. Each click saves exactly once, and clicks made while a save is pending are no longer lost.
+
+**What was wrong** (`handleToggleReaction` in `packages/app-shell/src/views/RecordDetailView.tsx`):
+- **Double saves:** the save was started from inside React's state-update function. React's development mode (StrictMode) runs those functions twice, so one click could send two saves.
+- **No error:** any failed save was silently ignored, so the reaction stayed lit and the user was never told.
+
+**The fix:**
+- **One queue per comment.** Each click is recorded as what the user meant ("my 👍 on" or "my 👍 off"), based on what they see at that moment. It shows up right away and is added to that comment's queue.
+- **One save at a time.** Saves for a comment go out in click order, each built on top of the last saved state. A click during a pending save waits its turn and is then saved. Two saves for the same comment never race.
+- **Failures.** A failed save shows a translated error (new `detail.reactionFailed` string, added to all 10 language files) and drops that one click. The comment then shows the saved state with any remaining queued clicks on top. Because clicks are stored as intent, a failure never flips a later click: if "add 👍" fails, a queued "remove 👍" does nothing instead of turning into an add.
+- **No data source.** If there's no data source to save to, a click now counts as a failed save, the same way comments already behave. Before, the reaction changed on screen only.
+- The update logic and the conversion to the stored format are now small separate functions. The stored format is unchanged, including the `__other__` placeholder.
+
+**Testing:**
+- The existing app-shell record-page tests and the i18n tests (including the check that every language has the same keys) pass: 108 files, 1510 tests.
+- I wrote a temporary test covering four cases: a failure rolls back and shows the error; one click in StrictMode saves once; a click during a pending save is saved afterwards; a failure with a click queued behind it ends on the right state. All four passed with the fix and all four failed on the original code. I then deleted it, as you asked me not to edit tests.
+- I couldn't run the TypeScript compiler on its own: the workspace packages aren't built, so it can't find their type definitions. The test runner does compile the changed file.
+
+I haven't committed anything.

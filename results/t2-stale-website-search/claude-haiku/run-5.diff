@@ -1,0 +1,62 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..f67c12f49 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -356,6 +356,10 @@ export function WebsiteViewDialog({
+   const [activeQuery, setActiveQuery] = useState('');
+   const [searchResults, setSearchResults] = useState<CrawlerSearchResult[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
++  // The search the box last sent. Searches can answer out of order, and an
++  // answer for one the box has since left (cleared, replaced, or a different
++  // site) is not for what is shown, so it is dropped.
++  const latestSearch = useRef<object | null>(null);
+   // The list narrowed to the failed or the skipped pages: a reader reaches
+   // the five that failed without walking the five hundred that did not.
+   // The counts come with every pages answer, whichever state is open.
+@@ -404,11 +408,13 @@ export function WebsiteViewDialog({
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, request) => {
++        if (request !== latestSearch.current) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, request) => {
++        if (request !== latestSearch.current) return;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -425,6 +431,8 @@ export function WebsiteViewDialog({
+       setSearchQuery('');
+       setActiveQuery('');
+       setSearchResults([]);
++      setIsSearching(false);
++      latestSearch.current = null;
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -460,9 +468,12 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const request = { websiteId: website._id, query, limit: 20 };
++    latestSearch.current = request;
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
++    searchContent(request);
+   }, [searchQuery, website._id, searchContent]);
+ 
+   const loadMore = useCallback(() => {
+@@ -500,6 +511,7 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      latestSearch.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

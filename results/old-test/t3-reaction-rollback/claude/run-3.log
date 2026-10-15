@@ -1,0 +1,28 @@
+The fix is written, but I haven't confirmed it works yet. The test run for the record detail view and translation packages is still going in the background.
+
+**The cause** (`packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`):
+- The save was started from inside React's state-update function. React can run that function twice, which is why one click could save twice.
+- A failed save was silently ignored, so the reaction stayed on screen with no message.
+
+**The fix:**
+- **One save per click.** The save now happens in the click handler itself, not inside the state update.
+- **Every click registers.** The screen still updates immediately. Each click goes into a queue for that comment, and the saves run one at a time in click order. A click made while an earlier save is pending is applied to whatever that earlier save actually stored.
+- **The UI matches what was stored.** After each save finishes, the reactions shown are rebuilt as "what the server has stored, plus clicks still waiting to save".
+- **Failures roll back and tell the user.** If a save fails, that click is dropped, the reaction reverts, and an error toast appears: "Your reaction was not saved — please try again." The handler never throws, because the emoji picker doesn't wait for or catch errors from it.
+- **Translations.** I added the new `detail.reactionFailed` message to all 10 language files.
+
+I didn't edit any tests.
+
+**What I've checked so far:** the type check couldn't run cleanly because the other workspace packages haven't been built. The only errors in the lines I looked at were "cannot find module" errors from that. I haven't written or run a test that triggers a failed save or rapid repeated clicks, so the rollback and the one-save-per-click behaviour haven't been exercised yet.
+
+**Known limitation:** if the page reloads comments from the server while a save is still pending, that save starts from the reactions as they were at the first click. The result only corrects itself on the next reload.
+
+The existing tests pass with the fix in place: 633 test files (7,114 tests passed, 14 skipped) across the record detail view and translation packages.
+
+Those existing tests don't cover a failed save or rapid repeated clicks, so the new behaviour still hasn't been run: the rollback, the error message, and one save per click.
+
+The type check still can't run cleanly because the other workspace packages aren't built. The only errors in the lines I looked at were "cannot find module" errors from that.
+
+If you want, I can write a temporary test that makes the save fail and clicks quickly several times, run it, and delete it afterwards so no test files are left changed.
+
+That notification only means the helper that was waiting on the test run has finished. The results are the same as I reported: all 633 test files pass. The new behaviour (rolling back a failed save and saving once per click) still hasn't been tested. I can write a temporary test for it if you'd like.

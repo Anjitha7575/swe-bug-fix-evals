@@ -1,0 +1,10 @@
+Search answers and errors in the website view dialog now apply only to the request the search box currently shows. Stale ones are dropped, so out-of-order responses, cleared boxes and site switches no longer overwrite the results or loading state. The change is in `services/platform/app/features/websites/components/website-view-dialog.tsx`.
+
+The fix tracks the latest search by the arguments object it was sent with. `onSuccess` and `onError` ignore any response whose arguments aren't that object. Clearing the box, and any reset of the dialog (including switching sites), clears the tracked search. I checked the arguments by identity rather than by the query text because the backend doesn't echo `query` back.
+
+Verification:
+- The existing dialog tests pass (30/30). I did not edit any tests.
+- `tsc --noEmit` passes with no errors.
+- I didn't add a regression test for the race. The test file's `useBackendAction` mock calls `onSuccess` with only the response data, so a search answer delivered through it would be dropped by the new check. A test for this needs the mock to pass the arguments too, and I didn't change test files.
+
+I did not change the page list. Its `fetchPages` responses have the same site-switch problem: a page list read for the old site can land after the switch. That's a separate fix if you want it.

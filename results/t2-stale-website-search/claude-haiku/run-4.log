@@ -1,0 +1,12 @@
+Search results in the website view dialog now only reach the screen if they belong to the search the reader is still on. The fix is in `services/platform/app/features/websites/components/website-view-dialog.tsx`; no tests were edited.
+
+**Cause:** The search callback wrote every answer into the list, the spinner and the error toast, whatever the box held at the time. A slow answer for an old query could overwrite a newer one, and an answer that arrived after the box was cleared or the site changed still filled the list.
+
+**Fix:**
+- Each search, each clear, and each site change (the dialog's open/reset effect) takes a new number from a ref.
+- The search now uses `mutateAsync`. Its answer or error is applied only if its number is still the latest. Stale answers are dropped, and so are stale errors, so they don't raise a toast.
+- The reset effect also clears the spinner, so a search from the previous site can't leave one behind.
+
+**Verification:** The 8 websites UI test files (108 tests) pass, and `tsc --noEmit` and `oxlint` report no errors. I didn't run the app or reproduce the race in a browser, so the out-of-order case is verified by reading the code, not by a test.
+
+**Not changed:** The page list has the same pattern for site switches. A page load started for one site can still fill the list after you've moved to another. That's outside the search bug you described, so I left it alone. I can apply the same guard there if you want it.

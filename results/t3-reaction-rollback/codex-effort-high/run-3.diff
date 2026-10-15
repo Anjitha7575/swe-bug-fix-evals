@@ -1,0 +1,218 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..dc037ff46 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -187,6 +187,50 @@ export function isSecondaryField(fieldName: string, fieldDef: any): boolean {
+  */
+ const EMPTY_FEED: FeedItem[] = [];
+ 
++function toggleFeedReaction(
++  reactions: FeedItem['reactions'] = [],
++  emoji: string,
++): NonNullable<FeedItem['reactions']> {
++  const next = [...reactions];
++  const index = next.findIndex(reaction => reaction.emoji === emoji);
++  if (index < 0) return [...next, { emoji, count: 1, reacted: true }];
++
++  const reaction = next[index];
++  if (reaction.reacted) {
++    if (reaction.count <= 1) next.splice(index, 1);
++    else next[index] = { ...reaction, count: reaction.count - 1, reacted: false };
++  } else {
++    next[index] = { ...reaction, count: reaction.count + 1, reacted: true };
++  }
++  return next;
++}
++
++function parseStoredReactions(raw: unknown, userId: string): FeedItem['reactions'] {
++  if (!raw) return undefined;
++  let parsed: Record<string, string[]> | undefined;
++  if (typeof raw === 'string') {
++    try { parsed = JSON.parse(raw); } catch { return undefined; }
++  } else if (typeof raw === 'object') {
++    parsed = raw as Record<string, string[]>;
++  }
++  if (!parsed) return undefined;
++  return Object.entries(parsed).map(([emoji, userIds]) => ({
++    emoji,
++    count: Array.isArray(userIds) ? userIds.length : 0,
++    reacted: Array.isArray(userIds) && userIds.includes(userId),
++  }));
++}
++
++function serializeFeedReactions(reactions: FeedItem['reactions'], userId: string): string {
++  const remoteShape: Record<string, string[]> = {};
++  for (const reaction of reactions ?? []) {
++    const ids: string[] = reaction.reacted ? [userId] : [];
++    while (ids.length < reaction.count) ids.push('__other__');
++    remoteShape[reaction.emoji] = ids;
++  }
++  return JSON.stringify(remoteShape);
++}
++
+ /**
+  * Union two feed slices by row id, oldest first.
+  *
+@@ -327,6 +371,10 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Reaction writes for a comment are serialized per record/comment. The
++  // queued emojis remain visible optimistically, while each save is derived
++  // from the last confirmed server state so overlapping clicks cannot race.
++  const reactionQueuesRef = useRef(new Map<string, { base: FeedItem['reactions']; clicks: string[]; running: boolean }>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1651,21 +1699,8 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+     // Reactions are stored as a JSON object of `{ emoji: string[] }`
+     // (one array of user-ids per emoji). The aggregator below counts
+     // entries and flags the currently-signed-in user.
+-    const parseReactions = (raw: unknown): FeedItem['reactions'] => {
+-      if (!raw) return undefined;
+-      let parsed: Record<string, string[]> | undefined;
+-      if (typeof raw === 'string') {
+-        try { parsed = JSON.parse(raw); } catch { return undefined; }
+-      } else if (typeof raw === 'object') {
+-        parsed = raw as Record<string, string[]>;
+-      }
+-      if (!parsed) return undefined;
+-      return Object.entries(parsed).map(([emoji, userIds]) => ({
+-        emoji,
+-        count: Array.isArray(userIds) ? userIds.length : 0,
+-        reacted: Array.isArray(userIds) && userIds.includes(currentUser.id),
+-      }));
+-    };
++    const parseReactions = (raw: unknown): FeedItem['reactions'] =>
++      parseStoredReactions(raw, currentUser.id);
+ 
+     if (feedsEnabled) inFlight.push(dataSource.find('sys_comment', { $filter: { thread_id: threadId }, $orderby: { created_at: 'asc' } })
+       .then((res: any) => {
+@@ -1900,61 +1935,77 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+-      // Reactions are toggled from the panel of the record on screen, so they
+-      // apply to that record's slice only (objectui#3268) — an id collision
+-      // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
++      const item = (feedItemsByRecord[feedRecordKey] ?? EMPTY_FEED).find(row => row.id === itemId);
++      if (!item) return;
++
++      // The queue key includes the record because feed ids are only unique
++      // within their record slice. Every click enters the queue immediately;
++      // persistence then runs one full-state update at a time.
++      const queueKey = `${feedRecordKey}:${String(itemId)}`;
++      let queue = reactionQueuesRef.current.get(queueKey);
++      if (!queue) {
++        queue = { base: item.reactions, clicks: [], running: false };
++        reactionQueuesRef.current.set(queueKey, queue);
++      }
++      queue.clicks.push(emoji);
++
++      const showQueuedState = (reactions: FeedItem['reactions']) => {
++        setFeedItemsByRecord(prev => ({
++          ...prev,
++          [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(row =>
++            row.id === itemId ? { ...row, reactions } : row,
++          ),
++        }));
++      };
++      const projectQueue = () => queue!.clicks.reduce(
++        (reactions, queuedEmoji) => toggleFeedReaction(reactions, queuedEmoji),
++        queue!.base ?? [],
++      );
++      showQueuedState(projectQueue());
++
++      if (queue.running) return;
++      queue.running = true;
++      void (async () => {
++        try {
++          while (queue!.clicks.length > 0) {
++            const nextEmoji = queue!.clicks[0];
++            const nextReactions = toggleFeedReaction(queue!.base, nextEmoji);
++            try {
++              if (!dataSource) throw new Error('No data source to save comment reactions');
++              await dataSource.update('sys_comment', String(itemId), {
++                reactions: serializeFeedReactions(nextReactions, currentUser.id),
++              });
++              queue!.base = nextReactions;
++            } catch {
++              // A rejected update can still have reached the server. Re-read
++              // the row before projecting remaining clicks so the UI settles
++              // on the stored state whenever the backend is readable.
++              try {
++                const result = await dataSource?.find('sys_comment', {
++                  $filter: { id: itemId },
++                  $top: 1,
++                });
++                const row = result?.data?.[0];
++                if (row) queue!.base = parseStoredReactions(row.reactions, currentUser.id);
++              } catch {
++                // Retain the last confirmed state if reconciliation also fails.
+               }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
++              toast.error(t('detail.reactionFailed', {
++                defaultValue: 'Your reaction could not be saved. Please try again.',
++              }));
+             }
+-          } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
++            queue!.clicks.shift();
++            showQueuedState(projectQueue());
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++        } finally {
++          queue!.running = false;
++          if (reactionQueuesRef.current.get(queueKey) === queue) {
++            reactionQueuesRef.current.delete(queueKey);
+           }
+-          return updated;
+-        }),
+-      }));
++        }
++      })();
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItemsByRecord, feedRecordKey, t],
+   );
+ 
+   useEffect(() => {

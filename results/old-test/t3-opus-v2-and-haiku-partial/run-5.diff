@@ -1,0 +1,194 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..74014747b 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -208,6 +208,62 @@ function mergeFeedRows(prev: readonly FeedItem[], incoming: readonly FeedItem[])
+   });
+ }
+ 
++type ReactionList = NonNullable<FeedItem['reactions']>;
++
++/**
++ * The reaction state of one comment while its saves are still settling.
++ * `saved` is the last shape the store accepted; the shown state is `saved`
++ * with every pending click replayed on top, so a failed save drops only its
++ * own click and the view never shows a change that was not stored.
++ */
++interface ReactionLane {
++  saved: ReactionList;
++  pending: Array<{ emoji: string }>;
++  tail: Promise<void>;
++}
++
++/** Flip one emoji for the signed-in user: add it, or remove their own. */
++function toggleReaction(reactions: ReactionList, emoji: string): ReactionList {
++  const next = [...reactions];
++  const idx = next.findIndex(r => r.emoji === emoji);
++  if (idx >= 0) {
++    const r = next[idx];
++    if (r.reacted) {
++      // Remove user's reaction
++      if (r.count <= 1) {
++        next.splice(idx, 1);
++      } else {
++        next[idx] = { ...r, count: r.count - 1, reacted: false };
++      }
++    } else {
++      next[idx] = { ...r, count: r.count + 1, reacted: true };
++    }
++  } else {
++    next.push({ emoji, count: 1, reacted: true });
++  }
++  return next;
++}
++
++/**
++ * Rebuild the canonical stored shape `{ emoji: userIds[] }` from reactions.
++ * We don't have the original user-id list locally, so we approximate by
++ * emitting the signed-in user when they are the (only known) reactor. This is
++ * an over-simplification for single-user pilot installs and will be replaced
++ * by a proper backend reaction endpoint in M11.
++ */
++function toStoredReactions(reactions: ReactionList, userId: string): Record<string, string[]> {
++  const remoteShape: Record<string, string[]> = {};
++  for (const r of reactions) {
++    const ids: string[] = [];
++    if (r.reacted) ids.push(userId);
++    // Pad with a synthetic marker so count is preserved across
++    // refreshes from other clients (best-effort).
++    while (ids.length < r.count) ids.push('__other__');
++    remoteShape[r.emoji] = ids;
++  }
++  return remoteShape;
++}
++
+ /**
+  * Which system record-header affordances the record page may offer for this
+  * object — the primary `sys_edit` CTA (which also gates the record-body
+@@ -1897,64 +1953,64 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  const reactionLanesRef = useRef(new Map<string, ReactionLane>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      if (!dataSource) {
++        toast.error(t('detail.reactionFailed', { defaultValue: 'Your reaction was not saved. Please try again.' }));
++        return;
++      }
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
+-          } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
++      const key = feedRecordKey;
++      const laneKey = `${key}|${itemId}`;
++      const lanes = reactionLanesRef.current;
++      // Every click is queued on the comment's lane; the lane's saves run one
++      // at a time, in click order, each writing the full stored shape.
++      const lane = lanes.get(laneKey) ?? {
++        saved: feedItems.find(item => item.id === itemId)?.reactions ?? [],
++        pending: [],
++        tail: Promise.resolve(),
++      };
++      lanes.set(laneKey, lane);
++      const entry = { emoji };
++      lane.pending.push(entry);
++      const showLane = () => {
++        const reactions = lane.pending.reduce(
++          (current, p) => toggleReaction(current, p.emoji),
++          lane.saved,
++        );
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [key]: (prevByRecord[key] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item,
++          ),
++        }));
++      };
++      showLane();
++      lane.tail = lane.tail.then(async () => {
++        const next = toggleReaction(lane.saved, emoji);
++        try {
+           // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
+-      }));
++          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`.
++          await dataSource.update('sys_comment', String(itemId), {
++            reactions: JSON.stringify(toStoredReactions(next, currentUser.id)),
++          });
++          lane.saved = next;
++        } catch {
++          // The write did not land, so this click is not in `saved` and the
++          // view falls back to the stored state without it.
++          toast.error(t('detail.reactionFailed', { defaultValue: 'Your reaction was not saved. Please try again.' }));
++        }
++        lane.pending.splice(lane.pending.indexOf(entry), 1);
++        if (lane.pending.length === 0) lanes.delete(laneKey);
++        showLane();
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey, t],
+   );
+ 
+   useEffect(() => {
+diff --git a/packages/i18n/src/locales/en.ts b/packages/i18n/src/locales/en.ts
+index 46feeef44..b52ec0b45 100644
+--- a/packages/i18n/src/locales/en.ts
++++ b/packages/i18n/src/locales/en.ts
+@@ -1121,6 +1121,7 @@ const en = {
+     pathStageWonUpcoming: '{{stage}}, goal stage, not reached',
+     linkCopied: 'Link copied to clipboard',
+     commentFailed: 'Your comment was not posted. Nothing was saved — please try again.',
++    reactionFailed: 'Your reaction was not saved. Please try again.',
+     linkCopyFailed: 'Failed to copy link',
+     cancel: 'Cancel',
+     cancelEdit: 'Discard changes',

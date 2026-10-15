@@ -1,0 +1,13 @@
+I fixed it in `services/platform/app/features/websites/components/website-view-dialog.tsx`. The 30 existing tests in that dialog's test file pass and type-checking is clean. No test covers the out-of-order cases themselves, and I didn't add one because you asked me not to edit tests.
+
+**Cause:** every search answer was applied when it arrived, whether or not it was still the one being waited for. So an older search that finished after a newer one overwrote the newer results, and its error message or ended loading state could leak through too. Clearing the box or switching sites didn't cancel in-flight searches either, and switching sites never reset the loading state.
+
+**Fix:**
+- **Track the current search.** The dialog now keeps a record of the one search it is waiting on. Results and errors are only applied if they belong to that search, and anything older is ignored.
+- **Clearing the box** forgets the pending search, so a late answer can't bring back results, an error or a spinner for an empty box.
+- **Opening the dialog or switching sites** forgets the pending search and also resets the loading state.
+- **Starting a new search** clears the previous results right away, so the old query's results never show under the new one while it loads.
+
+The test file feeds results to the dialog without saying which search they belong to. In that case the dialog matches results by the query the backend echoes back, and accepts any error while a search is pending. In the real app every answer arrives with its own request, so matching there is exact.
+
+`node_modules` wasn't installed, so I ran `bun install` at the repo root to run the tests. That's the only change outside the component file.

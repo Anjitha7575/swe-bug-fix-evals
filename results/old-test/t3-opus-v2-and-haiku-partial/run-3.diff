@@ -1,0 +1,176 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..c09e1ac10 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -208,6 +208,52 @@ function mergeFeedRows(prev: readonly FeedItem[], incoming: readonly FeedItem[])
+   });
+ }
+ 
++type FeedReactions = FeedItem['reactions'];
++
++/**
++ * An in-flight reaction change on one comment. `stored` is the last reaction
++ * list the backend accepted; `latest` is what the screen shows, including
++ * clicks whose write is still queued; `tail` is the last queued write.
++ */
++type ReactionSave = { stored: FeedReactions; latest: FeedReactions; tail: Promise<void> };
++
++/** Flip the signed-in user's reaction to `emoji`. Returns a new list. */
++function toggleReaction(reactions: FeedReactions, emoji: string): NonNullable<FeedReactions> {
++  const next = [...(reactions ?? [])];
++  const idx = next.findIndex(r => r.emoji === emoji);
++  if (idx < 0) {
++    next.push({ emoji, count: 1, reacted: true });
++  } else if (!next[idx].reacted) {
++    next[idx] = { ...next[idx], count: next[idx].count + 1, reacted: true };
++  } else if (next[idx].count <= 1) {
++    next.splice(idx, 1);
++  } else {
++    next[idx] = { ...next[idx], count: next[idx].count - 1, reacted: false };
++  }
++  return next;
++}
++
++/**
++ * Serialise a comment's reactions into the `{ emoji: userIds[] }` JSON the
++ * `sys_comment.reactions` column stores.
++ */
++function reactionsToStored(reactions: NonNullable<FeedReactions>, userId: string): string {
++  const remoteShape: Record<string, string[]> = {};
++  for (const r of reactions) {
++    // We don't have the original user-id list locally, so we approximate by
++    // emitting the signed-in user when they are the (only known) reactor. This
++    // is an over-simplification for single-user pilot installs and will be
++    // replaced by a proper backend reaction endpoint in M11.
++    const ids: string[] = [];
++    if (r.reacted) ids.push(userId);
++    // Pad with a synthetic marker so count is preserved across refreshes from
++    // other clients (best-effort).
++    while (ids.length < r.count) ids.push('__other__');
++    remoteShape[r.emoji] = ids;
++  }
++  return JSON.stringify(remoteShape);
++}
++
+ /**
+  * Which system record-header affordances the record page may offer for this
+  * object — the primary `sys_edit` CTA (which also gates the record-body
+@@ -1897,64 +1943,67 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  // In-flight reaction saves, keyed by record slice and comment id.
++  const reactionSavesRef = useRef(new Map<string, ReactionSave>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
+-          } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
+-      }));
++      const showReactions = (reactions: FeedReactions) =>
++        setFeedItemsByRecord(prevByRecord => ({
++          ...prevByRecord,
++          [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item =>
++            item.id === itemId ? { ...item, reactions } : item,
++          ),
++        }));
++
++      if (!dataSource) {
++        const base = feedItems.find(item => item.id === itemId)?.reactions;
++        showReactions(toggleReaction(base, emoji));
++        return;
++      }
++
++      // Each click shows at once and queues exactly one write for its comment.
++      // Writes for a comment are chained on its `tail`, so they reach the
++      // server one at a time, in click order. A click made while an earlier
++      // write is still pending builds on that pending state, not on the
++      // stored one.
++      const key = `${feedRecordKey}\u0000${String(itemId)}`;
++      const pending = reactionSavesRef.current.get(key);
++      const base = pending ? pending.latest : feedItems.find(item => item.id === itemId)?.reactions;
++      const reactions = toggleReaction(base, emoji);
++      const entry: ReactionSave = pending ?? { stored: base, latest: base, tail: Promise.resolve() };
++      entry.latest = reactions;
++      reactionSavesRef.current.set(key, entry);
++      showReactions(reactions);
++
++      const userId = currentUser.id;
++      const write = async () => {
++        // An earlier write for this comment failed, which rolled back this
++        // click along with it. Its change was never stored, so don't send it.
++        if (reactionSavesRef.current.get(key) !== entry) return;
++        try {
++          await dataSource.update('sys_comment', String(itemId), {
++            reactions: reactionsToStored(reactions, userId),
++          });
++          entry.stored = reactions;
++          if (entry.latest === reactions) reactionSavesRef.current.delete(key);
++        } catch {
++          reactionSavesRef.current.delete(key);
++          showReactions(entry.stored);
++          toast.error(
++            t('detail.reactionFailed', {
++              defaultValue: 'Your reaction was not saved, so it has been removed. Please try again.',
++            }),
++          );
++        }
++      };
++      entry.tail = entry.tail.then(write);
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItems, feedRecordKey, t],
+   );
+ 
+   useEffect(() => {

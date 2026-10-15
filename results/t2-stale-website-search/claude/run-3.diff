@@ -1,0 +1,55 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..389076627 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -400,15 +400,20 @@ export function WebsiteViewDialog({
+     },
+   );
+ 
++  // The search the box currently stands for. An answer for any other —
++  // overtaken by a later search, cleared, or for another site — is dropped.
++  const latestSearch = useRef<object | null>(null);
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, args) => {
++        if (args !== latestSearch.current) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, args) => {
++        if (args !== latestSearch.current) return;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -425,6 +430,8 @@ export function WebsiteViewDialog({
+       setSearchQuery('');
+       setActiveQuery('');
+       setSearchResults([]);
++      setIsSearching(false);
++      latestSearch.current = null;
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -462,7 +469,9 @@ export function WebsiteViewDialog({
+     if (!query) return;
+     setActiveQuery(query);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
++    const args = { websiteId: website._id, query, limit: 20 };
++    latestSearch.current = args;
++    searchContent(args);
+   }, [searchQuery, website._id, searchContent]);
+ 
+   const loadMore = useCallback(() => {
+@@ -500,6 +509,7 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      latestSearch.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

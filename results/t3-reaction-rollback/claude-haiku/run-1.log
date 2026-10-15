@@ -1,0 +1,20 @@
+Reactions now update the screen only after the save succeeds, failed saves show an error toast, and every click still registers, with each click producing one save.
+
+**Root causes** (all in `handleToggleReaction` in `packages/app-shell/src/views/RecordDetailView.tsx`):
+- The UI was changed first and the save was fire-and-forget with `.catch(() => {})`, so a failed save left the reaction showing as applied with no message.
+- The `dataSource.update` call sat inside a `setState` updater. React can run updaters twice (StrictMode does), which fits the double-save report.
+
+**What changed:**
+- **Save first, then display.** The handler computes the new reaction list, awaits `dataSource.update`, and only then updates the feed. On failure it shows a toast and leaves the screen as it was.
+- **Queued writes per comment.** Each click waits for the previous write on the same comment and toggles against what that write stored. Quick clicks therefore each flip the reaction once, and none is dropped or merged.
+- **New error message.** `detail.reactionFailed` ("Your reaction was not saved. Please try again.") is added to `en` and the other nine locale packs, next to `commentFailed`. The call-site gate requires the key in `en`, and parity requires it everywhere. The translations are my own and haven't been reviewed by a native speaker.
+- **Helpers.** The toggle logic and the remote JSON shape moved into two module-level helpers, `toggleReaction` and `toRemoteReactionShape`. The logic itself is unchanged.
+
+**Trade-off:** the reaction now appears after the server responds, not instantly. I chose this because the request asked that the UI reflect what was stored. An optimistic version with rollback would be possible, but it's more complex and needs more care for queued clicks.
+
+**Verification:**
+- The related test suites pass: 251 files and 2381 tests, including the i18n key-parity test. I did not edit any tests.
+- The typecheck is noisy because the workspace packages aren't built, so I filtered it to the changed file. The remaining errors are in code I didn't touch.
+- I did not run the app in a browser or add a test for the new queue behavior, so the double-click and failure paths are verified by reading the code, not by running them.
+
+Nothing is committed.

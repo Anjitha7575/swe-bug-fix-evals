@@ -1,0 +1,5 @@
+I fixed the bug in `frontend/app/properties/PropertiesClient.tsx`. Each search on the page now gets an increasing request number, kept in a ref. When a response arrives, it only updates the list, the total and the loading spinner if it belongs to the newest request; responses from older searches are ignored. A slow request for the earlier term can no longer overwrite the newer results, whichever finishes first.
+
+The type check passes for this file. There are no existing tests for this page, so I haven't run the change against a real slow response. I didn't touch any tests or the API layer.
+
+One small thing remains: if the old response arrives during the 300 ms delay before the new search is sent, the old results can show for a moment. The new results then replace them, so the list doesn't stay wrong.

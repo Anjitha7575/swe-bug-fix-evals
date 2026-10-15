@@ -1,0 +1,19 @@
+Reactions on a comment now show what was actually stored. A failed save rolls the reaction back and shows an error toast. Each click still registers while an earlier save is pending, and it sends one write instead of two.
+
+The change is all in `packages/app-shell/src/views/RecordDetailView.tsx`. The cause was in `handleToggleReaction`:
+
+- **Failure was silent.** The save ran with `.catch(() => {})`, so the optimistic state was never reverted and the user was never told.
+- **Double saves.** The `dataSource.update` call sat inside the `setState` updater. React can run an updater more than once, which sends duplicate writes.
+
+What the handler does now:
+
+- **Pure toggle.** The toggle logic moved into a module-level `toggleReaction` helper, so the state updater has no side effects.
+- **One write per click, in order.** Each click updates the screen at once and queues one write for that comment. Writes for the same comment run one after another, so the server sees them in click order.
+- **Rollback on failure.** If a write fails, the comment reverts to the last list the backend accepted, the queued clicks that depended on the failed write are dropped, and an error toast appears.
+- **Error message.** It uses `t('detail.reactionFailed', { defaultValue: … })` with an English default. I didn't add the key to the locale files, so non-English users will see the English text until it's translated.
+
+Verification:
+- The existing RecordDetailView, countLabels and ReactionPicker suites pass: 36 files, 313 tests.
+- `tsc` reports no new errors in the changed code. It does report many unresolved `@object-ui/*` imports because the workspace packages aren't built here, so I checked only the errors that touch the changed lines.
+- I didn't add a test, since you asked me not to edit tests. The failure path and the rapid-click behaviour are untested beyond reading the code. A browser check of "click, make the save fail, confirm the reaction reverts and the toast appears" would be the quickest confirmation.
+- Prettier flags this file, but it did so before my change too, so I left the formatting alone.

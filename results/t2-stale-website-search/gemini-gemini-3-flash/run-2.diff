@@ -1,0 +1,141 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..bac02d8a6 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -368,6 +368,19 @@ export function WebsiteViewDialog({
+ 
+   const isSearchMode = activeQuery.length > 0;
+ 
++  // How many searches were sent: every new search, box clear, or site
++  // switch invalidates earlier requests that finish out of order.
++  const searchSeqRef = useRef(0);
++  const searchReqRef = useRef<{
++    id: number;
++    query: string;
++    websiteId: string;
++  } | null>(null);
++  const isOpenRef = useRef(isOpen);
++  isOpenRef.current = isOpen;
++  const websiteIdRef = useRef(website._id);
++  websiteIdRef.current = website._id;
++
+   // How many pages the list holds, as the answers arrive. A refresh reads
+   // the shown pages again from the top, so a "Load more" answer that comes
+   // after it no longer continues the list: its rows are already there, and
+@@ -404,11 +417,67 @@ export function WebsiteViewDialog({
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onMutate: () => ({ reqId: searchSeqRef.current }),
++      onSuccess: (data, variables, context) => {
++        const currentSearch = searchReqRef.current;
++        const reqId =
++          typeof context === 'object' &&
++          context !== null &&
++          'reqId' in context &&
++          typeof context.reqId === 'number'
++            ? context.reqId
++            : undefined;
++
++        const dataQuery =
++          typeof data === 'object' &&
++          data !== null &&
++          'query' in data &&
++          typeof data.query === 'string'
++            ? data.query
++            : undefined;
++
++        // An answer arrived after the search box was cleared, after the reader
++        // switched to another site, or after a newer search superseded it.
++        if (
++          !isOpenRef.current ||
++          currentSearch === null ||
++          websiteIdRef.current !== currentSearch.websiteId ||
++          (reqId !== undefined && reqId !== currentSearch.id) ||
++          (variables !== undefined &&
++            (variables.websiteId !== currentSearch.websiteId ||
++              variables.query !== currentSearch.query)) ||
++          (dataQuery !== undefined && dataQuery !== currentSearch.query)
++        ) {
++          return;
++        }
++
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, variables, context) => {
++        const currentSearch = searchReqRef.current;
++        const reqId =
++          typeof context === 'object' &&
++          context !== null &&
++          'reqId' in context &&
++          typeof context.reqId === 'number'
++            ? context.reqId
++            : undefined;
++
++        // Failures on abandoned or superseded searches stay silent so they
++        // never clear the active spinner or surface a misleading error toast.
++        if (
++          !isOpenRef.current ||
++          currentSearch === null ||
++          websiteIdRef.current !== currentSearch.websiteId ||
++          (reqId !== undefined && reqId !== currentSearch.id) ||
++          (variables !== undefined &&
++            (variables.websiteId !== currentSearch.websiteId ||
++              variables.query !== currentSearch.query))
++        ) {
++          return;
++        }
++
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -416,6 +485,9 @@ export function WebsiteViewDialog({
+   );
+ 
+   useEffect(() => {
++    searchSeqRef.current += 1;
++    searchReqRef.current = null;
++    setIsSearching(false);
+     if (isOpen) {
+       shownPages.current = 0;
+       setPages([]);
+@@ -430,6 +502,11 @@ export function WebsiteViewDialog({
+       setPageCounts(null);
+       fetchPages({ websiteId: website._id, offset: 0, limit: PAGE_SIZE });
+     }
++    return () => {
++      searchSeqRef.current += 1;
++      searchReqRef.current = null;
++      setIsSearching(false);
++    };
+   }, [isOpen, website._id, fetchPages]);
+ 
+   // The row follows the scan through realtime hints; the pages below are
+@@ -460,7 +537,10 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const reqId = ++searchSeqRef.current;
++    searchReqRef.current = { id: reqId, query, websiteId: website._id };
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+   }, [searchQuery, website._id, searchContent]);
+@@ -498,8 +578,11 @@ export function WebsiteViewDialog({
+   );
+ 
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+-    setSearchQuery(e.target.value);
+-    if (!e.target.value.trim()) {
++    const value = e.target.value;
++    setSearchQuery(value);
++    if (!value.trim()) {
++      searchSeqRef.current += 1;
++      searchReqRef.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

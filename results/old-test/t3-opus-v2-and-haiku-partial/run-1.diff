@@ -1,0 +1,284 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..db68e1e24 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -187,6 +187,38 @@ export function isSecondaryField(fieldName: string, fieldDef: any): boolean {
+  */
+ const EMPTY_FEED: FeedItem[] = [];
+ 
++/** Flip the signed-in user's reaction to `emoji` on a reaction list (pure). */
++function toggleOwnReaction(reactions: FeedItem['reactions'], emoji: string): NonNullable<FeedItem['reactions']> {
++  const next = [...(reactions ?? [])];
++  const idx = next.findIndex(r => r.emoji === emoji);
++  if (idx < 0) return [...next, { emoji, count: 1, reacted: true }];
++  const r = next[idx];
++  if (!r.reacted) {
++    next[idx] = { ...r, count: r.count + 1, reacted: true };
++  } else if (r.count <= 1) {
++    next.splice(idx, 1);
++  } else {
++    next[idx] = { ...r, count: r.count - 1, reacted: false };
++  }
++  return next;
++}
++
++/**
++ * The `sys_comment.reactions` JSON shape (`{ emoji: userIds[] }`) for a reaction
++ * list. Only the signed-in user's own id is known locally; other reactors are
++ * padded with a synthetic marker so the count survives a refresh (best-effort
++ * until the backend reaction endpoint lands in M11).
++ */
++function toRemoteReactionShape(reactions: NonNullable<FeedItem['reactions']>, userId: string): Record<string, string[]> {
++  const remoteShape: Record<string, string[]> = {};
++  for (const r of reactions) {
++    const ids: string[] = r.reacted ? [userId] : [];
++    while (ids.length < r.count) ids.push('__other__');
++    remoteShape[r.emoji] = ids;
++  }
++  return remoteShape;
++}
++
+ /**
+  * Union two feed slices by row id, oldest first.
+  *
+@@ -1897,64 +1929,69 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+     [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+   );
+ 
++  /**
++   * Reaction writes. Each click shows at once, but the comment only reflects
++   * what the server stored:
++   *  - `intended` — the newest state a click produced for this comment.
++   *  - `confirmed` — the last state the server acknowledged.
++   *  - `tail` — the saves for this comment, run one after another, so the last
++   *    click's full snapshot is the one stored even while earlier saves are in
++   *    flight. Every click still registers; nothing is dropped or merged away.
++   * A failed save raises a localized error. If it was the newest one, the
++   * comment falls back to `confirmed`; if a newer click is already queued, that
++   * save settles the comment instead.
++   */
++  const reactionLedger = useRef(new Map<string, {
++    confirmed: FeedItem['reactions'];
++    intended: FeedItem['reactions'];
++    tail: Promise<void>;
++  }>());
++
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
+-          } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
+-      }));
++      const key = feedRecordKey;
++      const item = (feedItemsByRecord[key] ?? EMPTY_FEED).find(i => i.id === itemId);
++      if (!item) return;
++      const ledgerKey = `${key}:${String(itemId)}`;
++      const ledger = reactionLedger.current.get(ledgerKey);
++      const next = toggleOwnReaction(ledger ? ledger.intended : item.reactions, emoji);
++      const setReactions = (reactions: FeedItem['reactions']) =>
++        setFeedItemsByRecord(prev => ({
++          ...prev,
++          [key]: (prev[key] ?? EMPTY_FEED).map(i => (i.id === itemId ? { ...i, reactions } : i)),
++        }));
++
++      setReactions(next);
++      if (!dataSource) return;
++
++      const entry = ledger ?? { confirmed: item.reactions, intended: next, tail: Promise.resolve() };
++      entry.intended = next;
++      reactionLedger.current.set(ledgerKey, entry);
++      const userId = currentUser.id;
++      entry.tail = entry.tail
++        .then(() => dataSource.update('sys_comment', String(itemId), {
++          reactions: JSON.stringify(toRemoteReactionShape(next, userId)),
++        }))
++        .then(
++          () => {
++            entry.confirmed = next;
++            if (entry.intended === next) reactionLedger.current.delete(ledgerKey);
++          },
++          () => {
++            toast.error(t('detail.reactionFailed', {
++              defaultValue: 'Your reaction was not saved. Please try again.',
++            }));
++            if (entry.intended !== next) return;
++            reactionLedger.current.delete(ledgerKey);
++            setReactions(entry.confirmed);
++          },
++        );
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedItemsByRecord, feedRecordKey, t],
+   );
+ 
+   useEffect(() => {
+diff --git a/packages/i18n/src/locales/ar.ts b/packages/i18n/src/locales/ar.ts
+index 467903d29..e379f7760 100644
+--- a/packages/i18n/src/locales/ar.ts
++++ b/packages/i18n/src/locales/ar.ts
+@@ -1097,6 +1097,7 @@ const ar = {
+     pathStageWonUpcoming: '{{stage}}، المرحلة الهدف، لم يتم الوصول إليها',
+     linkCopied: "تم نسخ الرابط إلى الحافظة",
+     commentFailed: "لم يُنشر تعليقك. لم يُحفظ أي شيء — يُرجى المحاولة مرة أخرى.",
++    reactionFailed: "لم تُحفظ تفاعلك. يُرجى المحاولة مرة أخرى.",
+     linkCopyFailed: "فشل نسخ الرابط",
+     cancel: "إلغاء",
+     cancelEdit: "تجاهل التغييرات",
+diff --git a/packages/i18n/src/locales/de.ts b/packages/i18n/src/locales/de.ts
+index a3fe2e13c..e5edf2ab4 100644
+--- a/packages/i18n/src/locales/de.ts
++++ b/packages/i18n/src/locales/de.ts
+@@ -1078,6 +1078,7 @@ const de = {
+     pathStageWonUpcoming: '{{stage}}, Zielphase, nicht erreicht',
+     linkCopied: "Link in die Zwischenablage kopiert",
+     commentFailed: "Ihr Kommentar wurde nicht veröffentlicht. Es wurde nichts gespeichert – bitte versuchen Sie es erneut.",
++    reactionFailed: "Ihre Reaktion wurde nicht gespeichert. Bitte versuchen Sie es erneut.",
+     linkCopyFailed: "Link konnte nicht kopiert werden",
+     cancel: "Abbrechen",
+     cancelEdit: "Änderungen verwerfen",
+diff --git a/packages/i18n/src/locales/en.ts b/packages/i18n/src/locales/en.ts
+index 46feeef44..b52ec0b45 100644
+--- a/packages/i18n/src/locales/en.ts
++++ b/packages/i18n/src/locales/en.ts
+@@ -1121,6 +1121,7 @@ const en = {
+     pathStageWonUpcoming: '{{stage}}, goal stage, not reached',
+     linkCopied: 'Link copied to clipboard',
+     commentFailed: 'Your comment was not posted. Nothing was saved — please try again.',
++    reactionFailed: 'Your reaction was not saved. Please try again.',
+     linkCopyFailed: 'Failed to copy link',
+     cancel: 'Cancel',
+     cancelEdit: 'Discard changes',
+diff --git a/packages/i18n/src/locales/es.ts b/packages/i18n/src/locales/es.ts
+index 0dc36b2fb..07b50e7ab 100644
+--- a/packages/i18n/src/locales/es.ts
++++ b/packages/i18n/src/locales/es.ts
+@@ -1082,6 +1082,7 @@ const es = {
+     pathStageWonUpcoming: '{{stage}}, etapa objetivo, no alcanzada',
+     linkCopied: "Enlace copiado al portapapeles",
+     commentFailed: "Tu comentario no se ha publicado. No se ha guardado nada; inténtalo de nuevo.",
++    reactionFailed: "Tu reacción no se ha guardado. Inténtalo de nuevo.",
+     linkCopyFailed: "No se pudo copiar el enlace",
+     cancel: "Cancelar",
+     cancelEdit: "Descartar cambios",
+diff --git a/packages/i18n/src/locales/fr.ts b/packages/i18n/src/locales/fr.ts
+index e9370e887..d1bfc80d4 100644
+--- a/packages/i18n/src/locales/fr.ts
++++ b/packages/i18n/src/locales/fr.ts
+@@ -1080,6 +1080,7 @@ const fr = {
+     pathStageWonUpcoming: '{{stage}}, étape objectif, non atteinte',
+     linkCopied: "Lien copié dans le presse-papiers",
+     commentFailed: "Votre commentaire n'a pas été publié. Rien n'a été enregistré — veuillez réessayer.",
++    reactionFailed: "Votre réaction n'a pas été enregistrée. Veuillez réessayer.",
+     linkCopyFailed: "Impossible de copier le lien",
+     cancel: "Annuler",
+     cancelEdit: "Abandonner les modifications",
+diff --git a/packages/i18n/src/locales/ja.ts b/packages/i18n/src/locales/ja.ts
+index 1fd798a9f..b9685483c 100644
+--- a/packages/i18n/src/locales/ja.ts
++++ b/packages/i18n/src/locales/ja.ts
+@@ -1090,6 +1090,7 @@ const ja = {
+     pathStageWonUpcoming: '{{stage}}、目標ステージ、未到達',
+     linkCopied: "リンクをクリップボードにコピーしました",
+     commentFailed: "コメントを投稿できませんでした。何も保存されていません。もう一度お試しください。",
++    reactionFailed: "リアクションを保存できませんでした。もう一度お試しください。",
+     linkCopyFailed: "リンクのコピーに失敗しました",
+     cancel: "キャンセル",
+     cancelEdit: "変更を破棄",
+diff --git a/packages/i18n/src/locales/ko.ts b/packages/i18n/src/locales/ko.ts
+index 574b5c46e..eb91df0e2 100644
+--- a/packages/i18n/src/locales/ko.ts
++++ b/packages/i18n/src/locales/ko.ts
+@@ -1078,6 +1078,7 @@ const ko = {
+     pathStageWonUpcoming: '{{stage}}, 목표 단계, 도달하지 않음',
+     linkCopied: "링크가 클립보드에 복사됨",
+     commentFailed: "댓글이 게시되지 않았습니다. 아무것도 저장되지 않았습니다. 다시 시도해 주세요.",
++    reactionFailed: "반응이 저장되지 않았습니다. 다시 시도해 주세요.",
+     linkCopyFailed: "링크 복사 실패",
+     cancel: "취소",
+     cancelEdit: "변경 사항 취소",
+diff --git a/packages/i18n/src/locales/pt.ts b/packages/i18n/src/locales/pt.ts
+index 15e6812b3..8914f3baa 100644
+--- a/packages/i18n/src/locales/pt.ts
++++ b/packages/i18n/src/locales/pt.ts
+@@ -1079,6 +1079,7 @@ const pt = {
+     pathStageWonUpcoming: '{{stage}}, etapa objetivo, não alcançada',
+     linkCopied: "Link copiado para a área de transferência",
+     commentFailed: "Seu comentário não foi publicado. Nada foi salvo — tente novamente.",
++    reactionFailed: "Sua reação não foi salva. Tente novamente.",
+     linkCopyFailed: "Falha ao copiar o link",
+     cancel: "Cancelar",
+     cancelEdit: "Descartar alterações",
+diff --git a/packages/i18n/src/locales/ru.ts b/packages/i18n/src/locales/ru.ts
+index 027e51a52..735176af4 100644
+--- a/packages/i18n/src/locales/ru.ts
++++ b/packages/i18n/src/locales/ru.ts
+@@ -1108,6 +1108,7 @@ const ru = {
+     pathStageWonUpcoming: '{{stage}}, целевой этап, не достигнут',
+     linkCopied: "Ссылка скопирована в буфер обмена",
+     commentFailed: "Комментарий не опубликован. Ничего не сохранено — попробуйте ещё раз.",
++    reactionFailed: "Реакция не сохранена. Попробуйте ещё раз.",
+     linkCopyFailed: "Не удалось скопировать ссылку",
+     cancel: "Отмена",
+     cancelEdit: "Отменить изменения",
+diff --git a/packages/i18n/src/locales/zh.ts b/packages/i18n/src/locales/zh.ts
+index 8e71fea0b..0d4c200fe 100644
+--- a/packages/i18n/src/locales/zh.ts
++++ b/packages/i18n/src/locales/zh.ts
+@@ -984,6 +984,7 @@ const zh = {
+     pathStageWonUpcoming: '{{stage}}，目标阶段，未到达',
+     linkCopied: '链接已复制到剪贴板',
+     commentFailed: '评论未发布，内容没有保存，请重试。',
++    reactionFailed: '表情回应未保存，请重试。',
+     linkCopyFailed: '复制链接失败',
+     cancel: '取消',
+     cancelEdit: '放弃更改',

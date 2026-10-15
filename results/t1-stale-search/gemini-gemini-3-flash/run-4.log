@@ -1,0 +1,12 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Ripgrep is not available. Falling back to GrepTool.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool grep_search: Path is not a directory: /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+I have fixed the race condition on the `/properties` page:
+
+- **Root Cause:** When typing a search query and changing it shortly afterward, the initial search request could resolve after a subsequent request, overwriting state with stale results.
+- **Fix:** In `frontend/app/properties/PropertiesClient.tsx`, added a request tracking ref (`searchRequestIdRef`). Each fetch operation is assigned an incremental ID, in-flight requests are invalidated when inputs change during debounce cleanup, and state/loading updates are discarded if a newer request has been initiated.

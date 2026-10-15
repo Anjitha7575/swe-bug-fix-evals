@@ -1,0 +1,11 @@
+Reaction toggles on a record's comments now wait for the save before the UI treats them as stored. Failed saves show an error and roll back to the last stored state, and every click still registers. The existing suites pass (37 files for the record view and reaction components, 73 for i18n), and I didn't edit any tests. I did not add a test for the new save-and-rollback path, so that behaviour is verified by reading the code only.
+
+The fix is in `packages/app-shell/src/views/RecordDetailView.tsx`:
+
+- **Failed saves:** the old code swallowed the error and left the reaction applied. Now a failed save shows a toast and reverts the comment to the last state the server confirmed.
+- **Double saves:** the old code called the save from inside a state updater, which React can run twice. The save now runs once per click, outside the updater.
+- **Rapid clicks:** each click updates the UI immediately and queues its save behind any save still in flight. The last click's full state is the one stored. If an earlier save fails while a newer click is queued, the newer save decides what the comment shows.
+
+I also added a `reactionFailed` string to all 11 locale files, so the locale parity check still holds. The English text is "Your reaction was not saved. Please try again." The other translations are my own and have not been reviewed by a native speaker.
+
+I haven't committed anything or added a changeset. The repo keeps changesets in `.changeset/`, so one may be expected for this change.

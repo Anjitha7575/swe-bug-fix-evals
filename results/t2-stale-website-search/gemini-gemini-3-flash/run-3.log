@@ -1,0 +1,20 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Ripgrep is not available. Falling back to GrepTool.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+I have resolved the race conditions and stale search state in `WebsiteViewDialog` (`services/platform/app/features/websites/components/website-view-dialog.tsx`):
+
+1. **Out-of-order search resolution**: Added an active search reference (`activeSearchRef`) tracking the expected query and website ID. Out-of-order search completions or errors are dropped if their query/website does not match the latest active search, preventing older queries from overwriting newer results or prematurely dismissing the loading spinner.
+2. **Clearing search input**: Erasing the search box immediately invalidates `activeSearchRef`, clears active search mode, resets search results, and stops the loading state. Any in-flight response or error that settles after clearing is discarded.
+3. **Switching sites mid-search**: Reset the search query, active query, search results, active search reference, and loading state whenever the active website or dialog open state changes, ignoring late responses from previously viewed websites.

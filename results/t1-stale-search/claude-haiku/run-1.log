@@ -1,0 +1,10 @@
+The /properties page can no longer show results for an earlier search term. The fix is in `frontend/app/properties/PropertiesClient.tsx`, and I did not touch any tests.
+
+**Cause:** `fetchProperties` wrote its results to state whenever its response arrived. When a slow request for an older term resolved after a newer one, it overwrote the list. It also cleared the loading flag too early.
+
+**Fix:** Each fetch takes a sequence number from a ref. Only the latest fetch updates the results, the error state, and the loading flag. Stale responses are ignored. I used a sequence guard rather than an abort signal because `searchProperties` doesn't accept one.
+
+**Verification:**
+- The type check shows no errors in `PropertiesClient.tsx`.
+- The property-related test files show the same 17 failures with and without my change. They fail with `window.matchMedia is not a function` in `PropertyInfo`, `PhotoGallery`, `ApartmentReviews`, and `property-card`, so they predate this fix and are unrelated to it.
+- I did not reproduce the race in a browser or add a test for it, because you asked me not to edit tests.

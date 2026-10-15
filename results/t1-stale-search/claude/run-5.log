@@ -1,0 +1,11 @@
+I fixed the bug in `frontend/app/properties/PropertiesClient.tsx`. I haven't tested it in a browser, and no automated test exercises this exact sequence.
+
+**Cause:** The search box waits 300 ms after you stop typing, then sends a request. That wait only cancels searches that haven't been sent yet. Once a request was sent, nothing stopped its response from being used. So if the first search was slow, its results could arrive after the second search's results and replace them, leaving the list on the older term.
+
+**Fix:** Each search now gets a number, and the page remembers the number of the most recent one. When a response comes back from any earlier search, it is thrown away. That applies to results, errors, and turning off the loading spinner, so an old request also can't hide the spinner while the newest one is still running. No other files changed, and no tests were edited.
+
+**Checks:**
+- The TypeScript type check reports no errors in this file.
+- The frontend test suite (`vitest`) has 87 failures in 20 test files. I ran it with and without my change, and the same tests fail both times, so they were already failing and aren't caused by this fix.
+
+The slow old request still finishes in the background; its result is just ignored. Cancelling it outright would mean changing `searchProperties` and the shared request helper it uses, which wasn't needed to fix what you're seeing.

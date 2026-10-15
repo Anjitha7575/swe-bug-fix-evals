@@ -1,0 +1,12 @@
+In [`website-view-dialog.tsx`](file:///Users/anjitha/Downloads/bug-fix-evals/work/t2-stale-website-search/services/platform/app/features/websites/components/website-view-dialog.tsx), stale content searches have been resolved by adding request tracking and staleness validation:
+
+1. **Monotonic Search IDs & In-Flight Tracking**:
+   - Each search triggered via `triggerSearch` increments a request sequence (`nextSearchIdRef`) and records the active request ID in `activeSearchIdRef` and the active query in `activeQueryRef`.
+   - React Query's `onMutate` associates each search execution with the current request ID.
+
+2. **Staleness Filtering (`isStaleSearch`)**:
+   - Both `onSuccess` and `onError` inspect the completed request against current state (`isOpen`, `activeSearchIdRef`, `activeWebsiteIdRef`, `activeQueryRef`, and `data.query`).
+   - Responses or errors from overtaken searches (arriving out of order), searches from a previous website, or searches initiated before the search box was cleared are discarded without updating `searchResults`, turning off `isSearching`, or showing an error toast.
+
+3. **Box Clearing & Site Switching Cleanup**:
+   - Clearing the search box (`handleSearchChange`) or changing sites / opening/closing the dialog (`useEffect`) invalidates `activeSearchIdRef` and `activeQueryRef`, resets `isSearching` to `false`, and clears prior results so subsequent asynchronous completions cannot surface stale UI states.

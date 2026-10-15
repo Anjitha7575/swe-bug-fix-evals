@@ -1,0 +1,16 @@
+Search answers in the website view dialog now reach the list only if they belong to the search the box last sent. Out-of-order results, a cleared box, and a site switch mid-search can no longer overwrite what's shown. The fix is in `services/platform/app/features/websites/components/website-view-dialog.tsx`, and I didn't touch any tests.
+
+**The cause:** the search's success and error handlers applied every answer they received, even when the box had since been cleared, the query had changed, or the site had switched. A stale answer could replace the results, end the loading state early, or show an error.
+
+**The fix:**
+- The dialog records the site and query of each search it sends.
+- Each answer carries the site and query it was sent with, and the handlers ignore any answer that doesn't match the recorded search.
+- Clearing the box and switching sites both clear the record, so answers still in flight for them are dropped.
+- Reopening the dialog also resets the loading flag, which it previously left set.
+
+**Verification:**
+- `tsc --noEmit` passes.
+- Oxlint reports nothing for the file.
+- The existing `website-view-dialog.test.tsx` passes (30/30). Those tests don't exercise search, so they don't cover this fix. I didn't write a scratch test for the out-of-order case.
+
+**Not changed:** the page list (`fetchPages`) has a similar race. Its answers are checked against the page state and offset, but not the site, so a slow answer from the previous site could land in the list after a switch. I left it alone since you asked about search, but it's a small follow-up if you want it.

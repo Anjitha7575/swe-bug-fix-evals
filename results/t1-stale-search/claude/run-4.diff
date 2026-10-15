@@ -1,0 +1,38 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..c7cdb72 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -128,7 +128,12 @@ function PropertiesContent() {
+     minAnnualRent ||
+     maxAnnualRent;
+ 
++  // Monotonic id of the latest search request; responses from older
++  // requests are ignored so a slow earlier search can't overwrite newer results.
++  const latestRequestIdRef = useRef(0);
++
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++latestRequestIdRef.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +159,19 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== latestRequestIdRef.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== latestRequestIdRef.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === latestRequestIdRef.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,

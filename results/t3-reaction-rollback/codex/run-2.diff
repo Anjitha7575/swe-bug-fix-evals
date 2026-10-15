@@ -1,0 +1,122 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..6f9899bab 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,8 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  const reactionWritesRef = useRef(new Map<string, Promise<void>>());
++  const storedReactionsRef = useRef(new Map<string, FeedItem['reactions']>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1899,7 +1901,24 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+ 
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+-      if (!feedRecordKey) return;
++      if (!feedRecordKey || !dataSource) return;
++      const key = `${feedRecordKey}:${String(itemId)}`;
++      if (!storedReactionsRef.current.has(key)) {
++        const existing = (feedItemsByRecord[feedRecordKey] ?? EMPTY_FEED).find(item => item.id === itemId);
++        storedReactionsRef.current.set(key, existing?.reactions ?? []);
++      }
++      const toggle = (reactions: FeedItem['reactions'] = []) => {
++        const next = [...reactions];
++        const idx = next.findIndex(r => r.emoji === emoji);
++        if (idx < 0) next.push({ emoji, count: 1, reacted: true });
++        else if (next[idx].reacted) {
++          if (next[idx].count <= 1) next.splice(idx, 1);
++          else next[idx] = { ...next[idx], count: next[idx].count - 1, reacted: false };
++        } else next[idx] = { ...next[idx], count: next[idx].count + 1, reacted: true };
++        return next;
++      };
++      // Reflect every click immediately; writes are serialized per comment so
++      // rapid toggles cannot race each other at the data source.
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+@@ -1907,54 +1926,37 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+         ...prevByRecord,
+         [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+           if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
+-          } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
++          return { ...item, reactions: toggle(item.reactions) };
+         }),
+       }));
++      const previous = reactionWritesRef.current.get(key) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const current = storedReactionsRef.current.get(key) ?? [];
++        const reactions = toggle(current);
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++          storedReactionsRef.current.set(key, reactions);
++        } catch (err) {
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item =>
++              item.id === itemId ? { ...item, reactions: storedReactionsRef.current.get(key) ?? [] } : item
++            ),
++          }));
++        }
++      }).finally(() => {
++        if (reactionWritesRef.current.get(key) === write) reactionWritesRef.current.delete(key);
++      });
++      reactionWritesRef.current.set(key, write);
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItemsByRecord],
+   );
+ 
+   useEffect(() => {

@@ -1,0 +1,15 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Ripgrep is not available. Falling back to GrepTool.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+In `WebsiteViewDialog` (`services/platform/app/features/websites/components/website-view-dialog.tsx`), search race conditions were fixed by ensuring only the response or error corresponding to the currently active, matching search query and website is applied:
+
+1. **Search Request Tracking & Out-of-Order Handling**: Assigned a monotonically increasing sequence ID (`searchSeqRef`) and recorded active query metadata (`activeSearchIdRef`, `activeSearchQueryRef`, `activeSearchWebsiteIdRef`) on search trigger. `searchContent` passes this context through `onMutate` and validates in `isMatchingSearch` before updating `searchResults`, turning off `isSearching`, or displaying error toasts. Outdated responses that finish after a subsequent search are ignored without clearing the newer search's loading state.
+2. **Clearing Search Box**: When the search box is cleared, active search tracking is reset to `0`, clearing active query and results, setting `isSearching` to `false`, and causing any in-flight searches to be discarded on completion without rendering results or error toasts.
+3. **Switching Sites or Closing Dialog**: When `website._id` changes or the dialog is closed, in-flight searches are invalidated and search state is reset (`isSearching` set to `false`). Stale responses or errors from previously opened sites or closed dialog sessions are ignored.

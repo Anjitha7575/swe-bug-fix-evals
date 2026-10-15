@@ -1,0 +1,60 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..e65961c86 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -400,15 +400,23 @@ export function WebsiteViewDialog({
+     },
+   );
+ 
++  // The search the box is waiting on. An answer for any other search — one
++  // overtaken by a later search, cleared from the box, or sent for another
++  // site — arrived after the reader moved on, and is dropped.
++  const pendingSearch = useRef<object | null>(null);
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, variables) => {
++        if (variables !== pendingSearch.current) return;
++        pendingSearch.current = null;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, variables) => {
++        if (variables !== pendingSearch.current) return;
++        pendingSearch.current = null;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -425,6 +433,8 @@ export function WebsiteViewDialog({
+       setSearchQuery('');
+       setActiveQuery('');
+       setSearchResults([]);
++      setIsSearching(false);
++      pendingSearch.current = null;
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -461,8 +471,11 @@ export function WebsiteViewDialog({
+     const query = searchQuery.trim();
+     if (!query) return;
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
++    const args = { websiteId: website._id, query, limit: 20 };
++    pendingSearch.current = args;
++    searchContent(args);
+   }, [searchQuery, website._id, searchContent]);
+ 
+   const loadMore = useCallback(() => {
+@@ -503,6 +516,7 @@ export function WebsiteViewDialog({
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);
++      pendingSearch.current = null;
+     }
+   }, []);
+ 

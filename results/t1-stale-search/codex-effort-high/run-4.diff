@@ -1,0 +1,54 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..b9a6237 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -51,6 +51,7 @@ function PropertiesContent() {
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
++  const fetchRequestId = useRef(0);
+ 
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+@@ -129,6 +130,7 @@ function PropertiesContent() {
+     maxAnnualRent;
+ 
+   const fetchProperties = useCallback(async () => {
++    const requestId = ++fetchRequestId.current;
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +156,19 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== fetchRequestId.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== fetchRequestId.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === fetchRequestId.current) {
++        setIsLoading(false);
++      }
+     }
+   }, [
+     searchQuery,
+@@ -185,7 +191,11 @@ function PropertiesContent() {
+       trackPropertyDiscoveryStep("anonymous", "search_properties");
+       void fetchProperties();
+     }, 300);
+-    return () => clearTimeout(debounce);
++    return () => {
++      clearTimeout(debounce);
++      // Invalidate an in-flight request as soon as its search inputs change.
++      fetchRequestId.current++;
++    };
+   }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+ 
+   useEffect(() => {

@@ -1,0 +1,13 @@
+Fixed the race condition on the `/properties` page where slow in-flight search requests could complete after newer searches and overwrite the results with stale data.
+
+### Cause of Bug
+In [`PropertiesClient.tsx`](file:///Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx), search queries triggered debounced calls to `fetchProperties()`. When a user typed a search term and then modified it shortly after:
+1. The first search request was dispatched.
+2. The user typed a new term and a second request was dispatched.
+3. If the first request was slow to respond, the second request would complete first and update the list with the newer term's results.
+4. When the first (slower) request finally resolved, it unconditionally set `properties`, overwriting the display with results for the older term while the search box displayed the newer term.
+
+### Solution
+- Added a `searchRequestIdRef` counter to track request sequence IDs across effect triggers and renders in [`PropertiesClient.tsx`](file:///Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx#L54-L63).
+- Added cancellation cleanup to the search `useEffect` and ensured each request ID is checked before committing results to state. Any response arriving from a superseded or cancelled search request is discarded.
+- Maintained proper loading state so pending searches are not prematurely ended by stale responses.

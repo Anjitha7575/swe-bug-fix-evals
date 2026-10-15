@@ -1,0 +1,9 @@
+I fixed this in `services/platform/app/features/websites/components/website-view-dialog.tsx`. The 108 existing website-feature tests pass and the type check shows no errors in the file, but none of those tests cover out-of-order replies. I also didn't try it in the running app, and I didn't touch any tests.
+
+**Cause:** the search action wrote every reply straight into the results, loading flag and error toast. It didn't check whether that reply was for the search still in the box. So a slow earlier search could overwrite a newer one. A reply could also show up after you cleared the box or switched sites.
+
+**Fix:**
+- The dialog now remembers the search that's currently active. A reply (success or error) is applied only if it belongs to that search; any other reply is dropped, so stale responses no longer change the results, the spinner or the error toast.
+- Clearing the box, or opening the dialog again or switching to another site, resets that remembered search. Anything still running from before is then ignored.
+- Starting a new search clears the previous results, so old results no longer sit under the spinner while the new search loads.
+- Reopening the dialog or switching sites now also turns off the loading state. Before, it could stay stuck on.

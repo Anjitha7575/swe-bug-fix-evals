@@ -1,0 +1,19 @@
+I fixed the reaction save in `packages/app-shell/src/views/RecordDetailView.tsx`. A reaction that fails to save now goes back to its stored state and the user gets an error toast. Quick repeated clicks each register and are saved once each, in order.
+
+**What was wrong**
+- The save ran inside a React state update function, which React can run twice. That's where the duplicate saves came from.
+- Save errors were caught and thrown away, so a failed reaction stayed highlighted and nothing told the user.
+
+**What it does now**
+- **Clicks are queued per comment.** Each click is recorded as "add" or "remove", based on what was on screen when it was clicked. It shows up right away, so every click counts even while an earlier save is still pending.
+- **Saves run one at a time**, each starting from the last state the server actually confirmed. Every click is written exactly once.
+- **If a save fails**, the user sees an error toast ("Your reaction was not saved — please try again."). Only that click is dropped, and the comment shows the stored reactions plus whatever clicks are still waiting.
+- **Add-then-remove where the add fails** cancels out: nothing is saved and nothing is shown. Re-applying the remove as a plain toggle would have re-added the reaction.
+- I added the `detail.reactionFailed` message to all 10 language files.
+
+**Testing**
+- The existing tests for the record detail page, i18n and the detail plugin all pass (3552 tests). No test files were changed.
+- I also ran a throwaway test against the real detail page with a fake data source, then deleted it. It covered: failure rolls back and shows the toast; three fast clicks give three saves in order; add-then-remove with a failing add saves nothing; a click after a failure saves normally. All passed.
+- The type checker flags no new errors in the changed code apart from one "implicit any" in a new helper, of the same kind it already reports elsewhere in this file. All of these come from workspace packages that haven't been built in this checkout.
+
+One limitation: while saves are queued for a comment, they build on the reactions as they were when the queue started. If someone else changes that comment's reactions in that short window, the next save here can overwrite their change. The existing code had the same weakness.

@@ -1,0 +1,12 @@
+Search results, errors, and the spinner in the website view dialog now only reflect the latest search. Out-of-order answers, answers after the box is cleared, and answers from a previous site are dropped.
+
+The change is in `services/platform/app/features/websites/components/website-view-dialog.tsx`:
+
+- **Latest-search guard:** the dialog records the site and query of the last search it sent. The success and error handlers ignore any answer whose request variables don't match that record. This covers out-of-order answers, late errors, and answers for a query the user has since replaced.
+- **Clearing the box:** emptying the search box clears the record, so an in-flight answer for the old query can't repopulate the list.
+- **Switching sites or reopening:** the reset effect clears the record and the spinner, so an answer for the previous site is ignored.
+- **New search:** results from the previous query are cleared when a new search starts, so the old list doesn't sit under the spinner.
+
+Verification: the 30 existing tests in `website-view-dialog.test.tsx` pass, and `tsc --noEmit` exits 0. I did not add a regression test, since you asked me not to edit tests. The existing mock never delivers search answers, so none of the tests exercise this path. I did not run the app in a browser to reproduce the race.
+
+I did not change paging. `fetchPages` has the same kind of gap: a "Load more" or first-page answer from the previous site can still land after a site switch, since that handler checks the page state but not the site. It's a small follow-up if you want it covered.

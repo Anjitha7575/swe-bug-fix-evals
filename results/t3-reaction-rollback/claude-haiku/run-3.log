@@ -1,0 +1,61 @@
+The fix is in place in `RecordDetailView.tsx`. The type-check and test run are still going, so I'm not reporting them as passing yet.
+
+**What was wrong**
+
+`handleToggleReaction` made the optimistic change and started the save in the same place, inside a `setFeedItemsByRecord` updater. That caused three problems:
+- Updaters can run twice (React StrictMode does this in dev), so each click could fire the save twice. That's the double-save.
+- The save was fire-and-forget with `.catch(() => {})`. A failed save left the reaction showing as applied, and the user was never told.
+- Each click was computed from the last render, so rapid clicks could toggle from a stale state.
+
+**What changed**
+
+- The reaction toggle and the remote-JSON build are now plain helpers, `toggleReactionList` and `toRemoteReactions`, outside the component.
+- Each click updates the UI once, then queues exactly one save for that comment. Clicks aren't blocked while a save is pending, and the next click builds on the previous click's intended state.
+- Saves for one comment run one at a time, so the last write is always the newest click.
+- On failure, the comment rolls back to the last value the backend confirmed, and an error toast shows (`detail.reactionFailed`). Any clicks queued after the failed one are dropped too, so what's displayed matches what's stored.
+- When nothing is pending, the state is re-seeded from the row on screen, so a feed refresh from another client isn't overwritten by stale local state.
+
+**Tradeoff to know about**
+
+If a save fails while later clicks are queued, those later clicks are rolled back along with it. The user gets a toast, but those clicks don't persist. The alternative would store a state the UI no longer shows.
+
+**Not verified yet**
+
+- I ran the TypeScript check on app-shell and filtered for `RecordDetailView`. It printed no errors for that file. The check printed nothing else, so I haven't seen an explicit "no errors" line for the whole project.
+- I started vitest on `packages/app-shell/src/views` and `packages/plugin-detail/src`. It was still running in the background when I stopped, so I don't have a result yet.
+- I didn't add a test for the new behavior, since you asked me not to edit tests. Nothing in the existing suite exercises the reaction save path.
+
+The reaction fix is in place, but the test run hasn't finished, so I can't yet say whether the existing tests pass.
+
+**Status**
+- `RecordDetailView.tsx` is changed as described in my previous message. The TypeScript check showed no errors in that file.
+- The vitest run on `packages/app-shell/src/views` and `packages/plugin-detail/src` is still going (process 44974). It only prints once it exits, so there's no partial output. Its result will arrive as a background-task notification, and I'll report the pass/fail counts then.
+- A monitor on that process also expired after 5 minutes. The background task itself is still running and will notify me when it finishes.
+
+Nothing has been committed.
+
+The reaction fix is in `packages/app-shell/src/views/RecordDetailView.tsx`, and the existing tests pass: the `app-shell/src/views` and `plugin-detail/src` suites ran with 777 test files passing (1 skipped) and 8036 tests passing (9 skipped), exit code 0. I didn't add or edit any tests.
+
+**What was wrong**
+- The save ran inside a React state updater, which StrictMode can call twice, so one click could save twice.
+- The save was fire-and-forget (`.catch(() => {})`). A failed save left the reaction looking applied, and the user got no message.
+- Clicks were computed from the last render, so rapid clicks could build on stale state.
+
+**What changed**
+- Each click updates the UI once and queues one save for that comment. Clicks are never blocked while a save is pending, and each click builds on the previous click's intended state.
+- Saves for one comment run one at a time, so the last write is always the newest click.
+- On failure, the comment rolls back to the last value the backend confirmed and shows an error toast (`detail.reactionFailed`).
+- When nothing is pending, the state is re-seeded from the row on screen, so a feed refresh from another client isn't overwritten by stale local state.
+
+**Tradeoff**
+If a save fails while later clicks are queued, those later clicks are rolled back too. The alternative would store a state the UI no longer shows.
+
+**Not done**
+- I didn't add a test for the new behavior, since you asked me not to edit tests. Nothing in the existing suite covers the rapid-click or failure path, so that behavior is checked by reading the code only.
+- Nothing is committed.
+
+The monitor confirms the vitest process I was waiting on (44974) has exited. Its result is the one I already reported: 777 test files passed (1 skipped), 8036 tests passed (9 skipped), exit code 0. No further action is needed.
+
+The reaction fix in `packages/app-shell/src/views/RecordDetailView.tsx` is complete. It is uncommitted, and I added no tests.
+
+Quiet tick, so I've stopped the loop. The reaction fix in `RecordDetailView.tsx` is finished and its tests pass. The change is still uncommitted, and there's no PR for this branch (the checkout is detached and `gh` isn't installed here). Committing or opening a PR is for you to decide.

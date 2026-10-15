@@ -1,0 +1,13 @@
+I fixed the website view dialog so search results, errors and the loading spinner only show for whatever is currently in the search box. Type-checking reported no errors in the changed file, and the website tests pass (108 of 108). No existing test sends overlapping searches, so the out-of-order case isn't directly covered, and I didn't try it in the running app.
+
+**Cause:** the search handlers in `website-view-dialog.tsx` applied every answer that came back. So:
+- a slow, older search could overwrite a newer one's results;
+- results or an error could arrive after you'd cleared the box;
+- results from the previous site could show up after switching sites.
+
+**Fix** (all in `services/platform/app/features/websites/components/website-view-dialog.tsx`):
+- Each search is recorded as the one the dialog is waiting on. A result or error is applied only if it belongs to that search; anything else is ignored, including its error message.
+- Clearing the box, reopening the dialog or switching sites cancels the wait, so late answers are dropped.
+- Reopening or switching sites now also turns off the spinner, which was previously left running.
+
+The dialog recognises its search by the request that was sent. If that request isn't available (the test mock only passes back the response), it falls back to comparing the query the backend sends back. The response doesn't say which site it came from, which is why the request is the main check. I didn't edit any tests.

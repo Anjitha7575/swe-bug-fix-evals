@@ -1,0 +1,21 @@
+Reactions on the detail page now show what was actually saved. If a save fails, the user gets an error and the reaction goes back to its stored state. The existing tests pass (106 files, 1427 tests), and I didn't edit any tests. I didn't add a test for this, and I haven't checked it in a running app.
+
+**What was wrong** (in `packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`):
+- **Failures were hidden.** The save's error was caught and ignored, so the reaction stayed on screen with no message.
+- **Double saves.** The save request was sent from inside a React state update. React can run that code twice (in development, StrictMode does this), so one click could save twice.
+
+**How it works now:**
+- **Every click counts.** Each comment keeps its last saved reactions plus a queue of clicks that haven't been saved yet. Clicks made while an earlier save is still running go into the queue, and the screen shows all of them right away.
+- **One save at a time.** Saves run in click order. Each one starts from the last saved state, so a later save never re-sends a change that failed earlier.
+- **Success:** the saved state moves forward.
+- **Failure:** that click is dropped from the queue, the reaction goes back to what's stored (plus any clicks still waiting), and an error toast appears.
+- **Each save is sent once**, from outside the state update.
+- **No data connection:** clicking a reaction now shows the error instead of a change that looks saved but isn't.
+
+I added a `detail.reactionFailed` error message to all 10 locale files, next to the existing `commentFailed` message, so the check that every language has the same keys still passes.
+
+**Unchanged limitations:**
+- The format sent to the server is the same as before. It doesn't know who else reacted, so other people are saved as placeholders.
+- If the comments reload while a save is still running, the reload can overwrite the reactions on screen until the queue next updates them.
+
+The type check found no errors in the new code. Its only errors were about workspace packages that aren't built locally.

@@ -1,0 +1,9 @@
+The /properties list can no longer show results for an earlier search term. The fix is in `frontend/app/properties/PropertiesClient.tsx`.
+
+**Cause:** Each search request wrote its results to state when it finished, with no check for whether a newer search had started. If the first request was slow, its response could arrive after the second and overwrite the list.
+
+**Fix:** Each `fetchProperties` call takes an ID from a ref counter. When a response arrives, it is applied only if its ID is still the latest. Stale responses are dropped on success and on error. The loading flag is only cleared by the latest request, so a stale response can't hide the spinner early either.
+
+I didn't change any tests or the API layer (`searchProperties` has no abort support, so the guard is in the component).
+
+**Verification:** `tsc --noEmit` reports no errors in this file, and `eslint` passes on it. I didn't run the test suite or the app in a browser, and there is no existing test for this component, so the race itself is not covered by an automated check.

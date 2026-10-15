@@ -1,0 +1,24 @@
+I fixed it: a reaction that fails to save now returns to what's actually stored and shows an error, and each click saves once. Clicks made while an earlier save is still pending are queued, not dropped. The existing RecordDetailView and i18n tests pass (1427 passed, 13 skipped), and I didn't edit any tests.
+
+**What was wrong** (`packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`)
+- **Silent failure:** the save's error was swallowed (`.catch(() => {})`), so the screen kept showing the reaction.
+- **Double save:** the save was fired from inside a React state update. React's development mode (StrictMode) deliberately runs those updates twice, so each click sent two saves.
+- **Racing saves:** quick clicks each started their own save with nothing ordering them.
+
+**How it works now**
+- Each click updates the screen right away as before, but it's recorded as a pending click for that comment.
+- For each comment, the view tracks the reactions the server last confirmed plus the clicks not yet saved. What's shown is always the confirmed state with the pending clicks applied on top.
+- Saves for one comment go out one at a time, in click order. Each is built from the confirmed state when it's sent, so a click during a pending save just waits its turn.
+- If a save fails, the confirmed state stays as it was, so the reaction goes back to what's stored. A translated error toast says "Your reaction was not saved — please try again."
+- If an earlier failure already left the reaction where a later click wanted it, that click sends nothing, since there's nothing to change.
+- I added the `detail.reactionFailed` message to all 10 locale files.
+
+**Checked with a throwaway test (deleted afterwards)**
+- A failed save rolls back from 👍2 to 👍1 and shows one error.
+- Three quick clicks while the first save is pending show 2 → 1 → 2 immediately, then produce exactly three saves in order with the correct stored values.
+- If the first of two clicks fails, the second sends nothing and the screen shows the stored state.
+
+**Things to know**
+- With no data source the reaction is now rolled back with the error rather than kept on screen unsaved. That matches how comments already behave.
+- I didn't add a regression test because you asked me not to touch tests. The throwaway test above would make a good one if you want it kept.
+- I didn't add a `.changeset` entry or commit anything.

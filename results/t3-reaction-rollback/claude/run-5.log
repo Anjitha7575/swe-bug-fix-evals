@@ -1,0 +1,15 @@
+I fixed reactions in `packages/app-shell/src/views/RecordDetailView.tsx`. The UI now shows what was actually stored, a failed save shows an error, and quick clicks no longer save twice. The existing tests pass, but nothing tests the new behaviour directly. I haven't checked failures, rapid clicks or rollback in a real browser or a new test.
+
+**Why it was broken:** the save call was made inside a React state update function. React can run those functions twice (it does in StrictMode), so one click could send two saves. Any save error was silently thrown away, so a failed reaction stayed on screen.
+
+**How it works now:**
+- **Every click shows straight away:** each click is added to a per-comment queue, and the UI shows the last saved reactions with all waiting clicks applied on top.
+- **Saves happen one at a time:** each save is built from the last saved state plus that one click. A second click made while the first save is pending still counts and is saved after it.
+- **If a save fails:** that click is dropped and the comment goes back to what was actually stored, with any later clicks still waiting re-applied on top. The user sees a translated toast saying their reaction wasn't saved. A missing data source is treated as a failure too, instead of being quietly skipped.
+- **Each save is sent once,** from outside the state update.
+
+I moved the toggle and save-format logic into two small helpers, `toggleReaction` and `reactionsToStored`, without changing what they do. I also added a `detail.reactionFailed` message to all 10 locale files in `packages/i18n/src/locales/`. I didn't edit any tests.
+
+**Tests:** I ran the record-detail discussion, comment-failure, feed and count-label tests plus the whole i18n package: 80 files, all passing. A full type check of the package can't run here because the workspace packages it imports aren't built. Once those missing-package errors are filtered out, the only errors left in this file are in code I didn't touch.
+
+One thing to know: if the feed reloads from the server while a save is still pending, the server's copy is shown until that save finishes. The final state still matches what was stored.

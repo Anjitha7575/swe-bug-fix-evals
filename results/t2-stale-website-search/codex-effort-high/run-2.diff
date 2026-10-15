@@ -1,0 +1,96 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..69b8473d1 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -356,6 +356,11 @@ export function WebsiteViewDialog({
+   const [activeQuery, setActiveQuery] = useState('');
+   const [searchResults, setSearchResults] = useState<CrawlerSearchResult[]>([]);
+   const [isSearching, setIsSearching] = useState(false);
++  // Search actions can finish after a newer search, a clear, or a site
++  // switch. Only the request that still owns the dialog may update it.
++  const searchRequestId = useRef(0);
++  const searchOwner = useRef({ websiteId: website._id, isOpen });
++  searchOwner.current = { websiteId: website._id, isOpen };
+   // The list narrowed to the failed or the skipped pages: a reader reaches
+   // the five that failed without walking the five hundred that did not.
+   // The counts come with every pages answer, whichever state is open.
+@@ -404,19 +409,12 @@ export function WebsiteViewDialog({
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
+-        setSearchResults(data.results);
+-        setIsSearching(false);
+-      },
+-      onError: () => {
+-        setIsSearching(false);
+-        toast({ title: t('toast.searchError'), variant: 'destructive' });
+-      },
+     },
+   );
+ 
+   useEffect(() => {
+     if (isOpen) {
++      searchRequestId.current += 1;
+       shownPages.current = 0;
+       setPages([]);
+       setOffset(0);
+@@ -429,6 +427,8 @@ export function WebsiteViewDialog({
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+       fetchPages({ websiteId: website._id, offset: 0, limit: PAGE_SIZE });
++    } else {
++      searchRequestId.current += 1;
+     }
+   }, [isOpen, website._id, fetchPages]);
+ 
+@@ -460,10 +460,39 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const requestId = ++searchRequestId.current;
++    const websiteId = website._id;
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
+-  }, [searchQuery, website._id, searchContent]);
++    searchContent(
++      { websiteId, query, limit: 20 },
++      {
++        onSuccess: (data) => {
++          if (
++            requestId !== searchRequestId.current ||
++            !searchOwner.current.isOpen ||
++            searchOwner.current.websiteId !== websiteId
++          ) {
++            return;
++          }
++          setSearchResults(data.results);
++          setIsSearching(false);
++        },
++        onError: () => {
++          if (
++            requestId !== searchRequestId.current ||
++            !searchOwner.current.isOpen ||
++            searchOwner.current.websiteId !== websiteId
++          ) {
++            return;
++          }
++          setIsSearching(false);
++          toast({ title: t('toast.searchError'), variant: 'destructive' });
++        },
++      },
++    );
++  }, [searchQuery, website._id, searchContent, t]);
+ 
+   const loadMore = useCallback(() => {
+     const nextOffset = offset + PAGE_SIZE;
+@@ -500,6 +529,7 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      searchRequestId.current += 1;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

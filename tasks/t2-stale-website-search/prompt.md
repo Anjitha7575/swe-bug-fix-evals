@@ -1,0 +1,1 @@
+In the website view dialog, searching the site's content sometimes shows results (or an error or loading state) that don't match what's in the search box. It shows up when searches finish in a different order than they were sent, and also after clearing the box or switching sites mid-search. Fix it. Don't edit tests.

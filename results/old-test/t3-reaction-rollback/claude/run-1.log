@@ -1,0 +1,20 @@
+I fixed the emoji reactions: if a save fails, the reaction now goes back to what's actually stored and the user sees an error. Every click still registers while an earlier save is pending, and one click causes exactly one save.
+
+**What was wrong** (`packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`)
+- The save was started from inside the React state-update function. React can run that function twice, so one click could save twice.
+- Save errors were silently ignored, so the reaction stayed on screen even though nothing was stored.
+
+**What I changed**
+- **Each click records what the user meant.** It notes "turn this emoji on" or "off", based on what the user saw when they clicked, rather than a blind toggle. That way, if an "add" fails and a "remove" is queued behind it, the remove doesn't accidentally turn the reaction back on.
+- **Saves are queued one at a time for each comment.** Each save is built from the last successfully stored reactions plus that one click. Clicks made while a save is pending are queued, not dropped, and they never race each other. A click that changes nothing compared with what's stored sends no save.
+- **What's on screen** is the stored reactions plus any clicks still waiting to save. When a save fails, the user gets an error toast and that click is dropped, so the reaction falls back to the stored state. Later clicks still go through.
+- The save now happens outside the state-update function.
+- I added a new error message, `detail.reactionFailed`, in all 10 languages.
+- If there's no data source to save to, the click now shows the error and changes nothing. Before, it looked applied but was never saved.
+
+**Testing**
+- The existing suites for `RecordDetailView`, i18n (including the check that every language has the same keys), plugin-detail and the console tests all pass. I didn't edit any tests.
+- I also wrote a temporary test that ran the page in React StrictMode, which is where the double save showed up. It covered three cases: a failed save rolls back and shows the error; three quick clicks make three saves in order with the right stored values; and a failure in the middle doesn't lose later clicks. It failed on the old code and passed with the fix. I deleted it afterwards, as you said not to touch tests. Say if you want it added as a real test.
+- A full type check with `tsc` couldn't run because the workspace packages aren't built. The only errors were "module not found" for those packages, and none came from this change.
+
+Nothing is committed, and I didn't add a changeset.

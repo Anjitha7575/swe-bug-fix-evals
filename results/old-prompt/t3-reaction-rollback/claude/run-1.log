@@ -1,0 +1,17 @@
+The fix is in. I'm waiting for the broader test run (all i18n tests plus all app-shell view tests) and will report the result when it finishes.
+
+Emoji reactions on the detail page now go back to their previous state if saving fails, and the user sees an error message. Repeated quick clicks no lux longer cause double saves. The existing i18n and app-shell view tests all pass (633 files, 7,114 tests), but none of them covers a failed or repeated reaction save, so those two paths haven't been run yet.
+
+All the logic changes are in `handleToggleReaction` in `packages/app-shell/src/views/RecordDetailView.tsx`:
+
+- **The reaction stayed after a failed save:** the save error was being silently ignored. The UI still updates immediately, but if the save fails, that comment's reactions go back to what they were and the user sees an error.
+- **Double saves, cause one:** the save was sent from inside a React state update function. React's StrictMode (a development-mode check) runs those functions twice, so one click could save twice. The save now happens outside it, once per click.
+- **Double saves, cause two:** every save rewrites the comment's whole reactions list, so two saves running at once would race. While a comment's reactions are being saved, further reaction clicks on that same comment are ignored until the save finishes.
+
+**Things to know:**
+- **Clicks during a save are dropped, not queued.** A click on a comment whose reactions are still saving does nothing, with no feedback. Usually that's a fraction of a second, but on a slow connection a user might notice.
+- **After a successful save, the UI keeps showing the local version** rather than re-reading from the server. It's built from exactly the data that was sent, so the two match.
+
+**New error message:** I added a `detail.reactionFailed` message ("Your reaction was not saved. Please try again.") in all 10 locales. I wrote the non-English versions myself, so a native speaker should check them.
+
+I didn't edit any tests. A full type-check of `RecordDetailView.tsx` wasn't possible because the workspace packages it imports aren't built here.

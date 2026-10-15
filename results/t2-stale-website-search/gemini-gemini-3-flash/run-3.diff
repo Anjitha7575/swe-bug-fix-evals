@@ -1,0 +1,149 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..75f7533b1 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -366,8 +366,68 @@ export function WebsiteViewDialog({
+     skipped: number;
+   } | null>(null);
+ 
++  const isOpenRef = useRef(isOpen);
++  isOpenRef.current = isOpen;
++  const websiteIdRef = useRef(website._id);
++  websiteIdRef.current = website._id;
++  const searchQueryRef = useRef(searchQuery);
++  searchQueryRef.current = searchQuery;
++
++  // Which search is expected as answers arrive: the query submitted and the
++  // website it was asked of. A response or error for an earlier query, a
++  // cleared box, or another site that arrives after the reader moved on
++  // is ignored.
++  const activeSearchRef = useRef<{
++    websiteId: string;
++    query: string;
++  } | null>(null);
++
+   const isSearchMode = activeQuery.length > 0;
+ 
++  const isCurrentSearch = (
++    data?: unknown,
++    variables?: unknown,
++    error?: unknown,
++  ) => {
++    const active = activeSearchRef.current;
++    if (!isOpenRef.current || !active) return false;
++    if (websiteIdRef.current !== active.websiteId) return false;
++    if (!searchQueryRef.current.trim()) return false;
++
++    const varObj =
++      typeof variables === 'object' && variables !== null
++        ? (variables as Record<string, unknown>)
++        : null;
++    const dataObj =
++      typeof data === 'object' && data !== null
++        ? (data as Record<string, unknown>)
++        : null;
++    const errObj =
++      typeof error === 'object' && error !== null
++        ? (error as Record<string, unknown>)
++        : null;
++
++    const resWebsiteId =
++      (typeof varObj?.websiteId === 'string' ? varObj.websiteId : undefined) ??
++      (typeof dataObj?.websiteId === 'string'
++        ? dataObj.websiteId
++        : undefined) ??
++      (typeof errObj?.websiteId === 'string' ? errObj.websiteId : undefined);
++    if (resWebsiteId !== undefined && resWebsiteId !== active.websiteId) {
++      return false;
++    }
++
++    const resQuery =
++      (typeof varObj?.query === 'string' ? varObj.query : undefined) ??
++      (typeof dataObj?.query === 'string' ? dataObj.query : undefined) ??
++      (typeof errObj?.query === 'string' ? errObj.query : undefined);
++    if (resQuery !== undefined && resQuery.trim() !== active.query.trim()) {
++      return false;
++    }
++
++    return true;
++  };
++
+   // How many pages the list holds, as the answers arrive. A refresh reads
+   // the shown pages again from the top, so a "Load more" answer that comes
+   // after it no longer continues the list: its rows are already there, and
+@@ -404,11 +464,13 @@ export function WebsiteViewDialog({
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, variables) => {
++        if (!isCurrentSearch(data, variables)) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (error, variables) => {
++        if (!isCurrentSearch(undefined, variables, error)) return;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -416,15 +478,17 @@ export function WebsiteViewDialog({
+   );
+ 
+   useEffect(() => {
++    activeSearchRef.current = null;
++    setSearchQuery('');
++    setActiveQuery('');
++    setSearchResults([]);
++    setIsSearching(false);
+     if (isOpen) {
+       shownPages.current = 0;
+       setPages([]);
+       setOffset(0);
+       setHasMore(false);
+       setIsFirstLoad(true);
+-      setSearchQuery('');
+-      setActiveQuery('');
+-      setSearchResults([]);
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -432,6 +496,12 @@ export function WebsiteViewDialog({
+     }
+   }, [isOpen, website._id, fetchPages]);
+ 
++  useEffect(() => {
++    return () => {
++      activeSearchRef.current = null;
++    };
++  }, []);
++
+   // The row follows the scan through realtime hints; the pages below are
+   // read on open, so they follow the row: whenever a scan moves what the row
+   // counts, the pages already shown are read again in place.
+@@ -460,7 +530,12 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    activeSearchRef.current = {
++      websiteId: website._id,
++      query,
++    };
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+   }, [searchQuery, website._id, searchContent]);
+@@ -498,8 +573,10 @@ export function WebsiteViewDialog({
+   );
+ 
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+-    setSearchQuery(e.target.value);
+-    if (!e.target.value.trim()) {
++    const next = e.target.value;
++    setSearchQuery(next);
++    if (!next.trim()) {
++      activeSearchRef.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

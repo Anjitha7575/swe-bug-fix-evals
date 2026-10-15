@@ -1,0 +1,76 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..27d564523 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -67,6 +67,9 @@ import { WebsiteScanFailureAlert } from './website-scan-failure-alert';
+ 
+ const PAGE_SIZE = 20;
+ 
++/** The arguments one content search is sent with. */
++type SearchArgs = { websiteId: string; query: string; limit: number };
++
+ /** What the page list shows: every page, or only the ones in one state. */
+ type PageStateFilter = 'all' | 'failed' | 'skipped';
+ 
+@@ -400,15 +403,22 @@ export function WebsiteViewDialog({
+     },
+   );
+ 
++  // The search the box asks for now, by the arguments it was sent with. An
++  // answer or failure for any other request (a search the reader has since
++  // replaced, cleared, or sent for another site) is no longer what the box
++  // shows, so it is dropped.
++  const latestSearch = useRef<SearchArgs | null>(null);
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, args) => {
++        if (args !== latestSearch.current) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, args) => {
++        if (args !== latestSearch.current) return;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -418,6 +428,7 @@ export function WebsiteViewDialog({
+   useEffect(() => {
+     if (isOpen) {
+       shownPages.current = 0;
++      latestSearch.current = null;
+       setPages([]);
+       setOffset(0);
+       setHasMore(false);
+@@ -425,6 +436,7 @@ export function WebsiteViewDialog({
+       setSearchQuery('');
+       setActiveQuery('');
+       setSearchResults([]);
++      setIsSearching(false);
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -460,9 +472,11 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    const args = { websiteId: website._id, query, limit: 20 };
++    latestSearch.current = args;
+     setActiveQuery(query);
+     setIsSearching(true);
+-    searchContent({ websiteId: website._id, query, limit: 20 });
++    searchContent(args);
+   }, [searchQuery, website._id, searchContent]);
+ 
+   const loadMore = useCallback(() => {
+@@ -500,6 +514,7 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      latestSearch.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

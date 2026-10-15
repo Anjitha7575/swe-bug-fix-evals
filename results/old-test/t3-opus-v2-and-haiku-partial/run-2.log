@@ -1,0 +1,26 @@
+Reactions now reflect what was actually stored, failures show an error, and every click registers. The change is in `packages/app-shell/src/views/RecordDetailView.tsx`. I didn't touch any tests and didn't commit.
+
+**What was wrong**
+- The save ran inside a `setState` updater. React can invoke updaters more than once (StrictMode does), which is the likely cause of the double save.
+- The save's error was swallowed with `.catch(() => {})`, and nothing rolled back the optimistic change. That's why a failed save still looked applied and the user was never told.
+
+**What changed**
+- **Pure state update.** The click handler only toggles the reaction, and the `setState` updater has no side effects.
+- **Every click registers.** Each click updates a per-comment draft synchronously and is never gated on a pending save.
+- **Ordered saves per comment.** Saves for one comment chain one after another. Each writes the draft as it stands when its turn comes, so a slower earlier write can't land after a later one.
+- **No redundant writes.** A save is skipped when its draft already matches the last state the backend confirmed. Quick add-then-remove clicks therefore don't write twice.
+- **Rollback and error.** If a save fails, the comment reverts to the last confirmed reactions and a toast says the reaction wasn't saved.
+- **Missing data source.** Previously a click with no data source silently applied locally. It now shows the same error toast and changes nothing, since nothing can be stored.
+
+I pulled the reaction logic into two module-level helpers, `toggleReaction` and `toRemoteReactionShape`. The stored `{emoji: userIds[]}` format and the `__other__` padding are unchanged.
+
+**Verification**
+- Typecheck of app-shell reports no errors in `RecordDetailView.tsx`.
+- The 100 related test files (`RecordDetailView`, `countLabels`, plugin-detail renderers, `ReactionPicker`) pass: 1025 tests.
+- I did not run the failure path or the rapid-click path in a browser or a test. No existing test covers them, and I didn't add one because you asked not to edit tests.
+
+**Choices for you to review**
+- The toast text is a new `detail.reactionFailed` key with an English `defaultValue`. I didn't add it to the locale packs, so it will show in English until someone adds the key.
+- If a save fails, clicks made after the failure are based on the reverted state. A click made while an earlier save was still in flight, and that save then failed, is reverted along with it and the user gets the error toast.
+
+The background command I started earlier, a `git log -S` search for reaction history, was stopped at its time limit. It was only an exploratory history lookup, so the fix doesn't depend on it and I haven't restarted it. The reaction fix in `RecordDetailView.tsx` is complete and unchanged since my last message: typecheck is clean and the 1025 related tests pass.

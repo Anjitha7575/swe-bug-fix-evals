@@ -1,0 +1,11 @@
+The comment reaction handler now rolls back and shows an error when a save fails, and each click saves once. The app-shell typecheck is clean and the 34 related test files pass (230 tests). I didn't edit any tests, and I didn't add a new test that exercises the failure or rapid-click paths.
+
+The fix is in `handleToggleReaction` in `packages/app-shell/src/views/RecordDetailView.tsx`:
+
+- **Failed saves no longer look applied.** When the newest save for a comment fails, the reactions roll back to the last state the server acknowledged. A toast tells the user the reaction wasn't saved. Earlier failures in a rapid sequence don't roll back, because the later saves write the comment's full reaction set again.
+- **Double saves.** The write used to run inside a `setState` updater, which React can invoke twice in StrictMode. The next state is now computed in the handler, so each click produces one write.
+- **Rapid clicks.** Each click updates the UI immediately from the latest local state, including clicks whose saves are still pending. Saves for a comment run in click order, so the last write is the final state. Nothing is blocked or disabled while a save is in flight.
+
+I added an `en` string, `detail.reactionFailed`. The other locales fall back to its `defaultValue`.
+
+One existing limitation I left alone: the stored reaction shape still approximates other users' reactions as `__other__`, as the existing code notes.

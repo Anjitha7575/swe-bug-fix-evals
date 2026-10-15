@@ -1,0 +1,16 @@
+I've fixed both problems: a failed reaction save now rolls the UI back and shows an error, and one click no longer saves twice. The existing test suites for record detail, i18n and plugin-detail pass (3552 tests). No new test exercises the failure, rapid-click or StrictMode paths, and I haven't clicked through it in the running app.
+
+**What was wrong** (`packages/app-shell/src/views/RecordDetailView.tsx`, `handleToggleReaction`):
+- **Saving twice:** the save to the server was started from inside a React state update function. React can run that function twice (it always does in development's StrictMode), so one click could send two saves.
+- **No error:** the save's failure was caught and ignored, so the optimistic reaction stayed on screen even though nothing was stored.
+
+**What changed:**
+- **Queued clicks:** each comment now has its own queue of clicks, and each click records which emoji was toggled. The UI updates right away, and clicks made while a save is in progress are queued, not dropped or disabled.
+- **One save at a time:** saves run in order, one per click, outside any state update. Each applies its toggle to the last state the server actually confirmed, so a later save is never built on a failed one.
+- **What you see:** the comment shows the stored reactions with any clicks still being saved applied on top.
+- **On failure:** that click is dropped, an error toast says "Your reaction was not saved. Please try again.", and the comment is redrawn from the stored state.
+- **Translations:** I added a `detail.reactionFailed` message to all 10 locale files.
+
+Because the server confirms each click in turn, toggling an emoji on and off quickly sends two saves rather than combining them into one. Every click is still stored.
+
+Running `tsc` on app-shell reports many errors, because the other workspace packages it imports haven't been built. None of them are in the code I changed. Nothing is committed.

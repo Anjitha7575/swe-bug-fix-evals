@@ -1,0 +1,13 @@
+The fix is in. I'm waiting on a background run that compares test failures with and without my change.
+
+I fixed it: the list now only shows results for the newest search. A slow reply for an earlier search gets thrown away instead of replacing the newer results. I haven't reproduced the bug or tested the fix in a browser, and no existing test covers this page.
+
+**Cause:** in `frontend/app/properties/PropertiesClient.tsx`, the 300ms wait after typing only cancels searches that haven't been sent yet. Once two searches are in flight, whichever response arrives last fills the list. A slow first search finishing after the second one therefore puts the old results on screen.
+
+**Fix:** each search now gets a number, and its response is used only if no newer search has started since (`PropertiesClient.tsx:134`). The same check covers the error path and the loading spinner. That way an old failed search can't clear the list, and an old search finishing can't hide the spinner while the newer one is still loading. I used this check because the search function (`searchProperties` in `lib/propertiesApi.ts`) can't cancel a request that's already been sent.
+
+**Checks:**
+- The TypeScript type check reports no errors in this file.
+- The frontend tests show 87 failing tests across 20 test files. The list of failures is identical with and without my change, so they were already failing before it.
+
+No test files were edited.

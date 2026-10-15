@@ -1,0 +1,14 @@
+The /properties list now always shows results for the term currently in the search box, even when an earlier request is slow.
+
+**Cause:** `fetchProperties` in `frontend/app/properties/PropertiesClient.tsx` had no guard against out-of-order responses. The 300ms debounce only cancels the timer, not requests already in flight, so a slow response for an older term could arrive last and overwrite the newer results.
+
+**Fix:** Each call takes a sequence number from a ref. A response, error, or loading reset only applies if its request is still the latest one. Stale responses are dropped.
+
+I did not edit any tests.
+
+**Verification:**
+- Typecheck reports no errors in `PropertiesClient.tsx`, and ESLint passes on it.
+- `npm run test:unit` shows 20 failing files and 87 failing tests. The same numbers appear with my change stashed, so these failures predate this fix. No test imports `PropertiesClient`.
+- I did not reproduce the race in a browser or add a regression test, since you asked me not to edit tests.
+
+I did not commit anything.

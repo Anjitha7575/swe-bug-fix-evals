@@ -1,0 +1,162 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..e962c3a 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -55,6 +55,7 @@ function PropertiesContent() {
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+ 
++  const requestIdRef = useRef(0);
+   const scrollTopRef = useRef(0);
+   const [initialScrollTop, setInitialScrollTop] = useState(0);
+ 
+@@ -128,43 +129,92 @@ function PropertiesContent() {
+     minAnnualRent ||
+     maxAnnualRent;
+ 
+-  const fetchProperties = useCallback(async () => {
+-    setIsLoading(true);
+-    try {
+-      const filters: PropertySearchFilters = {
+-        sortBy: (sortBy as PropertySearchFilters["sortBy"]) || "newest",
+-        page,
+-        pageSize: 20,
+-      };
+-
+-      if (searchQuery.trim()) filters.query = searchQuery.trim();
+-      if (city) filters.city = city;
+-      if (area) filters.area = area;
+-      if (minBedrooms && minBedrooms !== "Any")
+-        filters.minBedrooms = parseInt(minBedrooms, 10);
+-      if (maxBedrooms && maxBedrooms !== "Any" && maxBedrooms !== "4+")
+-        filters.maxBedrooms = parseInt(maxBedrooms, 10);
+-      if (maxBedrooms === "4+") filters.minBedrooms = 4;
+-      if (minBathrooms && minBathrooms !== "Any")
+-        filters.minBathrooms = parseInt(minBathrooms, 10);
+-      if (maxBathrooms && maxBathrooms !== "Any" && maxBathrooms !== "3+")
+-        filters.maxBathrooms = parseInt(maxBathrooms, 10);
+-      if (maxBathrooms === "3+") filters.minBathrooms = 3;
+-      if (minAnnualRent) filters.minAnnualRent = parseInt(minAnnualRent, 10);
+-      if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+-
+-      const result = await searchProperties(filters);
+-      setProperties(result.data);
+-      setTotal(result.total);
+-      setTotalPages(result.totalPages);
+-    } catch (error) {
+-      console.error("Failed to fetch properties:", error);
+-      setProperties([]);
+-      setTotal(0);
+-    } finally {
+-      setIsLoading(false);
+-    }
++  const fetchProperties = useCallback(
++    async (isCancelled?: () => boolean) => {
++      const requestId = ++requestIdRef.current;
++      setIsLoading(true);
++      try {
++        const filters: PropertySearchFilters = {
++          sortBy: (sortBy as PropertySearchFilters["sortBy"]) || "newest",
++          page,
++          pageSize: 20,
++        };
++
++        if (searchQuery.trim()) filters.query = searchQuery.trim();
++        if (city) filters.city = city;
++        if (area) filters.area = area;
++        if (minBedrooms && minBedrooms !== "Any")
++          filters.minBedrooms = parseInt(minBedrooms, 10);
++        if (maxBedrooms && maxBedrooms !== "Any" && maxBedrooms !== "4+")
++          filters.maxBedrooms = parseInt(maxBedrooms, 10);
++        if (maxBedrooms === "4+") filters.minBedrooms = 4;
++        if (minBathrooms && minBathrooms !== "Any")
++          filters.minBathrooms = parseInt(minBathrooms, 10);
++        if (maxBathrooms && maxBathrooms !== "Any" && maxBathrooms !== "3+")
++          filters.maxBathrooms = parseInt(maxBathrooms, 10);
++        if (maxBathrooms === "3+") filters.minBathrooms = 3;
++        if (minAnnualRent) filters.minAnnualRent = parseInt(minAnnualRent, 10);
++        if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
++
++        const result = await searchProperties(filters);
++        if (isCancelled?.() || requestId !== requestIdRef.current) return;
++
++        setProperties(result.data);
++        setTotal(result.total);
++        setTotalPages(result.totalPages);
++      } catch (error) {
++        if (isCancelled?.() || requestId !== requestIdRef.current) return;
++        console.error("Failed to fetch properties:", error);
++        setProperties([]);
++        setTotal(0);
++      } finally {
++        if (!isCancelled?.() && requestId === requestIdRef.current) {
++          setIsLoading(false);
++        }
++      }
++    },
++    [
++      searchQuery,
++      city,
++      area,
++      minBedrooms,
++      maxBedrooms,
++      minBathrooms,
++      maxBathrooms,
++      minAnnualRent,
++      maxAnnualRent,
++      sortBy,
++      page,
++    ],
++  );
++
++  useEffect(() => {
++    let cancelled = false;
++    startPropertyDiscovery("anonymous");
++    const debounce = setTimeout(() => {
++      trackUserInteraction("property_search", {
++        has_query: Boolean(searchQuery.trim()),
++        has_filters: Boolean(
++          city ||
++            area ||
++            minBedrooms ||
++            maxBedrooms ||
++            minBathrooms ||
++            maxBathrooms ||
++            minAnnualRent ||
++            maxAnnualRent,
++        ),
++      });
++      trackPropertyDiscoveryStep("anonymous", "search_properties");
++      void fetchProperties(() => cancelled);
++    }, 300);
++
++    return () => {
++      cancelled = true;
++      clearTimeout(debounce);
++    };
+   }, [
++    fetchProperties,
+     searchQuery,
+     city,
+     area,
+@@ -174,20 +224,8 @@ function PropertiesContent() {
+     maxBathrooms,
+     minAnnualRent,
+     maxAnnualRent,
+-    sortBy,
+-    page,
+   ]);
+ 
+-  useEffect(() => {
+-    startPropertyDiscovery("anonymous");
+-    const debounce = setTimeout(() => {
+-      trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+-      trackPropertyDiscoveryStep("anonymous", "search_properties");
+-      void fetchProperties();
+-    }, 300);
+-    return () => clearTimeout(debounce);
+-  }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+-
+   useEffect(() => {
+     if (!isAuthenticated) {
+       setSavedListingIds([]);

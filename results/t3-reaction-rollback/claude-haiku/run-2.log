@@ -1,0 +1,18 @@
+Reactions on a comment now show the stored state, and a failed save rolls the reaction back and shows an error toast. Every click still registers, and each click saves exactly once. The change is in `packages/app-shell/src/views/RecordDetailView.tsx`, and I didn't touch any tests.
+
+**What was wrong:** the handler changed the UI, then sent the save with `.catch(() => {})`, so failures were silent and nothing reverted. The save also ran inside the `setState` updater, which React can invoke twice, so quick clicks could double-save.
+
+**What changed:**
+- **Writes happen outside the state updater,** so each click saves once.
+- **Each comment's saves run one at a time.** A slow earlier save can't overwrite a newer one, and clicks aren't blocked while a save is pending.
+- **The panel shows the last stored reactions plus any unsaved clicks laid over them.** A failed click drops out and that emoji goes back to its stored state.
+- **Failures raise a toast** using `detail.reactionFailed`, with an English default. I didn't add the key to the 10 locale files; say if you want it there.
+- **A missing data source now counts as a failed save** and rolls back with the error, where it used to silently keep the local change.
+
+**Verification:**
+- The 33 `RecordDetailView` test files pass (224 tests).
+- ESLint reports no errors on the file.
+- `tsc` can't check this file cleanly because the workspace packages aren't built here, so it reports unresolved-module errors everywhere.
+- I didn't add a behavioral test for the rollback or the rapid-click case; that would need a test file, and you asked me not to edit tests. The logic is checked by reading, not by running it.
+
+I haven't committed anything.

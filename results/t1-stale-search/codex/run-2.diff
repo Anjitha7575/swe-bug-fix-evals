@@ -1,0 +1,54 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..1763eee 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -51,6 +51,7 @@ function PropertiesContent() {
+   const [searchQuery, setSearchQuery] = useState(
+     searchParams.get("query") || "",
+   );
++  const propertiesRequestId = useRef(0);
+ 
+   const compareIds = parseCompareIds(searchParams.get("ids"));
+   const canCompareProperties = canCompare(compareIds);
+@@ -128,7 +129,7 @@ function PropertiesContent() {
+     minAnnualRent ||
+     maxAnnualRent;
+ 
+-  const fetchProperties = useCallback(async () => {
++  const fetchProperties = useCallback(async (requestId: number) => {
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +155,17 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (requestId !== propertiesRequestId.current) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (requestId !== propertiesRequestId.current) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (requestId === propertiesRequestId.current) setIsLoading(false);
+     }
+   }, [
+     searchQuery,
+@@ -179,11 +182,12 @@ function PropertiesContent() {
+   ]);
+ 
+   useEffect(() => {
++    const requestId = ++propertiesRequestId.current;
+     startPropertyDiscovery("anonymous");
+     const debounce = setTimeout(() => {
+       trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+       trackPropertyDiscoveryStep("anonymous", "search_properties");
+-      void fetchProperties();
++      void fetchProperties(requestId);
+     }, 300);
+     return () => clearTimeout(debounce);
+   }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);

@@ -1,0 +1,7 @@
+I fixed the stale results on /properties. The change is in `frontend/app/properties/PropertiesClient.tsx`. It type-checks, but I haven't run it in the browser, and there are no existing tests for this page, so nothing automated checks this case.
+
+**Cause:** the search box already waits 300ms after you stop typing before it sends a request. But nothing stopped an older request that was still waiting for a reply. If the request for the first term was slow and finished after the one for the newer term, its results were written last. The list then showed the old term's results while the box showed the new one.
+
+**Fix:** each search now gets an increasing number, kept in a `useRef`. When a reply comes back, it only updates the list if it belongs to the latest search. Older replies are ignored, including their errors, and they no longer turn off the loading spinner while the current search is still running.
+
+Ignored requests still finish in the background rather than being cancelled. Cancelling them would mean changing `searchProperties` / `apiGet` in `lib/propertiesApi.ts` to accept a cancel signal, which isn't needed to fix this bug.

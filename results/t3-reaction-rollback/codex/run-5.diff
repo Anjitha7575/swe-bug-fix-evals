@@ -1,0 +1,106 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..a41ed6660 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,7 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  const reactionWriteQueues = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1899,14 +1900,16 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+ 
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+-      if (!feedRecordKey) return;
++      if (!feedRecordKey || !dataSource) return;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
++      const current = feedItemsByRecord[feedRecordKey] ?? EMPTY_FEED;
++      let previousItem: FeedItem | undefined;
++      let updatedItem: FeedItem | undefined;
++      const nextItems = current.map(item => {
+           if (item.id !== itemId) return item;
++          previousItem = item;
+           const reactions = [...(item.reactions ?? [])];
+           const idx = reactions.findIndex(r => r.emoji === emoji);
+           if (idx >= 0) {
+@@ -1924,37 +1927,42 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+           } else {
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
+-      }));
++          updatedItem = { ...item, reactions };
++          return updatedItem;
++        });
++      if (!previousItem || !updatedItem) return;
++      setFeedItemsByRecord(prev => ({ ...prev, [feedRecordKey]: nextItems }));
++
++      // Serialize writes per comment so a fast sequence of clicks cannot race
++      // and overwrite a newer reaction state with an older snapshot.
++      const queueKey = `${feedRecordKey}:${itemId}`;
++      const queues = reactionWriteQueues.current;
++      const previousWrite = queues.get(queueKey) ?? Promise.resolve();
++      const write = previousWrite.catch(() => undefined).then(async () => {
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of updatedItem!.reactions ?? []) {
++          const ids: string[] = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        await dataSource.update('sys_comment', String(itemId), {
++          reactions: JSON.stringify(remoteShape),
++        });
++      });
++      queues.set(queueKey, write);
++      void write.catch(() => {
++        toast.error(t('detail.reactionFailed', { defaultValue: 'Could not save reaction. Please try again.' }));
++        setFeedItemsByRecord(prev => {
++          const latest = prev[feedRecordKey] ?? EMPTY_FEED;
++          // Restore only if no subsequent click changed this comment.
++          if (latest.find(item => item.id === itemId) !== updatedItem) return prev;
++          return { ...prev, [feedRecordKey]: latest.map(item => item.id === itemId ? previousItem! : item) };
++        });
++      }).finally(() => {
++        if (queues.get(queueKey) === write) queues.delete(queueKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItemsByRecord, t],
+   );
+ 
+   useEffect(() => {

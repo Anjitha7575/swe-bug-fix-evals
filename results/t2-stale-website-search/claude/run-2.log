@@ -1,0 +1,10 @@
+I fixed the dialog so it only shows results, loading or errors for the search that matches what's in the box. The 30 existing dialog tests pass and the typecheck shows no errors in the file. None of those tests cover search, though, and I didn't try the race cases by hand.
+
+**Cause:** in `services/platform/app/features/websites/components/website-view-dialog.tsx`, every search response updated the screen when it came back, even if it belonged to an older search. A slow earlier search could overwrite a newer one. Clearing the box or switching sites didn't cancel searches still running, so their results, errors or spinner could reappear afterwards.
+
+**Fix:**
+- **Track the current search:** the dialog now remembers the latest search it sent. When a response or error comes back, it is used only if it belongs to that search; anything older is ignored.
+- **Forget it on clear or site change:** clearing the box, opening the dialog or switching sites resets that, so searches still running are ignored when they finish. Opening the dialog or switching sites now also turns off the loading spinner, which it didn't before.
+- **Clear old results on a new search:** they're removed when you start a new search, so the spinner no longer appears next to results for a different query.
+
+No tests were changed.

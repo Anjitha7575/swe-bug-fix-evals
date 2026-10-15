@@ -1,0 +1,51 @@
+diff --git a/frontend/app/properties/PropertiesClient.tsx b/frontend/app/properties/PropertiesClient.tsx
+index a9e3337..377f44c 100644
+--- a/frontend/app/properties/PropertiesClient.tsx
++++ b/frontend/app/properties/PropertiesClient.tsx
+@@ -128,7 +128,7 @@ function PropertiesContent() {
+     minAnnualRent ||
+     maxAnnualRent;
+ 
+-  const fetchProperties = useCallback(async () => {
++  const fetchProperties = useCallback(async (isCurrent: () => boolean) => {
+     setIsLoading(true);
+     try {
+       const filters: PropertySearchFilters = {
+@@ -154,15 +154,17 @@ function PropertiesContent() {
+       if (maxAnnualRent) filters.maxAnnualRent = parseInt(maxAnnualRent, 10);
+ 
+       const result = await searchProperties(filters);
++      if (!isCurrent()) return;
+       setProperties(result.data);
+       setTotal(result.total);
+       setTotalPages(result.totalPages);
+     } catch (error) {
++      if (!isCurrent()) return;
+       console.error("Failed to fetch properties:", error);
+       setProperties([]);
+       setTotal(0);
+     } finally {
+-      setIsLoading(false);
++      if (isCurrent()) setIsLoading(false);
+     }
+   }, [
+     searchQuery,
+@@ -180,12 +182,16 @@ function PropertiesContent() {
+ 
+   useEffect(() => {
+     startPropertyDiscovery("anonymous");
++    let cancelled = false;
+     const debounce = setTimeout(() => {
+       trackUserInteraction("property_search", { has_query: Boolean(searchQuery.trim()), has_filters: Boolean(city || area || minBedrooms || maxBedrooms || minBathrooms || maxBathrooms || minAnnualRent || maxAnnualRent) });
+       trackPropertyDiscoveryStep("anonymous", "search_properties");
+-      void fetchProperties();
++      void fetchProperties(() => !cancelled);
+     }, 300);
+-    return () => clearTimeout(debounce);
++    return () => {
++      cancelled = true;
++      clearTimeout(debounce);
++    };
+   }, [fetchProperties, searchQuery, city, area, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minAnnualRent, maxAnnualRent]);
+ 
+   useEffect(() => {

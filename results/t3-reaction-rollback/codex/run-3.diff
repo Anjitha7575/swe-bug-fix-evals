@@ -1,0 +1,63 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..3d1fc1e7c 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,8 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  const reactionSaveQueues = useRef(new Map<string, Promise<unknown>>());
++  const reactionSaveVersions = useRef(new Map<string, number>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,6 +1902,10 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const queueKey = `${feedRecordKey}:${itemId}`;
++      const priorQueue = reactionSaveQueues.current.get(queueKey) ?? Promise.resolve();
++      const version = (reactionSaveVersions.current.get(queueKey) ?? 0) + 1;
++      reactionSaveVersions.current.set(queueKey, version);
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+@@ -1928,8 +1934,9 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+           // Persist reactions to backend as JSON. The schema stores
+           // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+           // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
++          // state before writing back. Writes for a comment are serialized;
++          // otherwise rapid clicks can complete out of order and overwrite
++          // the most recent choice.
+           if (dataSource) {
+             const userId = currentUser.id;
+             const remoteShape: Record<string, string[]> = {};
+@@ -1946,9 +1953,24 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+               while (ids.length < r.count) ids.push('__other__');
+               remoteShape[r.emoji] = ids;
+             }
+-            dataSource.update('sys_comment', String(itemId), {
++            const save = priorQueue.catch(() => {}).then(() => dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            }));
++            reactionSaveQueues.current.set(queueKey, save);
++            save.catch((err) => {
++              toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++              // Undo only this click. Later clicks remain visible and their
++              // queued writes will persist their own snapshots.
++              setFeedItemsByRecord(prev => {
++                if (reactionSaveVersions.current.get(queueKey) !== version) return prev;
++                const current = prev[feedRecordKey] ?? EMPTY_FEED;
++                return { ...prev, [feedRecordKey]: current.map(row => row.id === itemId
++                  ? { ...row, reactions: item.reactions }
++                  : row) };
++              });
++            }).finally(() => {
++              if (reactionSaveQueues.current.get(queueKey) === save) reactionSaveQueues.current.delete(queueKey);
++            });
+           }
+           return updated;
+         }),

@@ -1,0 +1,17 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Ripgrep is not available. Falling back to GrepTool.
+Error executing tool grep_search: Path is not a directory: /Users/anjitha/Downloads/bug-fix-evals/work/t1-stale-search/frontend/app/properties/PropertiesClient.tsx
+Error executing tool run_shell_command: Tool execution denied by policy.
+Error executing tool run_shell_command: Tool execution denied by policy.
+I have resolved the race condition on the `/properties` page where slower earlier search requests could resolve after newer requests and overwrite search results with stale data.
+
+### Root Cause
+When the user typed a search query, a debounced call to `fetchProperties()` dispatched an asynchronous request to `searchProperties(filters)`. If the user typed a new query while a previous request was still in-flight and the first request took longer to complete than the second, the first request's promise would resolve last and overwrite `properties`, `total`, and `totalPages` with stale results.
+
+### Solution
+In `frontend/app/properties/PropertiesClient.tsx`:
+1. Added `searchRequestIdRef` to track monotonic search request IDs.
+2. Updated `fetchProperties` to accept an `isCancelled` check and assign each invocation a unique `requestId`.
+3. Added guards before state updates (`setProperties`, `setTotal`, `setTotalPages`), in error handling, and in `finally` (`setIsLoading(false)`) to discard responses if `isCancelled()` is true or if `requestId !== searchRequestIdRef.current`.
+4. In the debounce effect cleanup, flagged `cancelled = true` to immediately invalidate pending in-flight requests when the search query or filters change.

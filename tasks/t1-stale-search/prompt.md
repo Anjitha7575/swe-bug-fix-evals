@@ -1,0 +1,1 @@
+On the /properties page, type a search term, then change it a moment later. Sometimes the list ends up showing results for the earlier term even though the box shows the newer one. It happens more when the first request is slow. Fix it. Don't edit tests.

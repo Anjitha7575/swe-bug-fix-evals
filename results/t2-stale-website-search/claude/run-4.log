@@ -1,0 +1,11 @@
+I fixed this in `services/platform/app/features/websites/components/website-view-dialog.tsx`. All 108 tests in `app/features/websites` pass, and the type check reports no errors in this file. I didn't add a new test that sends searches out of order, so that case isn't covered by a test yet.
+
+**Cause:** every search response was applied when it arrived, whichever search it belonged to. So a slow earlier query could overwrite newer results. A search sent before clearing the box or switching sites could also come back later and change the results, the loading spinner, or show an error message.
+
+**Fix:**
+- The dialog now remembers which search it's waiting for (the current site, query and limit). A response or error from any other search is ignored, including the error message.
+- Clearing the search box, opening the dialog, switching sites, or closing it cancels the pending search. That way a late response from before can't take effect.
+- Switching sites also turns off the loading spinner. Before, it could stay on if a search was still running.
+- Starting a new search now empties the old results right away. Before, the previous query's results stayed on screen under the spinner.
+
+A response is matched to its search by the request object passed to the success and error handlers. The test file's fake for `useBackendAction` only passes the response data, not the request, so a test that delivers search responses through it would need to pass the request too. I left the tests alone as you asked.

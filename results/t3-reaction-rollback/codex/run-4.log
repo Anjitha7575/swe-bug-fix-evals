@@ -1,0 +1,1981 @@
+OpenAI Codex v0.162.1
+--------
+workdir: /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+model: gpt-6-luna
+provider: openai
+approval: never
+sandbox: workspace-write [workdir, /tmp, $TMPDIR]
+reasoning effort: none
+reasoning summaries: none
+session id: 01a13e0f-1412-7753-b0e1-df9e994262f5
+--------
+user
+On a record's detail page, adding or removing an emoji reaction on a comment updates the UI immediately. If saving fails, the reaction still looks applied and the user is never told. Quick repeated clicks also seem to save twice. Fix it so the UI reflects what was actually stored and the user sees an error. Every click must still register, even while an earlier save is pending. Don't edit tests.
+codex
+I’ll trace the comment reaction flow on the record detail page and adjust its optimistic updates so failed saves roll back visibly and repeated clicks are handled without losing input. I’ll leave tests untouched.
+exec
+/bin/zsh -lc "rg -n \"reaction|emoji|comment\" . --glob '"'!node_modules'"' --glob '"'!vendor'"' | head -200" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 151ms:
+./package.json:89:    "check:comment-mask-corpus": "node scripts/check-comment-mask-corpus.mjs",
+./README.md:383:| **[@object-ui/collaboration](./packages/collaboration)** | Presence, live cursors, conflict resolution, comment threads |
+./ROADMAP.md:44:5. **Console Advanced Polish** — Remaining upgrades for forms, import/export, automation, comments
+./ROADMAP.md:219:- [x] Activity feed filtering (comments only / field changes only)
+./ROADMAP.md:224:  - [x] `CommentInput` — comment input with Ctrl+Enter submit
+./ROADMAP.md:228:  - [x] `ReactionPicker` — emoji reaction selector
+./ROADMAP.md:229:  - [x] `ThreadedReplies` — collapsible comment reply threading
+./ROADMAP.md:331:  - ✅ **Spec source annotations**: Every field annotated with `// spec: NamedListView.*` or `// UI extension` comment
+./ROADMAP.md:864:- [x] SystemHubPage auto-generates metadata type cards from registry (dashboard, page, report) — nothing is generated and none of those three types has a card: `metadataTypeCards` in `apps/console/src/pages/system/SystemHubPage.tsx` is a hand-written literal (Applications, Metadata, Datasources), and the comment directly above it records why the per-type cards went away — the engine started auto-listing every type, so a card per type stopped paying for itself. What enumerates types from the registry today is the engine's own type directory, `MetadataDirectoryPage`, which the hand-written "Metadata" card links to
+./ROADMAP.md:1672:**Fix:** Changed default logic from `!== false` (opt-out) to `=== true` (opt-in) for `showHideFields`, `showColor`, and `showDensity` in the `toolbarFlags` computation. Updated `@default` JSDoc comments in `NamedListView` and `ListViewSchema` interfaces from `@default true` to `@default false`.
+./ROADMAP.md:1727:- [x] `collapseWhenEmpty` prop: suppress "No activity recorded" message when true, showing only comment input
+./tsconfig.vitest-setup.json:34:// closes a block comment early, and a tsconfig that silently fails to parse
+./tsconfig.vitest-setup.json:152:    // already satisfied by the ci.yml ordering their comment describes.
+./tsconfig.tier-base.json:12:// ruling (director seat, 2026-09-13) rules a rename and a comment and nothing
+./tsconfig.tier-base.json:59:// states: a glob containing `**` followed by `/` closes a block comment early,
+./vitest.config.mts:259: * vitest reds a test rather than rotting a comment.
+./vitest.config.mts:344:          // comment is the only thing a future author consults before adding a
+./vitest.config.mts:394:          // their own (e.g. the PR-comment renderer behind
+./eslint.config.js:310:  // in a comment, in an assertion message, or in data a test asserts ON is a
+./eslint-rules/no-query-params-under-options.js:52: *    the repo is a comment or a test header describing the history, and an AST
+./skills/objectui/rules/protocol.md:290:    { "name": "comment", "type": "textarea", "required": true },
+./vitest.setup.shared-global-leak-guard.ts:4: * ## The invariant, and why it needed a gate rather than a comment
+./eslint-rules/no-unprefixed-query-params.js:49: * object while its own comment described it as capped at 200. That is the
+./eslint-rules/no-unprefixed-query-params.js:51: * comment asserting the opposite.
+./eslint-rules/no-query-params-under-options.test.js:23: * remaining textual match in the repo is a comment or a test header describing
+./eslint-rules/no-query-params-under-options.test.js:24: * that history, and an AST rule cannot see a comment. That is the whole reason
+./tsconfig.json:42:// closes a block comment early, and a tsconfig that silently fails to parse
+./docs/audits/2026-08-zod-to-json-schema-fidelity.md:343:`BaseSchema` ends `.passthrough()` (`base.zod.ts:197`, comment: *"Allow additional
+./docs/audits/2026-08-zod-to-json-schema-fidelity.md:354:comments. Nothing anywhere closes a node. On `ButtonSchema` the projection is
+./e2e/record-header-title-width.spec.ts:136:  // The action tail opens immediately before this comment.
+./pnpm-lock.yaml:7157:  emoji-regex@10.6.0:
+./pnpm-lock.yaml:7160:  emoji-regex@8.0.0:
+./pnpm-lock.yaml:7315:  estree-util-attach-comments@3.0.0:
+./pnpm-lock.yaml:10177:  strip-json-comments@2.0.1:
+./pnpm-lock.yaml:10181:  strip-json-comments@3.1.1:
+./pnpm-lock.yaml:13182:      strip-json-comments: 3.1.1
+./pnpm-lock.yaml:15276:  emoji-regex@10.6.0: {}
+./pnpm-lock.yaml:15278:  emoji-regex@8.0.0: {}
+./pnpm-lock.yaml:15497:  estree-util-attach-comments@3.0.0:
+./pnpm-lock.yaml:16131:      estree-util-attach-comments: 3.0.0
+./pnpm-lock.yaml:17998:      strip-json-comments: 2.0.1
+./pnpm-lock.yaml:18877:      emoji-regex: 8.0.0
+./pnpm-lock.yaml:18883:      emoji-regex: 10.6.0
+./pnpm-lock.yaml:18929:  strip-json-comments@2.0.1:
+./pnpm-lock.yaml:18932:  strip-json-comments@3.1.1:
+./eslint-rules/no-line-address-in-test-name.js:27: *   - a name-agnostic scan of quoted addresses on non-comment lines finds 45
+./eslint-rules/no-line-address-in-test-name.js:65: *      comment: ESLint hands rules an AST, and nothing here inspects
+./docs/audits/2026-09-test-tsconfig-parity-census.md:208:| jest-dom in `plugin-timeline` | **LATENT** — 0 of its 26 program files use a matcher | but **paid**: `ObjectTimeline.expandFls-7429.test.tsx:147` uses `expect(...).toBeTruthy()` with a comment, from PR #8713, *because* the matcher would not type-check |
+./docs/audits/2026-09-test-tsconfig-parity-census.md:209:| `lib` ES2020 | **LATENT** — of the 20 `.at(` matches inside ES2020 programs, 6 are comments and the other 14 sit on `any`-typed receivers (`makeAdapter()` returns `as Record<string, any>`), so none is a real `TS2550` | but **paid**: **5 comment sites in `plugin-designer`** documenting index arithmetic written instead of `.at(-1)` |
+./docs/audits/2026-09-test-tsconfig-parity-census.md:230:**6 of the 38 programs are on ES2022**, where it does. That comment is what the absence of
+./docs/audits/2026-09-test-tsconfig-parity-census.md:289:   value must carry a comment on that key. `permissions`, `app-shell`, `plugin-map`
+./docs/audits/2026-09-test-tsconfig-parity-census.md:292:   **Would have caught**: this card, objectui#8691, and the false comment in
+./tsconfig.e2e.json:34:// closes a block comment early, and a tsconfig that silently fails to parse does
+./eslint-rules/no-unprefixed-query-params.test.js:24: *     literal, under a comment describing the query as capped at 200 records.
+./eslint-rules/no-line-address-in-test-name.test.js:15: * field a test asserts ON, a comment, and an address whose line number is
+./eslint-rules/no-line-address-in-test-name.test.js:52:    // A comment. ESLint hands rules an AST and this rule never reads comments.
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:26:comment 5819441716, which quotes it verbatim). The reply declined two other items by number
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:88:  comments** (`crm.app.ts:169`, `account_detail.page.ts:32`,
+./docs/audits/2026-09-plugin-detail-downstream-consumer-census.md:145:were each read: all are prose comments, test docstrings, or `@objectstack/spec/ui` type
+./docs/audits/2901-spec-enum-renderer-coverage.md:142:dialect under a comment claiming alignment with the spec.
+./docs/audits/2901-spec-enum-renderer-coverage.md:214:| `types/src/ui-action.ts:72` `ActionType` | 6 | 5 — missing `form`, under a comment claiming it is canonical |
+./docs/audits/2901-spec-enum-renderer-coverage.md:390:field comment reads *"Series type override (combo charts)"* — the spec models a
+./docs/audits/2026-07-objectview-detailview-schema.md:201:(`history.entries[]`, `comments[]`, `activities[]`) alongside callbacks. The mismatch is
+./docs/audits/2026-07-objectview-detailview-schema.md:219:`showHeader`). The other 22 — `history`, `comments`, `activities`, `recordNavigation`,
+./docs/audits/2026-07-objectview-detailview-schema.md:237:`loading`, `data`, `history`, `comments`, `activities`, `recordNavigation`, `onNavigate`,
+./packages/plugin-list/src/ListView.tsx:71: * Anti-drift is TWO mechanisms, neither of them this comment:
+./packages/plugin-list/src/ListView.tsx:665: * record. An earlier version of this comment called that unreachable, on the
+./packages/plugin-list/src/ListView.tsx:944: * this replaced wrapped the hook in try/catch — the very thing the comment on
+./packages/plugin-list/src/ListView.tsx:1997:    // exact failure the comment above this memo records for kanban
+./packages/plugin-list/src/ListView.tsx:2065:  // comment said it did, and believing that is exactly what made objectui#7210's
+./packages/plugin-list/src/ListView.tsx:2344:          // view-binding fields below. The comment above is the tell: "some
+./packages/plugin-list/src/ListView.tsx:4108:    // The search half was missing, and this comment asserted the match anyway:
+./apps/console/src/services/approvalsApi.ts:166:  comment?: string | null;
+./apps/console/src/services/approvalsApi.ts:264:  async approve(id: string, body: { actorId?: string; actor_id?: string; comment?: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:273:  async reject(id: string, body: { actorId?: string; actor_id?: string; comment?: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:281:  async recall(id: string, body: { actorId?: string; actor_id?: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:291:  async reassign(id: string, body: { actor_id?: string; to: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:300:  async remind(id: string, body: { actor_id?: string; comment?: string } = {}) {
+./apps/console/src/services/approvalsApi.ts:309:  async requestInfo(id: string, body: { actor_id?: string; comment: string }) {
+./apps/console/src/services/approvalsApi.ts:323:  async sendBack(id: string, body: { actor_id?: string; comment?: string }) {
+./apps/console/src/services/approvalsApi.ts:335:  async resubmit(id: string, body: { actor_id?: string; comment?: string } = {}) {
+./apps/console/src/services/approvalsApi.ts:344:  async comment(id: string, body: { actor_id?: string; comment: string; attachments?: string[] }) {
+./apps/console/src/services/approvalsApi.ts:346:      `/approvals/requests/${encodeURIComponent(id)}/comment`,
+./apps/console/src/services/approvalsApi.ts:357:    comment?: string;
+./packages/core/src/validation/validators/object-validation-engine.ts:47: * this comment (#3017).
+./content/docs/plugins/plugin-timeline.mdx:353:  icon: '🎯',  // Any emoji or short text
+./packages/core/src/validation/index.ts:8: * carried by that derivation and its parity gate, not by this comment.
+./apps/console/CHANGELOG.md:11:  context provider at all — so its doc comment, "Logo URL — passed to sidebar/navbar
+./apps/console/CHANGELOG.md:354:    what the evaluator reads, and it is unchanged. `ObjectPermissionConfig`'s doc comment
+./apps/console/CHANGELOG.md:391:  **One ellipsis (objectui#3878).** `en` ended 33 values with three ASCII full stops (`Loading...`, `Ask anything...`) and 110 with the typographic ellipsis `…`, and the nine translation packs had copied `en` value by value — so a user could read both glyphs on one screen: `common.loading` beside `dashboard.loading`, `console.ai.askAnything` beside its own panel's siblings. All ten packs now spell it `…` (U+2026), per the maintainer-authorized consistency pass registered on objectstack#6015. 312 pack values changed: 34 in `en` (the 33 trailing plus the one mid-sentence `collaboration.commentPlaceholder`) and 278 across the nine. Eleven inline `defaultValue` call sites were re-synchronised with the new `en` text, which `scripts/check-i18n-call-site-keys.mjs` requires byte-for-byte.
+./apps/console/CHANGELOG.md:393:  The convention is now pinned so the split cannot regrow: `packages/i18n/src/__tests__/ellipsis-glyph-3878.test.ts` fails, by key name, on any value in any of the ten packs that holds three ASCII full stops. It is deliberately wider than "a trailing `...` in `en`", because the census showed the narrow rule would have shipped with two holes in it — `collaboration.commentPlaceholder` puts the ellipsis mid-sentence, and `list.loading` had the packs wrong while `en` was already right, which no `en`-only rule can see.
+./apps/console/CHANGELOG.md:951:    `sys_approval_action`, instead of relying on the old default comment that
+./apps/console/CHANGELOG.md:953:    structured fields keep the comment fallback. New i18n key
+./apps/console/CHANGELOG.md:1169:  `record:`-prefixed, and plugin-form's own comment says "Register
+./apps/console/CHANGELOG.md:1478:    icon-registry sites, and the resolvers themselves now say so in a comment.
+./apps/console/CHANGELOG.md:1887:- 89e113c: ADR-0044 send-back-for-revision in the approvals inbox (framework #1744/#1769). Approvers get a "Send back" action (violet, with its own dialog) that ends the round as `returned` and unlocks the record; the submitter sees a revision panel on the returned request — edit-record link, optional comment, Resubmit (opens round N+1) and Recall (abandons the revision). New `returned` status badge/filter, Round-N chips (list + drawer), timeline rendering for `revise`/`resubmit` actions, `approvalsApi.sendBack/resubmit`, and ten-locale `approvalsInbox` strings.
+./apps/console/CHANGELOG.md:1919:  category trees, BOMs, nested comments) that fixed-depth grouping can't express.
+./apps/console/src/pages/shared-record-shape.ts:17:  permission: 'view' | 'comment' | 'edit';
+./content/docs/plugins/plugin-detail.mdx:20:The Feed & Chatter system provides Airtable-style record-level collaboration. It includes components for threaded discussions, field change history, @mentions, emoji reactions, and notification subscriptions — all driven by `FeedItem[]` data.
+./content/docs/plugins/plugin-detail.mdx:29:| `ReactionPicker` | Emoji reaction selector |
+./content/docs/plugins/plugin-detail.mdx:44:    type: 'comment',
+./content/docs/plugins/plugin-detail.mdx:48:    reactions: [{ emoji: '👍', count: 2, reacted: true }],
+./content/docs/plugins/plugin-detail.mdx:75:  onToggleReaction={(itemId, emoji) => console.log('Reaction:', itemId, emoji)}
+./content/docs/plugins/plugin-detail.mdx:90:    types: ['comment', 'field_change'],
+./content/docs/plugins/plugin-detail.mdx:108:In the Console app, `RecordChatterPanel` is integrated with record detail views. Comments are fetched from the `sys_comment` object using a thread ID pattern of `{objectName}:{recordId}`:
+./content/docs/plugins/plugin-detail.mdx:121:// Fetch comments — `find` resolves to a `QueryResult`, so the rows are `.data`.
+./content/docs/plugins/plugin-detail.mdx:122:const comments = await dataSource.find('sys_comment', {
+./content/docs/plugins/plugin-detail.mdx:128:const feedItems: FeedItem[] = comments.data.map((c) => ({
+./content/docs/plugins/plugin-detail.mdx:130:  type: 'comment',
+./content/docs/plugins/plugin-detail.mdx:134:  reactions: c.reactions ?? [],
+./content/docs/plugins/plugin-detail.mdx:172:- **Threaded Discussions**: Nested comment replies with collapsible threading
+./content/docs/plugins/plugin-detail.mdx:173:- **Activity Timeline**: Unified view of comments, field changes, tasks, and system events
+./content/docs/plugins/plugin-detail.mdx:174:- **Filter Modes**: Filter by `all`, `comments_only`, `changes_only`, or `tasks_only`
+./content/docs/plugins/plugin-detail.mdx:176:- **Emoji Reactions**: Toggle emoji reactions on any feed item
+./content/docs/plugins/plugin-detail.mdx:211:   record body in one, carrying the merged `sys_comment` + `sys_activity` feed
+./content/docs/plugins/plugin-detail.mdx:212:   *and* the comment / reply / reaction handlers. When it is present the block
+./content/docs/plugins/plugin-detail.mdx:222:`commented` / `mentioned` are skipped (their content lives in `sys_comment`),
+./content/docs/plugins/plugin-detail.mdx:241:`commented` / `mentioned` / `login` / `logout` — and they go silently on
+./content/docs/plugins/plugin-detail.mdx:254:| `filterMode` | Which slice the filter dropdown opens on (`all` / `comments_only` / `changes_only` / `tasks_only`). The user can still change it. An unrecognised value falls back to `all`. | — |
+./content/docs/plugins/plugin-detail.mdx:258:| `unifiedTimeline` | Default `true` mixes field changes and comments in one timeline (Airtable style). `false` un-mixes them: the panel becomes a discussion stream and field changes stay in `record:history`. | — |
+./content/docs/plugins/plugin-detail.mdx:259:| `showCommentInput` | Shows the composer. | A host discussion context to persist the comment. Without one the feed is read-only and no composer is rendered. |
+./content/docs/plugins/plugin-detail.mdx:261:| `enableReactions` | Shows emoji reactions on feed items. Existing reactions still render without a host; toggling one needs the host handler. | A host `onToggleReaction`. |
+./content/docs/plugins/plugin-detail.mdx:262:| `enableThreading` | Groups replies under their parent comment. Posting a reply needs the host handler. | A host `onAddReply`. |
+./content/docs/plugins/plugin-detail.mdx:282:| `comment` | `sys_comment` rows, merged in by the console's record page and handed to the block through the discussion context |
+./content/docs/plugins/plugin-detail.mdx:367:  showCommentInput?: boolean,      // Show comment input
+./content/docs/plugins/plugin-detail.mdx:369:  enableReactions?: boolean,       // Enable emoji reactions
+./content/docs/plugins/plugin-detail.mdx:380:  type: 'comment' | 'field_change' | 'task' | 'event' | 'system' | 'email' | 'call',
+./content/docs/plugins/plugin-detail.mdx:391:  reactions?: Reaction[],          // Emoji reactions
+./content/docs/plugins/plugin-detail.mdx:392:  pinned?: boolean,                // Pinned comment
+./content/docs/plugins/plugin-detail.mdx:418:| `onAddComment` | `(text: string) => void` | — | New comment callback |
+./content/docs/plugins/plugin-detail.mdx:419:| `onAddReply` | `(parentId, text) => void` | — | Reply to comment callback |
+./content/docs/plugins/plugin-detail.mdx:420:| `onToggleReaction` | `(itemId, emoji) => void` | — | Toggle emoji reaction callback |
+./content/docs/plugins/plugin-detail.mdx:438:| `onAddComment` | `(text: string) => void` | — | New comment callback |
+./content/docs/plugins/plugin-detail.mdx:439:| `onAddReply` | `(parentId, text) => void` | — | Reply to comment callback |
+./content/docs/plugins/plugin-detail.mdx:440:| `onToggleReaction` | `(itemId, emoji) => void` | — | Toggle emoji reaction callback |
+./content/docs/plugins/plugin-detail.mdx:449:| `reactions` | `Reaction[]` | required | Current reactions |
+./content/docs/plugins/plugin-detail.mdx:450:| `onToggleReaction` | `(emoji: string) => void` | — | Toggle reaction callback |
+./content/docs/plugins/plugin-detail.mdx:451:| `emojiOptions` | `string[]` | default set | Available emoji options |
+./content/docs/plugins/plugin-detail.mdx:458:| `parentItem` | `FeedItem` | required | Parent comment item |
+./content/docs/plugins/plugin-detail.mdx:481:const filterModes: FeedFilterMode[] = ['all', 'comments_only', 'changes_only', 'tasks_only'];
+./content/docs/plugins/plugin-detail.mdx:486:// Example: Filter to comments only
+./content/docs/plugins/plugin-detail.mdx:489:  filterMode="comments_only"
+./packages/core/src/validation/__tests__/unknown-schema-param-8416.test.ts:39: * commented "Validator itself failed — surface but don't crash render", which is
+./apps/console/index.html:38:      import, and it must stay classic (see the crypto shim's comment below for
+./apps/console/index.html:74:        // Must equal inflightGetKey(url, init) — see the comment above.
+./content/docs/fields/textarea.mdx:6:The TextArea Field component provides a multi-line text input for collecting longer text content from users, such as descriptions, comments, or notes.
+./content/docs/fields/textarea.mdx:47:- **Comments**: User feedback, review comments
+./packages/fields/src/widgets/address-format.ts:48: * `AddressValue` under this exact name, and the local copy — whose own comment
+./apps/console/vite.config.ts:353:        // workflow's entry-chunk check, so the two numbers in one PR comment
+./apps/console/vite.config.ts:1201:            // the validators (its own comment on the main entry says so), and
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:55: * artifact. What it asserts is what the comments in `ListView.tsx` actually
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:85:/** The toolbar vocabulary the comments at both read sites list by name. */
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:106:        + ' collide, so re-read the collision comments in `ListView.tsx`: their premise was that a'
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:118:      'the toolbar vocabulary changed — the comments at both read sites spell it out by name.',
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:131:    // collision comments describe a repo that no longer exists.
+./packages/plugin-list/src/__tests__/ListView.userActionsCollision.test.tsx:168:        + ' collision comments in `ListView.tsx` name this producer and are due a re-read —'
+./packages/core/src/validation/__tests__/validation-engine-stays-unwired.test.ts:24: * doc comment claiming spec canonicity that had been false for fifteen majors
+./packages/core/src/validation/__tests__/validation-engine-stays-unwired.test.ts:25: * (#3103). Shipping the successor decision as another comment would repeat the
+./packages/core/src/validation/__tests__/validation-engine-stays-unwired.test.ts:60: * Strip comments and string bodies before looking for a reference.
+./packages/core/src/validation/__tests__/validation-engine-stays-unwired.test.ts:62: * Prose is not a wiring: `@object-ui/types` names the engine in a doc comment
+./content/docs/fields/rich-text.mdx:115:- **Comments**: Rich formatted comments
+./content/docs/core/enhanced-actions.mdx:142:    { "name": "comment", "type": "textarea", "label": "Comment", "required": true },
+./packages/core/src/validation/schema-validator.ts:174: * `false`. `SchemaRenderer` wraps its call in a `try`/`catch` whose comment
+./content/docs/fields/widget-props.mdx:54:`packages/fields/src/widgets/types.ts`, where every key carries a doc comment naming
+./packages/plugin-kanban/src/ObjectKanban.emptyBadgeLabel.test.tsx:56: * way (the file's own comment says so) and both had the defect, so both are
+./apps/console/src/pages/system/auditLogActions.test.ts:13: * revised twice mid-flight (see issue comments 2026-08-13/14): `import`
+./apps/console/src/pages/system/auditLogActions.test.ts:24: * a stale prose comment that had been wrong since the day it was written.
+./content/docs/api/schema-reference.md:718:> **Handler keys are not authorable in JSON, and this face refuses three of them by name.** `onBack` has been a named refusal since objectui#7344; since objectui#7804 this face also declares `onNavigate` and `onAddComment` as objectui#6124 **runtime slots**: a React host supplies the function through the TypeScript interface or as a React prop, and the validator **refuses the key by name** — the message leads with the slot's label (`SPA navigation callback`, `New comment callback`), states that the key "is a RUNTIME SLOT for a host-supplied function, not authorable metadata (objectui#6124): JSON has no function value, and no handler key consumes a declarative action object", and closes by pointing at the node-type spelling (`{ "type": "toast", … }`, an `action:button` node). Until then an authored `onNavigate: { "action": "toast" }` parsed **green** — `BaseSchema` is `.passthrough()`, so a key no arm declares is not refused, it stops being judged and the value is kept — and because every read site only tests the key for truthiness, the kept object then reached a call site expecting a function: `handleBack`, `handleEdit` and the post-delete redirect call `schema.onNavigate(url, { replace })` in `DetailView`'s own body, while `onAddComment` is forwarded as a prop into the comment composer, which renders *because* the key is truthy and then awaits it on send. ⚠️ `onTabChange` is a fourth handler key this view reads and it is **still undeclared** — and where the `object-kanban` board's third key, `onCardMove`, has been a **tombstone** refused by name since objectui#9342, an authored `onTabChange` is not refused at all: it is **kept**, read through a cast and handed to the tab strip's `onValueChange`, so it still reaches a call site expecting a function at the first tab switch. That gap is open on objectui#7804.
+./packages/plugin-kanban/src/ObjectKanban.tsx:224: * the instrument, ⛔ never this comment (objectui#9726).
+./packages/plugin-kanban/src/ObjectKanban.tsx:337:   * source comment is the surface a changeset sentence gets copied FROM, so an
+./packages/plugin-kanban/src/ObjectKanban.tsx:441:  // unrepresentable; `useSettledSchema`'s own doc comment carries the full
+./packages/plugin-kanban/src/ObjectKanban.tsx:1096:            // above (objectui#5141/#5183); see the comment there for why the
+./packages/plugin-kanban/src/ObjectKanban.tsx:1255:  // `ObjectKanbanSchema` about any other key, ⛔ never a neighbouring comment
+./content/docs/guide/objectos-integration.mdx:557:{/* doc-snippet: fragment — a SHAPE excerpt showing the ObjectUI half of a side-by-side migration comparison, with every slot body elided as a prose comment, so the object literal cannot parse as TypeScript (measured: TS1005 x2, TS1128 x2) */}
+./content/docs/guide/agent-skills.md:85:- **English-only**: all generated component text, labels, comments, and docs are English.
+./packages/fields/src/widgets/toHostProps.ts:79: *    inversion, stated on the key's own doc comment and implemented as
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:70: * through the tree's ONE answer to "is this span a comment, or code?" — not a
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:74: * regex form opens a phantom comment and blanks the real code underneath —
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:77: * (`scripts/js-comment-mask.mjs`, and the corpus gate that keeps it honest).
+./packages/plugin-kanban/src/__tests__/ObjectKanban.titleFieldPrecedence-8308.test.tsx:80:import { maskComments } from '../../../../scripts/js-comment-mask.mjs';
+./packages/plugin-list/src/__tests__/ListView.timelineMetaFieldsRetired-10222.test.tsx:12: * Ruling batch #223 item 5b, letter A (comment 5824012155 on the card): every
+./packages/plugin-list/src/__tests__/ListView.timelineMetaFieldsRetired-10222.test.tsx:269:it('SOURCE FIRING CONTROL: the scanner catches each shape the retired reads took, and skips comments', () => {
+./packages/plugin-list/src/__tests__/ListView.timelineMetaFieldsRetired-10222.test.tsx:271:    '// metaFields in a comment is prose',
+./packages/core/CHANGELOG.md:399:  private `new Set([...])` of the same four keys, with a comment in each asking the
+./packages/core/CHANGELOG.md:938:  `packages/core/src/utils/dataset-format.ts` declared its own six-key interface for the analytics result column, under a doc comment describing the server's contract. The key set happened to match the spec today, so nothing was broken — but it was the last surviving member of the derive-don't-restate family (#3613 / #3753 on the parameter side, #3752 on the adapter return side), and it was the member with no compile-time tripwire: three surfaces (`plugin-dashboard`'s `DatasetWidget`, `plugin-report`'s `DatasetReportRenderer`, app-shell's `DatasetPreview`) consume this name AS the real column type, so the next spec column key would simply never appear here and no build would complain. It is now `AnalyticsResult['fields'][number]`, so it cannot lag the contract again.
+./packages/core/CHANGELOG.md:942:  The exported name is unchanged and the `PercentScale` re-export from this module is untouched, so existing import paths keep working. `packages/core/tsconfig.typetests.json` (chained off the package's `type-check`) compiles the new parity test, so the pins are checked by CI rather than merely written down — including a negative pin that goes red if the hand-written interface is ever restored, and the `ChartResultField` superset relationship the module's comment claims.
+./packages/core/CHANGELOG.md:989:  - `@object-ui/components`' `action:bar` doc comment is aligned. The component's published enum is `[...ACTION_LOCATIONS]`, so it followed the retirement on its own; only the prose was stale.
+./packages/core/CHANGELOG.md:1021:  Two packages published a type called `SchemaNode` and they were not the same type. `@object-ui/core` hand-declared `interface SchemaNode { type: string; … [key: string]: any }`; `@object-ui/types` exported `type SchemaNode = BaseSchema | string | number | boolean | null | undefined`, whose own doc comment names `'Plain string'` a valid node. Both were exported under one name from packages the same consumers import together, so which declaration a call site got depended on which package it happened to import from — #4548's canary measured 19 of 35 errors as exactly that collision. Core's declaration is now a re-export of types', so there is one declaration left to disagree with. Core's entry surface is unchanged: `dist/index.d.ts` is byte-identical across the change.
+./packages/core/CHANGELOG.md:1029:  One interface now carries both label vocabularies two properties apart — `label`/`description` are the spec's INLINE map, `ariaLabel` is the KEYED bundle reference — and each accepts the other's shape vacuously. That confusability is objectui#4167's known hazard, inherent to the spec's `I18nLabel` design; both shapes are named with cross-referenced doc comments stating which resolver owns which slot, and a pin asserts the two unions do not collapse into each other.
+./packages/core/CHANGELOG.md:1121:  `resolveInlineI18nLabel` in five files, with hand-written comments at two of
+./packages/core/CHANGELOG.md:1143:  - **`GanttConfig.tooltipFields` carried the comment "not part of the upstream
+./packages/core/CHANGELOG.md:1146:    `formatted` were missing, under a comment already claiming to be "the part
+./packages/core/CHANGELOG.md:1152:    own doc comment names this module as one of the three. It is now the spec's
+./packages/core/CHANGELOG.md:2326:  their own comments:
+./packages/core/CHANGELOG.md:3209:  accumulated with `tsc` silent throughout and the comment still vouching for it.
+./packages/core/CHANGELOG.md:3213:  carried by that binding plus a parity gate rather than by a comment (#3017).
+./packages/core/CHANGELOG.md:3465:  **The decision is a mechanism, not a comment.** What #3103 removed was a doc
+./packages/core/CHANGELOG.md:3466:  comment claiming spec canonicity that had been false for fifteen majors;
+./packages/core/CHANGELOG.md:3467:  shipping its successor as another comment would repeat the mistake one level up.
+./packages/core/CHANGELOG.md:3530:  **Correcting a comment shipped in #3078.** `buildEffectiveFilter` documented the
+
+exec
+/bin/zsh -lc 'rg -n "onToggleReaction|toggleReaction|ReactionPicker|Reaction" apps/console/src packages/plugin-detail packages/collaboration' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 155ms:
+packages/collaboration/CHANGELOG.md:176:  dispatch the same `onReaction(id, '👍')` today. `addThumbsUp` names the reaction
+packages/collaboration/CHANGELOG.md:357:  (`onReaction(id, '👍')`, unconditionally), not what `styles.reactionPicker`
+packages/collaboration/src/CommentThread.tsx:46:  onReaction?: (commentId: string, emoji: string) => void;
+packages/collaboration/src/CommentThread.tsx:403:  onReaction,
+packages/collaboration/src/CommentThread.tsx:589:        // Reactions display
+packages/collaboration/src/CommentThread.tsx:598:              onClick: () => onReaction?.(comment.id, emoji),
+packages/collaboration/src/CommentThread.tsx:624:          // Still `addThumbsUp`: the button dispatches `onReaction(id, '👍')`
+packages/collaboration/src/CommentThread.tsx:629:          onReaction && React.createElement('button', {
+packages/collaboration/src/CommentThread.tsx:631:            onClick: () => onReaction(comment.id, '👍'),
+packages/collaboration/src/CommentThread.tsx:652:          // `+` above happens to fire the same `onReaction(id, '👍')` today, but
+packages/collaboration/src/CommentThread.tsx:659:          onReaction && React.createElement('button', {
+packages/collaboration/src/CommentThread.tsx:661:            onClick: () => onReaction(comment.id, '👍'),
+packages/collaboration/src/CommentThread.tsx:664:          onReaction && React.createElement('button', {
+packages/collaboration/src/CommentThread.tsx:666:            onClick: () => onReaction(comment.id, '❤️'),
+packages/collaboration/src/useCollaborationTranslation.ts:64:  // Reactions. A DEDICATED pair, deliberately not `detail.reactionCount` —
+packages/collaboration/src/useCollaborationTranslation.ts:79:  // though both currently dispatch `onReaction(id, '👍')`: `addThumbsUp` names
+packages/collaboration/src/__tests__/comment-thread-no-provider-fallback.test.tsx:88:      onReaction={() => {}}
+packages/collaboration/src/__tests__/comment-thread-i18n.test.tsx:87:        onReaction={() => {}}
+packages/collaboration/src/__tests__/comment-thread-i18n.test.tsx:285:          onReaction={() => {}}
+packages/plugin-detail/CHANGELOG.md:1112:  - `ReactionPicker`'s `role="listbox"` popup — now `detail.emojiPicker`
+packages/plugin-detail/CHANGELOG.md:1113:  - `ReactionPicker`'s per-reaction chip, which built its name by concatenation
+packages/plugin-detail/CHANGELOG.md:1140:    bundle key (`detail.addReaction`, added to all ten packs).
+packages/plugin-detail/CHANGELOG.md:1396:  `enableMentions`, `enableReactions`, `enableThreading`,
+packages/plugin-detail/CHANGELOG.md:1428:  `showCommentInput`, `enableThreading`, `enableReactions` and `enableMentions`
+packages/plugin-detail/CHANGELOG.md:1429:  read `onAddComment` / `onAddReply` / `onToggleReaction` /
+packages/plugin-detail/src/ReactionPicker.tsx:12:import type { Reaction } from '@object-ui/types';
+packages/plugin-detail/src/ReactionPicker.tsx:17:export interface ReactionPickerProps {
+packages/plugin-detail/src/ReactionPicker.tsx:19:  reactions: Reaction[];
+packages/plugin-detail/src/ReactionPicker.tsx:21:  onToggleReaction?: (emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/ReactionPicker.tsx:28: * ReactionPicker — Emoji reaction selector and display.
+packages/plugin-detail/src/ReactionPicker.tsx:30: * Aligned with @objectstack/spec ReactionSchema.
+packages/plugin-detail/src/ReactionPicker.tsx:32:export const ReactionPicker: React.FC<ReactionPickerProps> = ({
+packages/plugin-detail/src/ReactionPicker.tsx:34:  onToggleReaction,
+packages/plugin-detail/src/ReactionPicker.tsx:41:  const handleReaction = React.useCallback(
+packages/plugin-detail/src/ReactionPicker.tsx:43:      onToggleReaction?.(emoji);
+packages/plugin-detail/src/ReactionPicker.tsx:46:    [onToggleReaction],
+packages/plugin-detail/src/ReactionPicker.tsx:73:            onClick={() => handleReaction(reaction.emoji)}
+packages/plugin-detail/src/ReactionPicker.tsx:74:            disabled={!onToggleReaction}
+packages/plugin-detail/src/ReactionPicker.tsx:84:      {onToggleReaction && (
+packages/plugin-detail/src/ReactionPicker.tsx:91:            aria-label={t('detail.addReaction')}
+packages/plugin-detail/src/ReactionPicker.tsx:107:                  onClick={() => handleReaction(emoji)}
+packages/plugin-detail/src/index.tsx:143:export { ReactionPicker } from './ReactionPicker';
+packages/plugin-detail/src/index.tsx:164:export type { ReactionPickerProps } from './ReactionPicker';
+packages/plugin-detail/src/index.tsx:716:    { name: 'enableReactions', type: 'boolean', description: 'Show emoji reactions on feed items. Toggling one requires a host discussion context; without it existing reactions still render, read-only.' },
+packages/plugin-detail/src/useDetailTranslation.ts:72:  'detail.addReaction': 'Add reaction',
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:13: * `ReactionPicker`'s add button is icon-only (`SmilePlus`), so its
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:16: * reads `detail.addReaction`, backfilled into all ten packs.
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:21: * rather than the raw key, and "aria-label reads `detail.addReaction`" is a
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:28:import { ReactionPicker } from './ReactionPicker';
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:35:      <ReactionPicker reactions={[]} onToggleReaction={vi.fn()} />
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:40:describe('ReactionPicker add button — accessible name (objectstack#5407)', () => {
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:63:    expect(screen.queryByRole('button', { name: 'detail.addReaction' })).toBeNull();
+packages/plugin-detail/src/RecordChatterPanel.tsx:33:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordChatterPanel.tsx:77:  onToggleReaction,
+packages/plugin-detail/src/RecordChatterPanel.tsx:160:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/RecordChatterPanel.tsx:217:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/RecordActivityTimeline.tsx:32:import { ReactionPicker } from './ReactionPicker';
+packages/plugin-detail/src/RecordActivityTimeline.tsx:82:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordActivityTimeline.tsx:204:  onToggleReaction,
+packages/plugin-detail/src/RecordActivityTimeline.tsx:230:  const enableReactions = config?.enableReactions ?? false;
+packages/plugin-detail/src/RecordActivityTimeline.tsx:532:                        {/* Reactions */}
+packages/plugin-detail/src/RecordActivityTimeline.tsx:533:                        {enableReactions && item.reactions && item.reactions.length > 0 && (
+packages/plugin-detail/src/RecordActivityTimeline.tsx:535:                            <ReactionPicker
+packages/plugin-detail/src/RecordActivityTimeline.tsx:537:                              onToggleReaction={
+packages/plugin-detail/src/RecordActivityTimeline.tsx:538:                                onToggleReaction
+packages/plugin-detail/src/RecordActivityTimeline.tsx:539:                                  ? (emoji) => onToggleReaction(item.id, emoji)
+packages/plugin-detail/src/RecordActivityTimeline.tsx:547:                        {enableReactions && (!item.reactions || item.reactions.length === 0) && onToggleReaction && (
+packages/plugin-detail/src/RecordActivityTimeline.tsx:549:                            <ReactionPicker
+packages/plugin-detail/src/RecordActivityTimeline.tsx:551:                              onToggleReaction={(emoji) => onToggleReaction(item.id, emoji)}
+packages/plugin-detail/src/renderers/record-activity.tsx:49: *   need `onAddReply`) · `enableReactions` (needs `onToggleReaction`) ·
+packages/plugin-detail/src/renderers/record-activity.tsx:155:    enableReactions: read('enableReactions'),
+packages/plugin-detail/src/renderers/record-activity.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+packages/plugin-detail/src/renderers/record-chatter.tsx:163:      enableReactions: true,
+packages/plugin-detail/src/renderers/record-chatter.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+apps/console/src/__tests__/registry-inputs-spec-parity.test.ts:2606:    pins: 'The nested activity-feed config\'s MEMBERS, and the fact that authoring the object REPLACES rather than merges. `record-chatter.tsx` composes `{ position, collapsible, feed: DEFAULTS, ...schema }` — a shallow spread — so an authored `feed` displaces the renderer\'s three defaults wholesale and every member not restated falls back to `RecordActivityTimeline`\'s own default. Those defaults are NOT uniform, which is the trap this pin exists for and is asserted per member: `showCommentInput` is `!== false` (ON when absent) while `enableReactions` and `enableThreading` are `?? false` (OFF), so `feed: {}` silently takes reactions and threading down while leaving the composer up. Each of the three carries its own observable — composer placeholder, the `Add reaction` affordance, and whether a reply is pulled out of the ROOT row list — each with the absent-`feed` control (objectui#8071 slice 6).',
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:13: * Two names were still English literals after #5407 fixed `detail.addReaction`:
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:34:import { ReactionPicker } from '../ReactionPicker';
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:45:      <ReactionPicker reactions={reactions as any} onToggleReaction={() => {}} />
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:52:describe('ReactionPicker chip label — two-key plural (objectstack#5430)', () => {
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:83:describe('ReactionPicker popup — accessible name (objectstack#5430)', () => {
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:86:    // The trigger is `detail.addReaction` (already localized by #5407), so its
+packages/plugin-detail/src/renderers/__tests__/recordChatterFilterModeMentions-8968.test.tsx:137:  enableReactions: false,
+packages/plugin-detail/src/renderers/__tests__/recordChatterFilterModeMentions-8968.test.tsx:145:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFilterModeMentions-8968.test.tsx:219:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:96:/** The empty-state reaction button — `enableReactions`'s observable. */
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:137:  enableReactions: true,
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:145:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:191:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:307:  it('`enableReactions` decides whether the reaction affordance is rendered', () => {
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:308:    mountAs(blockName, { ...AFFORDANCES, enableReactions: true });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:312:    mountAs(blockName, { ...AFFORDANCES, enableReactions: false });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:35: * three defaults (`enableReactions` / `enableThreading` / `showCommentInput`,
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:47: * `enableReactions`, `enableThreading`, `showSubscriptionToggle`) at
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:97:/** The empty-state reaction button's accessible name — `enableReactions`'s observable. */
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:110:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:133:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:146:    mount({ showCommentInput: false, enableReactions: true, enableThreading: false });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:152:  it(`${blockName}: \`enableReactions: false\` withholds the reaction affordance`, () => {
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:153:    mount({ showCommentInput: true, enableReactions: false, enableThreading: false });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:162:    mount({ showCommentInput: false, enableReactions: false, enableThreading: true });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:166:    mount({ showCommentInput: false, enableReactions: false, enableThreading: false });
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:198:    //   enableReactions   `config?.enableReactions ?? false`     -> OFF when absent
+packages/plugin-detail/src/renderers/__tests__/record-chatter.rowLimitRefusal-10145.test.tsx:41:const handlers = { onAddComment: vi.fn(), onAddReply: vi.fn(), onToggleReaction: vi.fn() };
+
+exec
+/bin/zsh -lc 'rg -n "onToggleReaction|toggle.*reaction|reactions" apps/console/src/pages apps/console/src | head -150' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 149ms:
+apps/console/src/__tests__/registry-inputs-spec-parity.test.ts:2606:    pins: 'The nested activity-feed config\'s MEMBERS, and the fact that authoring the object REPLACES rather than merges. `record-chatter.tsx` composes `{ position, collapsible, feed: DEFAULTS, ...schema }` — a shallow spread — so an authored `feed` displaces the renderer\'s three defaults wholesale and every member not restated falls back to `RecordActivityTimeline`\'s own default. Those defaults are NOT uniform, which is the trap this pin exists for and is asserted per member: `showCommentInput` is `!== false` (ON when absent) while `enableReactions` and `enableThreading` are `?? false` (OFF), so `feed: {}` silently takes reactions and threading down while leaving the composer up. Each of the three carries its own observable — composer placeholder, the `Add reaction` affordance, and whether a reply is pulled out of the ROOT row list — each with the absent-`feed` control (objectui#8071 slice 6).',
+
+exec
+/bin/zsh -lc 'rg -n "onToggleReaction" apps/console packages | head -100' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 420ms:
+packages/react/src/context/DiscussionContext.tsx:47:  onToggleReaction?: (itemId: string, reaction: string) => void | Promise<void>;
+packages/react/src/context/DiscussionContext.tsx:74:    value.onToggleReaction,
+packages/plugin-detail/src/RecordActivityTimeline.tsx:82:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordActivityTimeline.tsx:204:  onToggleReaction,
+packages/plugin-detail/src/RecordActivityTimeline.tsx:537:                              onToggleReaction={
+packages/plugin-detail/src/RecordActivityTimeline.tsx:538:                                onToggleReaction
+packages/plugin-detail/src/RecordActivityTimeline.tsx:539:                                  ? (emoji) => onToggleReaction(item.id, emoji)
+packages/plugin-detail/src/RecordActivityTimeline.tsx:547:                        {enableReactions && (!item.reactions || item.reactions.length === 0) && onToggleReaction && (
+packages/plugin-detail/src/RecordActivityTimeline.tsx:551:                              onToggleReaction={(emoji) => onToggleReaction(item.id, emoji)}
+packages/plugin-detail/src/__tests__/ReactionPicker.a11yNames.test.tsx:45:      <ReactionPicker reactions={reactions as any} onToggleReaction={() => {}} />
+packages/plugin-detail/src/renderers/record-chatter.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+packages/plugin-detail/src/renderers/record-activity.tsx:49: *   need `onAddReply`) · `enableReactions` (needs `onToggleReaction`) ·
+packages/plugin-detail/src/renderers/record-activity.tsx:282:        onToggleReaction={discussion?.onToggleReaction as any}
+packages/plugin-detail/CHANGELOG.md:1429:  read `onAddComment` / `onAddReply` / `onToggleReaction` /
+packages/plugin-detail/src/ReactionPicker.tsx:21:  onToggleReaction?: (emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/ReactionPicker.tsx:34:  onToggleReaction,
+packages/plugin-detail/src/ReactionPicker.tsx:43:      onToggleReaction?.(emoji);
+packages/plugin-detail/src/ReactionPicker.tsx:46:    [onToggleReaction],
+packages/plugin-detail/src/ReactionPicker.tsx:74:            disabled={!onToggleReaction}
+packages/plugin-detail/src/ReactionPicker.tsx:84:      {onToggleReaction && (
+packages/plugin-detail/src/RecordChatterPanel.tsx:33:  onToggleReaction?: (itemId: string | number, emoji: string) => void | Promise<void>;
+packages/plugin-detail/src/RecordChatterPanel.tsx:77:  onToggleReaction,
+packages/plugin-detail/src/RecordChatterPanel.tsx:160:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/RecordChatterPanel.tsx:217:            onToggleReaction={onToggleReaction}
+packages/plugin-detail/src/ReactionPicker.i18n.test.tsx:35:      <ReactionPicker reactions={[]} onToggleReaction={vi.fn()} />
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:145:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembersLive-8934.test.tsx:191:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/recordChatterFilterModeMentions-8968.test.tsx:145:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFilterModeMentions-8968.test.tsx:219:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:110:  onToggleReaction: vi.fn(),
+packages/plugin-detail/src/renderers/__tests__/recordChatterFeedMembers-8071.test.tsx:133:  handlers.onToggleReaction.mockClear();
+packages/plugin-detail/src/renderers/__tests__/record-chatter.rowLimitRefusal-10145.test.tsx:41:const handlers = { onAddComment: vi.fn(), onAddReply: vi.fn(), onToggleReaction: vi.fn() };
+packages/app-shell/src/views/RecordDetailView.tsx:2541:          onToggleReaction={handleToggleReaction as any}
+packages/app-shell/src/views/__tests__/countLabels.ruAr-10242.test.tsx:111:  // No `onToggleReaction`, so no add-reaction button: the chip is the only one.
+packages/app-shell/src/views/__tests__/countLabels.ruAr-10425.test.tsx:199:  // No `onToggleReaction`, so no add-reaction button: the chip is the only one.
+
+exec
+/bin/zsh -lc 'rg -n "handleToggleReaction|reaction" packages/app-shell/src/views/RecordDetailView.tsx' in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 133ms:
+1649:    // reactions (JSON string), parent_id, created_at, updated_at.
+1654:    const parseReactions = (raw: unknown): FeedItem['reactions'] => {
+1682:          reactions: parseReactions(c.reactions),
+1900:  const handleToggleReaction = useCallback(
+1910:          const reactions = [...(item.reactions ?? [])];
+1911:          const idx = reactions.findIndex(r => r.emoji === emoji);
+1913:            const r = reactions[idx];
+1915:              // Remove user's reaction
+1917:                reactions.splice(idx, 1);
+1919:                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+1922:              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+1925:            reactions.push({ emoji, count: 1, reacted: true });
+1927:          const updated = { ...item, reactions };
+1928:          // Persist reactions to backend as JSON. The schema stores
+1929:          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+1936:            for (const r of reactions) {
+1941:              // proper backend reaction endpoint in M11.
+1950:              reactions: JSON.stringify(remoteShape),
+2541:          onToggleReaction={handleToggleReaction as any}
+
+exec
+/bin/zsh -lc "sed -n '1830,1975p' packages/app-shell/src/views/RecordDetailView.tsx && sed -n '1,80p' packages/app-shell/src/views/RecordDetailView.tsx" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 137ms:
+          thread_id: threadId,
+          author_id: currentUser.id,
+          author_name: currentUser.name,
+          author_avatar_url: 'avatar' in currentUser ? (currentUser as any).avatar : undefined,
+          body: text,
+          mentions: JSON.stringify(mentionIds),
+          created_at: newItem.createdAt,
+        });
+      } catch (err) {
+        throw commentWriteFailed(err);
+      }
+      const key = feedRecordKey;
+      setFeedItemsByRecord(prev => ({
+        ...prev,
+        [key]: [...(prev[key] ?? EMPTY_FEED), newItem],
+      }));
+    },
+    [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+  );
+
+  const handleAddReply = useCallback(
+    async (parentId: string | number, text: string) => {
+      if (!dataSource || !feedRecordKey) {
+        throw commentWriteFailed(new Error('No data source to write sys_comment through'));
+      }
+      const newItem: FeedItem = {
+        id: crypto.randomUUID(),
+        type: 'comment',
+        actor: currentUser.name,
+        actorAvatarUrl: 'avatar' in currentUser ? (currentUser as any).avatar : undefined,
+        body: text,
+        createdAt: new Date().toISOString(),
+        parentId,
+      };
+      const threadId = `${objectName}:${pureRecordId}`;
+      const mentionIds = extractMentions(text, mentionSuggestions);
+      try {
+        await dataSource.create('sys_comment', {
+          id: newItem.id,
+          thread_id: threadId,
+          author_id: currentUser.id,
+          author_name: currentUser.name,
+          author_avatar_url: 'avatar' in currentUser ? (currentUser as any).avatar : undefined,
+          body: text,
+          mentions: JSON.stringify(mentionIds),
+          created_at: newItem.createdAt,
+          parent_id: parentId,
+        });
+      } catch (err) {
+        throw commentWriteFailed(err);
+      }
+      // Same record-scoped write as `handleAddComment` — the reply and the
+      // parent's bumped `replyCount` both belong to THIS record's slice
+      // (objectui#3268), and both land only once the reply is stored.
+      const key = feedRecordKey;
+      setFeedItemsByRecord(prev => {
+        const updated = [...(prev[key] ?? EMPTY_FEED), newItem];
+        return {
+          ...prev,
+          [key]: updated.map(item =>
+            item.id === parentId
+              ? { ...item, replyCount: (item.replyCount ?? 0) + 1 }
+              : item
+          ),
+        };
+      });
+    },
+    [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+  );
+
+  const handleToggleReaction = useCallback(
+    (itemId: string | number, emoji: string) => {
+      if (!feedRecordKey) return;
+      // Reactions are toggled from the panel of the record on screen, so they
+      // apply to that record's slice only (objectui#3268) — an id collision
+      // with a row cached for another record cannot reach across.
+      setFeedItemsByRecord(prevByRecord => ({
+        ...prevByRecord,
+        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+          if (item.id !== itemId) return item;
+          const reactions = [...(item.reactions ?? [])];
+          const idx = reactions.findIndex(r => r.emoji === emoji);
+          if (idx >= 0) {
+            const r = reactions[idx];
+            if (r.reacted) {
+              // Remove user's reaction
+              if (r.count <= 1) {
+                reactions.splice(idx, 1);
+              } else {
+                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+              }
+            } else {
+              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+            }
+          } else {
+            reactions.push({ emoji, count: 1, reacted: true });
+          }
+          const updated = { ...item, reactions };
+          // Persist reactions to backend as JSON. The schema stores
+          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+          // so we rebuild the canonical shape from the optimistic local
+          // state before writing back. A failed update silently keeps the
+          // optimistic UI change (best-effort, surfaced by RUM if needed).
+          if (dataSource) {
+            const userId = currentUser.id;
+            const remoteShape: Record<string, string[]> = {};
+            for (const r of reactions) {
+              // We don't have the original user-id list locally, so we
+              // approximate by emitting the signed-in user when they are
+              // the (only known) reactor. This is an over-simplification
+              // for single-user pilot installs and will be replaced by a
+              // proper backend reaction endpoint in M11.
+              const ids: string[] = [];
+              if (r.reacted) ids.push(userId);
+              // Pad with a synthetic marker so count is preserved across
+              // refreshes from other clients (best-effort).
+              while (ids.length < r.count) ids.push('__other__');
+              remoteShape[r.emoji] = ids;
+            }
+            dataSource.update('sys_comment', String(itemId), {
+              reactions: JSON.stringify(remoteShape),
+            }).catch(() => {});
+          }
+          return updated;
+        }),
+      }));
+    },
+    [currentUser.id, dataSource, feedRecordKey],
+  );
+
+  useEffect(() => {
+    // Reset loading on navigation; the page-record effect above owns data fetching
+    setIsLoading(true);
+    queueMicrotask(() => setIsLoading(false));
+  }, [objectName, recordId]);
+
+  // Build the synthesized-page inputs — the object-derived parts that
+  // `buildDefaultPageSchema` folds into the default record page when no
+  // authored Page is assigned. Must be before early returns to keep hook
+  // count consistent across renders and avoid React error #310.
+  const synthParts = useMemo(() => {
+    if (!objectDef) {
+      return {} as {
+        sections?: Array<Record<string, any>>;
+        highlightFields?: string[];
+        headerActions?: ActionDef[];
+/**
+ * RecordDetailView Component
+ *
+ * Renders a detail view for a single record, resolved by URL params.
+ * Renders via the SchemaRenderer Page pipeline: an authored
+ * PageSchema(type='record') when one is assigned, else a canonical
+ * default page synthesized from the object definition
+ * (`buildDefaultPageSchema`).
+ */
+
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
+import { activityRowToFeedItem, InlineEditSaveBar, buildDefaultPageSchema, deriveFieldGroupDetailSections, extractMentions, resolveTitleField, useRecordEditable } from '@object-ui/plugin-detail';
+import { Empty, EmptyTitle, EmptyDescription } from '@object-ui/components';
+import { useAuth, createAuthenticatedFetch } from '@object-ui/auth';
+import { usePermissions } from '@object-ui/permissions';
+import { useDisplayLocale } from '@object-ui/i18n';
+import { ActionProvider, useObjectTranslation, useObjectLabel, useActionTextLocalizer, usePageAssignment, RecordContextProvider, SchemaRenderer, DiscussionContextProvider, HighlightFieldsProvider, InlineEditProvider, useGlobalUndo, useDataInvalidation, notifyDataChanged, useRowPredicate } from '@object-ui/react';
+import { buildExpandFields, resolveRecordIdParamSeed, userActionPredicates, withoutDeniedFields } from '@object-ui/core';
+import { toast } from 'sonner';
+import { useRecordPresence, PresenceAvatars } from '@object-ui/collaboration';
+import { Database, ChevronLeft } from 'lucide-react';
+import { MetadataPanel, useMetadataInspector } from './MetadataInspector.js';
+import { SkeletonDetail } from '../skeletons/index.js';
+import { ManagedByBadge } from '../components/ManagedByBadge.js';
+import { resolveEffectiveCrudAffordances } from '../utils/crudAffordances.js';
+import { deriveRelatedLists } from '../utils/deriveRelatedLists.js';
+import { stripDiscussionNodes, hasExplicitAttachments, hasExplicitApprovals } from '../utils/pageSchemaIntrospect.js';
+import { ActionConfirmDialog, type ConfirmDialogState } from './ActionConfirmDialog.js';
+import { ActionParamDialog, type ParamDialogState } from './ActionParamDialog.js';
+import { ActionResultDialog, type ResultDialogState } from './ActionResultDialog.js';
+import { FlowRunner, type ScreenFlowState, type ScreenSpec } from './FlowRunner.js';
+import { FlowRefusalNotice, type FlowRefusalState } from './FlowRefusalNotice.js';
+import { RelatedRecordActionsBridge } from './RelatedRecordActionsBridge.js';
+import { withPageTabsUrlSync } from '../utils/pageTabsUrlSync.js';
+import { RECORD_DETAIL_TAB_PARAM, RECORD_TRAIL_PARAM, decodeRecordTrail, buildRecordTrailHref } from '../urlParams.js';
+import { resolveActionParams } from '../utils/resolveActionParams.js';
+import { createConsoleServerActionHandler } from '../utils/consoleServerAction.js';
+import { modalTargetRefusalMessage } from '../utils/modalTargetDiagnostics.js';
+import { actionContextOrg } from '../utils/actionContextOrg.js';
+import { interpretFlowResponse, judgeFlowLaunch } from '../utils/flowResponse.js';
+import { useRecordBreadcrumbTitle } from '../context/NavigationContext.js';
+// Audit provenance renders as the one-line <RecordMetaFooter>; the other
+// framework-injected bookkeeping columns are hidden from the body outright.
+// Both sets are derived, not restated — see record-detail-system-fields.ts.
+import { AUDIT_FIELD_NAMES, HIDDEN_SYSTEM_FIELD_NAMES } from './record-detail-system-fields.js';
+import type { FeedItem } from '@object-ui/types';
+import type { ActionDef, ActionParamDef, ConfirmationHandler } from '@object-ui/core';
+import type { ConsoleActionDispatch } from '../consoleActionDispatch.js';
+import { useRecordApprovals, recordLockedByApproval, isSubmitterOf } from '../hooks/useRecordApprovals.js';
+import { RecordAttachmentsPanel } from './RecordAttachmentsPanel.js';
+import { RecordApprovalsPanel } from './RecordApprovalsPanel.js';
+import { DeclaredActionsBar } from './DeclaredActionsBar.js';
+import {
+  SYS_APPROVAL_REQUEST_OBJECT,
+  RECORD_APPROVAL_ACTION_LOCATION,
+  RECORD_APPROVAL_EXCLUDED_ACTIONS,
+} from './recordApprovalActions.js';
+// Side-effect registration of `record:approvals` — synthesized record pages
+// reference the node whenever the record has approval requests (#3461), so
+// the type must resolve wherever this view renders, not only under hosts
+// that import the app-shell barrel.
+import './record-approvals-renderer.js';
+import { RecordPermissionAssignmentsRenderer } from './metadata-admin/RecordPermissionAssignmentsRenderer.js';
+import { getRecordDisplayName } from '../utils/index.js';
+import { parseAuditValue, collectAuditChanges, collectLookupIds, formatAuditValue } from '../utils/auditHistoryDisplay.js';
+import { useFavorites } from '../hooks/useFavorites.js';
+import { useActionModal } from '../hooks/useActionModal.js';
+import { useRecentItems } from '../hooks/useRecentItems.js';
+
+interface RecordDetailViewProps {
+  dataSource: any;
+  objects: any[];
+  onEdit: (record: any) => void;
+  /**
+   * When provided, this object name overrides the value derived from the
+   * current URL (`useParams()`). Used when rendering the detail inside a
+   * navigation drawer or split-pane — the parent route owns the URL while
+   * the embedded detail is keyed by an in-memory record selection.
+   */
+
+codex
+I found the persistence handler in `RecordDetailView`. It updates the feed optimistically inside a state updater, but launches a detached request there and discards errors. I’m checking the existing toast and feed state patterns so the fix keeps each click serialized against the latest reaction state and can roll back a failed write.
+exec
+/bin/zsh -lc "rg -n \"toast\\.error|feedItemsByRecord|setFeedItemsByRecord\" packages/app-shell/src/views/RecordDetailView.tsx | head -80 && sed -n '1620,1705p' packages/app-shell/src/views/RecordDetailView.tsx" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 143ms:
+329:  const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
+709:    if (options?.type === 'error') { toast.error(message); return; }
+1621:  const feedItems = (feedRecordKey ? feedItemsByRecord[feedRecordKey] : undefined) ?? EMPTY_FEED;
+1687:        setFeedItemsByRecord(prev => ({
+1747:        setFeedItemsByRecord(prev => ({
+1801:      toast.error(
+1842:      setFeedItemsByRecord(prev => ({
+1885:      setFeedItemsByRecord(prev => {
+1906:      setFeedItemsByRecord(prevByRecord => ({
+2372:          toast.error(
+2406:            toast.error(err?.message || 'Delete failed');
+  const feedRecordKey = objectName && pureRecordId ? `${objectName}:${pureRecordId}` : null;
+  const feedItems = (feedRecordKey ? feedItemsByRecord[feedRecordKey] : undefined) ?? EMPTY_FEED;
+  const feedFetchKey =
+    dataSource && feedRecordKey && (feedsEnabled || activitiesEnabled) ? feedRecordKey : null;
+  const [settledFeedKey, setSettledFeedKey] = useState<string | null>(null);
+  const feedLoading = feedFetchKey !== null && settledFeedKey !== feedFetchKey;
+
+  // Fetch comments from API.
+  //
+  // NOTE: Record-level presence ("who else is viewing this record") used to
+  // be probed here by `dataSource.find('sys_presence', …)`, but that was an
+  // architectural mistake: presence is real-time ephemeral state and does
+  // not belong in a regular REST collection. The probe has been removed
+  // pending a proper transport-level design (WebSocket-backed
+  // `<PresenceProvider>` in @object-ui/collaboration). See ROADMAP for the
+  // realtime / OCC plan.
+  useEffect(() => {
+    if (!dataSource || !objectName || !pureRecordId) return;
+    let cancelled = false;
+    const threadId = `${objectName}:${pureRecordId}`;
+    // The two reads below run in PARALLEL and are collected here so the
+    // loading flag can close over BOTH of them — see the `allSettled` at the
+    // end of this effect.
+    const inFlight: Promise<unknown>[] = [];
+
+    // M10.10: Fetch persisted comments from sys_comment. Field names
+    // are snake_case to match the platform-objects schema
+    // (`packages/platform-objects/src/audit/sys-comment.object.ts`):
+    // thread_id, author_id, author_name, author_avatar_url, body,
+    // reactions (JSON string), parent_id, created_at, updated_at.
+    //
+    // Reactions are stored as a JSON object of `{ emoji: string[] }`
+    // (one array of user-ids per emoji). The aggregator below counts
+    // entries and flags the currently-signed-in user.
+    const parseReactions = (raw: unknown): FeedItem['reactions'] => {
+      if (!raw) return undefined;
+      let parsed: Record<string, string[]> | undefined;
+      if (typeof raw === 'string') {
+        try { parsed = JSON.parse(raw); } catch { return undefined; }
+      } else if (typeof raw === 'object') {
+        parsed = raw as Record<string, string[]>;
+      }
+      if (!parsed) return undefined;
+      return Object.entries(parsed).map(([emoji, userIds]) => ({
+        emoji,
+        count: Array.isArray(userIds) ? userIds.length : 0,
+        reacted: Array.isArray(userIds) && userIds.includes(currentUser.id),
+      }));
+    };
+
+    if (feedsEnabled) inFlight.push(dataSource.find('sys_comment', { $filter: { thread_id: threadId }, $orderby: { created_at: 'asc' } })
+      .then((res: any) => {
+        if (!res?.data?.length) return;
+        const mapped: FeedItem[] = res.data.map((c: any) => ({
+          id: c.id,
+          type: 'comment' as const,
+          actor: c.author_name ?? t('detail.unknownUser', { defaultValue: 'Unknown' }),
+          actorAvatarUrl: c.author_avatar_url ?? undefined,
+          body: c.body ?? '',
+          createdAt: c.created_at,
+          updatedAt: c.updated_at,
+          parentId: c.parent_id ?? undefined,
+          reactions: parseReactions(c.reactions),
+        }));
+        // Into THIS record's slice — `threadId` is the key the effect closed
+        // over, so a response that arrives after the user navigated away
+        // updates the record it was fetched for, never the one on screen.
+        setFeedItemsByRecord(prev => ({
+          ...prev,
+          [threadId]: mergeFeedRows(prev[threadId] ?? EMPTY_FEED, mapped),
+        }));
+      })
+      .catch(() => {}));
+
+    // M10.11: Fetch sys_activity rows for this record and merge into the
+    // timeline. plugin-audit's writers populate sys_activity on every
+    // create/update/delete unless the object opts OUT via an explicit
+    // `enable.activities: false` (#2707 — opt-out contract, spec default
+    // true), so this surface gives us a Salesforce-style "what happened
+    // on this record" feed without any per-app glue.
+    //
+    // The whole row -> FeedItem reading is `record:activity`'s exported
+    // `activityRowToFeedItem` (@object-ui/plugin-detail), NOT a copy of it.
+    // This merge and that block read the SAME rows of the SAME system table,
+    // so two readings can only ever be a bug.
+    //
+
+exec
+/bin/zsh -lc "sed -n '310,340p' packages/app-shell/src/views/RecordDetailView.tsx; rg -n \"update\\('sys_comment'\" packages | head" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 402ms:
+    return {
+      pathname: buildRecordTrailHref(baseAppUrl, parent, trail.slice(0, -1)),
+      label: parent.t || `#${shortId}`,
+    };
+  }, [originFromState, location.search, appName]);
+  const { t, language } = useObjectTranslation();
+  // The DISPLAY locale the audit-history dates format with (objectui#10442).
+  // `language` above stays for what it is: the key into per-locale LABEL maps.
+  const displayLocale = useDisplayLocale();
+  const { objectLabel, viewLabel: _vLabel, sectionLabel, actionParamText, actionParamOptionLabel, actionDescription, actionResultDialog, fieldLabel, fieldOptionLabel } = useObjectLabel();
+  // label + confirmText + successMessage through ONE call (objectui#4265) —
+  // the three keys of an `_actions.<name>` bundle entry can no longer be
+  // localized apart from one another on this surface.
+  const localizeActionTexts = useActionTextLocalizer();
+  const { isFavorite, toggleFavorite, refreshLabel: refreshFavoriteLabel } = useFavorites();
+  const { addRecentItem } = useRecentItems();
+  const [isLoading, setIsLoading] = useState(true);
+  // The discussion feed, stored PER RECORD (objectui#3268). See the
+  // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+  const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
+  const [mentionSuggestions, setMentionSuggestions] = useState<
+    Array<{ id: string; label: string; avatarUrl?: string }>
+  >([]);
+  // Screen-flow runtime: a paused `screen`-node flow launched from a record action.
+  const [screenFlow, setScreenFlow] = useState<ScreenFlowState | null>(null);
+  // A record-action flow launch that ended `refused` without pausing (objectui#9973).
+  const [flowRefusal, setFlowRefusal] = useState<FlowRefusalState>({ open: false });
+  const [historyEntries, setHistoryEntries] = useState<any[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [recordTitle, setRecordTitle] = useState<string | undefined>();
+  const objectDef = objects.find((o: any) => o.name === objectName);
+packages/app-shell/src/views/RecordDetailView.tsx:1949:            dataSource.update('sys_comment', String(itemId), {
+
+exec
+/bin/zsh -lc "rg -n \"useRef\\(\" packages/app-shell/src/views/RecordDetailView.tsx | head" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 135ms:
+1016:  const serverActionEnvRef = useRef({ objectName, pureRecordId, notifyRecordChanged, t, navigate });
+1088:  const approvalsRef = useRef(approvals);
+1098:  const skippedInitialApprovalsRefresh = useRef(false);
+
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..2e2e010a662d20e128253779b6ba618360b64902
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,9 +1904,11 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
++      let optimisticItem: FeedItem | undefined;
+       setFeedItemsByRecord(prevByRecord => ({
+         ...prevByRecord,
+         [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+@@ -1925,36 +1931,51 @@
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+           const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
++          optimisticItem = updated;
+           return updated;
+         }),
+       }));
++      if (!dataSource || !optimisticItem) return;
++      const before = feedItems.find(item => item.id === itemId);
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..2e2e010a662d20e128253779b6ba618360b64902
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,9 +1904,11 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
++      let optimisticItem: FeedItem | undefined;
+       setFeedItemsByRecord(prevByRecord => ({
+         ...prevByRecord,
+         [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+@@ -1925,36 +1931,51 @@
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+           const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
++          optimisticItem = updated;
+           return updated;
+         }),
+       }));
++      if (!dataSource || !optimisticItem) return;
++      const before = feedItems.find(item => item.id === itemId);
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..8124e8dcf9bdc386b27141ca57272fd6bd674cef
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,14 +1904,13 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
+           const idx = reactions.findIndex(r => r.emoji === emoji);
+           if (idx >= 0) {
+             const r = reactions[idx];
+@@ -1924,37 +1927,51 @@
+           } else {
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..8124e8dcf9bdc386b27141ca57272fd6bd674cef
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,14 +1904,13 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
+           const idx = reactions.findIndex(r => r.emoji === emoji);
+           if (idx >= 0) {
+             const r = reactions[idx];
+@@ -1924,37 +1927,51 @@
+           } else {
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+exec
+/bin/zsh -lc "sed -n '1895,1990p' packages/app-shell/src/views/RecordDetailView.tsx && git diff --stat && git diff -- packages/app-shell/src/views/RecordDetailView.tsx | head -180" in /Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback
+ succeeded in 202ms:
+              ? { ...item, replyCount: (item.replyCount ?? 0) + 1 }
+              : item
+          ),
+        };
+      });
+    },
+    [currentUser, dataSource, objectName, pureRecordId, feedRecordKey, mentionSuggestions, commentWriteFailed],
+  );
+
+  const handleToggleReaction = useCallback(
+    (itemId: string | number, emoji: string) => {
+      if (!feedRecordKey) return;
+      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+      // Reactions are toggled from the panel of the record on screen, so they
+      // apply to that record's slice only (objectui#3268) — an id collision
+      // with a row cached for another record cannot reach across.
+      const before = feedItems.find(item => item.id === itemId);
+      if (!before) return;
+      const reactions = [...(before.reactions ?? [])];
+          const idx = reactions.findIndex(r => r.emoji === emoji);
+          if (idx >= 0) {
+            const r = reactions[idx];
+            if (r.reacted) {
+              // Remove user's reaction
+              if (r.count <= 1) {
+                reactions.splice(idx, 1);
+              } else {
+                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+              }
+            } else {
+              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+            }
+          } else {
+            reactions.push({ emoji, count: 1, reacted: true });
+          }
+      const optimisticItem = { ...before, reactions };
+      setFeedItemsByRecord(prev => ({
+        ...prev,
+        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+      }));
+      if (!dataSource) return;
+      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
+      const write = previous.catch(() => {}).then(async () => {
+        const reactions = optimisticItem!.reactions ?? [];
+        const remoteShape: Record<string, string[]> = {};
+        for (const r of reactions) {
+          const ids = r.reacted ? [currentUser.id] : [];
+          while (ids.length < r.count) ids.push('__other__');
+          remoteShape[r.emoji] = ids;
+        }
+        try {
+          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
+        } catch (err) {
+          // Undo this click against the latest visible state, preserving any
+          // later clicks that arrived while the request was pending.
+          setFeedItemsByRecord(prev => ({
+            ...prev,
+            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
+              if (item.id !== itemId) return item;
+              const current = [...(item.reactions ?? [])];
+              const idx = current.findIndex(r => r.emoji === emoji);
+              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
+              if (idx >= 0) {
+                const delta = wasReacted ? 1 : -1;
+                const count = current[idx].count + delta;
+                if (count <= 0) current.splice(idx, 1);
+                else current[idx] = { ...current[idx], count, reacted: wasReacted };
+              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
+              return { ...item, reactions: current };
+            }),
+          }));
+          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
+        }
+      });
+      reactionWrites.current.set(writeKey, write);
+      void write.finally(() => {
+        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
+      });
+    },
+    [currentUser.id, dataSource, feedRecordKey, feedItems],
+  );
+
+  useEffect(() => {
+    // Reset loading on navigation; the page-record effect above owns data fetching
+    setIsLoading(true);
+    queueMicrotask(() => setIsLoading(false));
+  }, [objectName, recordId]);
+
+  // Build the synthesized-page inputs — the object-derived parts that
+  // `buildDefaultPageSchema` folds into the default record page when no
+  // authored Page is assigned. Must be before early returns to keep hook
+  // count consistent across renders and avoid React error #310.
+  const synthParts = useMemo(() => {
+    if (!objectDef) {
+      return {} as {
+        sections?: Array<Record<string, any>>;
+ packages/app-shell/src/views/RecordDetailView.tsx | 85 ++++++++++++++---------
+ 1 file changed, 51 insertions(+), 34 deletions(-)
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..8124e8dcf 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,14 +1904,13 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
+           const idx = reactions.findIndex(r => r.emoji === emoji);
+           if (idx >= 0) {
+             const r = reactions[idx];
+@@ -1924,37 +1927,51 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+           } else {
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..8124e8dcf9bdc386b27141ca57272fd6bd674cef
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,14 +1904,13 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
+           const idx = reactions.findIndex(r => r.emoji === emoji);
+           if (idx >= 0) {
+             const r = reactions[idx];
+@@ -1924,37 +1927,51 @@
+           } else {
+             reactions.push({ emoji, count: 1, reacted: true });
+           }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
+-          }
+-          return updated;
+-        }),
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem!.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+apply patch
+patch: completed
+/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..2f63029d3575d1d137f4f129d401f05190121191
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,61 +1904,74 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
++      const idx = reactions.findIndex(r => r.emoji === emoji);
++      if (idx >= 0) {
++        const r = reactions[idx];
++        if (r.reacted) {
++          // Remove user's reaction
++          if (r.count <= 1) {
++            reactions.splice(idx, 1);
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+           }
+-          return updated;
+-        }),
++        } else {
++          reactions[idx] = { ...r, count: r.count + 1, reacted: true };
++        }
++      } else {
++        reactions.push({ emoji, count: 1, reacted: true });
++      }
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..2f63029d3575d1d137f4f129d401f05190121191
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,61 +1904,74 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
++      const idx = reactions.findIndex(r => r.emoji === emoji);
++      if (idx >= 0) {
++        const r = reactions[idx];
++        if (r.reacted) {
++          // Remove user's reaction
++          if (r.count <= 1) {
++            reactions.splice(idx, 1);
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+           }
+-          return updated;
+-        }),
++        } else {
++          reactions[idx] = { ...r, count: r.count + 1, reacted: true };
++        }
++      } else {
++        reactions.push({ emoji, count: 1, reacted: true });
++      }
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+codex
+Updated reaction handling in [RecordDetailView.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx). Reaction writes are serialized per comment, and a failed save rolls back that click and shows an error toast. Each click still updates the UI immediately.
+
+I left tests untouched and did not run them.
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd337d354b10a5cc851ebb10e453a7d534..2f63029d3575d1d137f4f129d401f05190121191
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -327,6 +327,10 @@
+   // The discussion feed, stored PER RECORD (objectui#3268). See the
+   // `feedRecordKey` block below for why this is a map and not a `FeedItem[]`.
+   const [feedItemsByRecord, setFeedItemsByRecord] = useState<Record<string, FeedItem[]>>({});
++  // Keep reaction writes out of React state updaters (which may run more than
++  // once) and serialize writes per comment so rapid toggles cannot overwrite
++  // one another out of order.
++  const reactionWrites = useRef(new Map<string, Promise<void>>());
+   const [mentionSuggestions, setMentionSuggestions] = useState<
+     Array<{ id: string; label: string; avatarUrl?: string }>
+   >([]);
+@@ -1900,61 +1904,74 @@
+   const handleToggleReaction = useCallback(
+     (itemId: string | number, emoji: string) => {
+       if (!feedRecordKey) return;
++      const writeKey = `${feedRecordKey}:${String(itemId)}`;
+       // Reactions are toggled from the panel of the record on screen, so they
+       // apply to that record's slice only (objectui#3268) — an id collision
+       // with a row cached for another record cannot reach across.
+-      setFeedItemsByRecord(prevByRecord => ({
+-        ...prevByRecord,
+-        [feedRecordKey]: (prevByRecord[feedRecordKey] ?? EMPTY_FEED).map(item => {
+-          if (item.id !== itemId) return item;
+-          const reactions = [...(item.reactions ?? [])];
+-          const idx = reactions.findIndex(r => r.emoji === emoji);
+-          if (idx >= 0) {
+-            const r = reactions[idx];
+-            if (r.reacted) {
+-              // Remove user's reaction
+-              if (r.count <= 1) {
+-                reactions.splice(idx, 1);
+-              } else {
+-                reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+-              }
+-            } else {
+-              reactions[idx] = { ...r, count: r.count + 1, reacted: true };
+-            }
++      const before = feedItems.find(item => item.id === itemId);
++      if (!before) return;
++      const reactions = [...(before.reactions ?? [])];
++      const idx = reactions.findIndex(r => r.emoji === emoji);
++      if (idx >= 0) {
++        const r = reactions[idx];
++        if (r.reacted) {
++          // Remove user's reaction
++          if (r.count <= 1) {
++            reactions.splice(idx, 1);
+           } else {
+-            reactions.push({ emoji, count: 1, reacted: true });
+-          }
+-          const updated = { ...item, reactions };
+-          // Persist reactions to backend as JSON. The schema stores
+-          // `reactions` as a textarea JSON string of `{ emoji: userIds[] }`,
+-          // so we rebuild the canonical shape from the optimistic local
+-          // state before writing back. A failed update silently keeps the
+-          // optimistic UI change (best-effort, surfaced by RUM if needed).
+-          if (dataSource) {
+-            const userId = currentUser.id;
+-            const remoteShape: Record<string, string[]> = {};
+-            for (const r of reactions) {
+-              // We don't have the original user-id list locally, so we
+-              // approximate by emitting the signed-in user when they are
+-              // the (only known) reactor. This is an over-simplification
+-              // for single-user pilot installs and will be replaced by a
+-              // proper backend reaction endpoint in M11.
+-              const ids: string[] = [];
+-              if (r.reacted) ids.push(userId);
+-              // Pad with a synthetic marker so count is preserved across
+-              // refreshes from other clients (best-effort).
+-              while (ids.length < r.count) ids.push('__other__');
+-              remoteShape[r.emoji] = ids;
+-            }
+-            dataSource.update('sys_comment', String(itemId), {
+-              reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            reactions[idx] = { ...r, count: r.count - 1, reacted: false };
+           }
+-          return updated;
+-        }),
++        } else {
++          reactions[idx] = { ...r, count: r.count + 1, reacted: true };
++        }
++      } else {
++        reactions.push({ emoji, count: 1, reacted: true });
++      }
++      const optimisticItem = { ...before, reactions };
++      setFeedItemsByRecord(prev => ({
++        ...prev,
++        [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => item.id === itemId ? optimisticItem : item),
+       }));
++      if (!dataSource) return;
++      const previous = reactionWrites.current.get(writeKey) ?? Promise.resolve();
++      const write = previous.catch(() => {}).then(async () => {
++        const reactions = optimisticItem.reactions ?? [];
++        const remoteShape: Record<string, string[]> = {};
++        for (const r of reactions) {
++          const ids = r.reacted ? [currentUser.id] : [];
++          while (ids.length < r.count) ids.push('__other__');
++          remoteShape[r.emoji] = ids;
++        }
++        try {
++          await dataSource.update('sys_comment', String(itemId), { reactions: JSON.stringify(remoteShape) });
++        } catch (err) {
++          // Undo this click against the latest visible state, preserving any
++          // later clicks that arrived while the request was pending.
++          setFeedItemsByRecord(prev => ({
++            ...prev,
++            [feedRecordKey]: (prev[feedRecordKey] ?? EMPTY_FEED).map(item => {
++              if (item.id !== itemId) return item;
++              const current = [...(item.reactions ?? [])];
++              const idx = current.findIndex(r => r.emoji === emoji);
++              const wasReacted = before?.reactions?.find(r => r.emoji === emoji)?.reacted ?? false;
++              if (idx >= 0) {
++                const delta = wasReacted ? 1 : -1;
++                const count = current[idx].count + delta;
++                if (count <= 0) current.splice(idx, 1);
++                else current[idx] = { ...current[idx], count, reacted: wasReacted };
++              } else if (wasReacted) current.push({ emoji, count: 1, reacted: true });
++              return { ...item, reactions: current };
++            }),
++          }));
++          toast.error(err instanceof Error ? err.message : 'Could not save reaction');
++        }
++      });
++      reactionWrites.current.set(writeKey, write);
++      void write.finally(() => {
++        if (reactionWrites.current.get(writeKey) === write) reactionWrites.current.delete(writeKey);
++      });
+     },
+-    [currentUser.id, dataSource, feedRecordKey],
++    [currentUser.id, dataSource, feedRecordKey, feedItems],
+   );
+ 
+   useEffect(() => {
+
+tokens used
+46,664
+Updated reaction handling in [RecordDetailView.tsx](/Users/anjitha/Downloads/bug-fix-evals/work/t3-reaction-rollback/packages/app-shell/src/views/RecordDetailView.tsx). Reaction writes are serialized per comment, and a failed save rolls back that click and shows an error toast. Each click still updates the UI immediately.
+
+I left tests untouched and did not run them.

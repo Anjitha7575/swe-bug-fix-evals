@@ -1,0 +1,65 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..db397eabe 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -400,15 +400,26 @@ export function WebsiteViewDialog({
+     },
+   );
+ 
++  // The search the box last sent. An answer counts only while it is for that
++  // search: a query cleared or replaced, or a site switched, leaves the answers
++  // still in flight behind, and they must not reach the list.
++  const sentSearch = useRef<{ websiteId: string; query: string } | null>(null);
++  const isSentSearch = (args: { websiteId: string; query: string }) =>
++    sentSearch.current !== null &&
++    sentSearch.current.websiteId === args.websiteId &&
++    sentSearch.current.query === args.query;
++
+   const { mutate: searchContent } = useBackendAction(
+     'websites/actions:searchContent',
+     {
+       errorToast: false,
+-      onSuccess: (data) => {
++      onSuccess: (data, args) => {
++        if (!isSentSearch(args)) return;
+         setSearchResults(data.results);
+         setIsSearching(false);
+       },
+-      onError: () => {
++      onError: (_error, args) => {
++        if (!isSentSearch(args)) return;
+         setIsSearching(false);
+         toast({ title: t('toast.searchError'), variant: 'destructive' });
+       },
+@@ -418,6 +429,7 @@ export function WebsiteViewDialog({
+   useEffect(() => {
+     if (isOpen) {
+       shownPages.current = 0;
++      sentSearch.current = null;
+       setPages([]);
+       setOffset(0);
+       setHasMore(false);
+@@ -425,6 +437,7 @@ export function WebsiteViewDialog({
+       setSearchQuery('');
+       setActiveQuery('');
+       setSearchResults([]);
++      setIsSearching(false);
+       setPageState('all');
+       pageStateRef.current = 'all';
+       setPageCounts(null);
+@@ -460,6 +473,7 @@ export function WebsiteViewDialog({
+   const triggerSearch = useCallback(() => {
+     const query = searchQuery.trim();
+     if (!query) return;
++    sentSearch.current = { websiteId: website._id, query };
+     setActiveQuery(query);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+@@ -500,6 +514,7 @@ export function WebsiteViewDialog({
+   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+     setSearchQuery(e.target.value);
+     if (!e.target.value.trim()) {
++      sentSearch.current = null;
+       setActiveQuery('');
+       setSearchResults([]);
+       setIsSearching(false);

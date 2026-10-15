@@ -1,0 +1,9 @@
+I fixed this in `services/platform/app/features/websites/components/website-view-dialog.tsx`. The search action's success and error handlers used to apply every response that came back, even when it was for an older search. Now the dialog keeps a ref to the most recent search request. A response is only used if it belongs to that request; anything else is dropped. That covers results, the spinner, and the error toast.
+
+- **Searches finishing out of order:** each new search replaces the stored request, so a slower, older response can't overwrite newer results.
+- **Clearing the box:** clearing forgets the pending request, so a search still running can't bring back results, a spinner or an error toast.
+- **Switching sites or reopening:** the reset when the dialog opens or the site changes now also forgets the pending request and turns off the loading state.
+
+All 30 tests in `website-view-dialog.test.tsx` pass, and I didn't change any tests. I also ran the TypeScript check and it reported no errors in this file. Those tests only cover the dialog's existing behaviour. Nothing checks the out-of-order case, and I haven't reproduced it in the running app.
+
+That was just the notice that the earlier test and type-check run finished, and it doesn't change anything. All 30 dialog tests passed, and the type check showed no errors in `website-view-dialog.tsx`. The fix is still only in the working tree; I haven't committed it.

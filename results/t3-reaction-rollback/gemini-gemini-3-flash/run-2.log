@@ -1,0 +1,17 @@
+YOLO mode is enabled. All tool calls will be automatically approved.
+YOLO mode is enabled. All tool calls will be automatically approved.
+Ripgrep is not available. Falling back to GrepTool.
+Error when talking to Gemini API Full report available at: /var/folders/tz/fg9d4r610wq68z6r5xlh2w1r0000gn/T/gemini-client-error-Turn.run-sendMessageStream-2026-10-14T18-45-36-377Z.json _ApiError: {"error":{"message":"{\n  \"error\": {\n    \"code\": 402,\n    \"message\": \"Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. \",\n    \"status\": \"RESOURCE_EXHAUSTED\"\n  }\n}\n","code":402,"status":"Payment Required"}}
+    at throwErrorIfNotOK (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:267903:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:267666:7
+    at async Models.generateContentStream (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:268762:16)
+    at async file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:311662:19
+    at async file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:288223:23
+    at async retryWithBackoff (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:308244:23)
+    at async GeminiChat.makeApiCallAndProcessStream (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:332881:28)
+    at async GeminiChat.streamWithRetries (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:332634:29)
+    at async Turn.run (file:///Users/anjitha/.nvm/versions/node/v22.23.3/lib/node_modules/@google/gemini-cli/bundle/chunk-RWBXO4OP.js:333556:24) {
+  status: 402
+}
+An unexpected critical error occurred:[object Object]
