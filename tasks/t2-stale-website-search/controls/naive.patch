@@ -1,0 +1,12 @@
+diff --git a/services/platform/app/features/websites/components/website-view-dialog.tsx b/services/platform/app/features/websites/components/website-view-dialog.tsx
+index 64c87b132..99734ba1f 100644
+--- a/services/platform/app/features/websites/components/website-view-dialog.tsx
++++ b/services/platform/app/features/websites/components/website-view-dialog.tsx
+@@ -461,6 +461,7 @@ export function WebsiteViewDialog({
+     const query = searchQuery.trim();
+     if (!query) return;
+     setActiveQuery(query);
++    setSearchResults([]);
+     setIsSearching(true);
+     searchContent({ websiteId: website._id, query, limit: 20 });
+   }, [searchQuery, website._id, searchContent]);

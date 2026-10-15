@@ -1,0 +1,13 @@
+diff --git a/packages/app-shell/src/views/RecordDetailView.tsx b/packages/app-shell/src/views/RecordDetailView.tsx
+index e3cfbccd3..27630509c 100644
+--- a/packages/app-shell/src/views/RecordDetailView.tsx
++++ b/packages/app-shell/src/views/RecordDetailView.tsx
+@@ -1948,7 +1948,7 @@ export function RecordDetailView({ dataSource, objects, onEdit, objectNameOverri
+             }
+             dataSource.update('sys_comment', String(itemId), {
+               reactions: JSON.stringify(remoteShape),
+-            }).catch(() => {});
++            }).catch(() => { toast.error('Could not save reaction'); });
+           }
+           return updated;
+         }),
